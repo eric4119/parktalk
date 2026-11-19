@@ -857,3 +857,15 @@ dialog h2 {
 .icon-btn:hover {
   color: #7450e9;
 }
+.map-attendance { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+.map-attendance strong { font-size: 13px; }
+.map-attendance p { margin: 0; }
+.room-card { max-width: 720px; }
+.room-preview { display: flex; align-items: center; justify-content: space-around; min-height: 180px; border-radius: 16px; background: #eae2fb; color: #43366a; font-size: 42px; }
+.room-preview strong { font-size: 16px; }
+.room-mint { background: #d9f1ea; color: #2b665a; }
+.room-sunset { background: #ffe4d8; color: #8d5947; }
+.room-form { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin: 18px 0; }
+.room-form label { display: grid; flex: 1; min-width: 110px; gap: 6px; font-size: 12px; font-weight: 700; }
+.room-form input, .room-form select { width: 100%; border: 1px solid #dedfeb; border-radius: 8px; padding: 10px; background: white; }
+@media (max-width: 700px) { .map-attendance { align-items: flex-start; flex-direction: column; } .room-preview { min-height: 145px; font-size: 32px; } }

@@ -1,0 +1,94 @@
+.cast-feature-kicker { display: block; color: #a46b13; font-size: 10px; font-weight: 900; letter-spacing: .12em; }
+.cast-board-hero, .cast-map-intro { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 24px 27px; border: 1px solid #f0d488; border-radius: 24px; background: linear-gradient(115deg, #ffe9a4, #fff5d5); overflow: hidden; }
+.cast-board-hero h2 { margin: 7px 0 6px; color: #382c1e; font-size: clamp(22px, 3vw, 30px); line-height: 1.25; letter-spacing: -.06em; }
+.cast-board-hero p, .cast-map-intro p { margin: 0; color: #816a43; font-size: 11px; line-height: 1.6; }
+.cast-board-hero-art { display: grid; place-items: center; flex: none; width: 105px; height: 105px; border-radius: 30px; background: #fff8e4aa; font-size: 58px; transform: rotate(-7deg); }
+.cast-board-chips { display: flex; gap: 8px; margin: 19px 0 17px; overflow-x: auto; scrollbar-width: none; }
+.cast-board-chips::-webkit-scrollbar { display: none; }
+.cast-board-chips button { flex: none; padding: 9px 14px; border: 1px solid #e9dcc2; border-radius: 999px; background: #fff; color: #776a56; font-size: 11px; font-weight: 800; }
+.cast-board-chips button.active { background: #f2be37; border-color: #f2be37; color: #39290d; }
+.cast-board-list { display: grid; gap: 9px; }
+.cast-board-list-head { display: flex; justify-content: space-between; align-items: center; margin: 3px 2px 5px; }
+.cast-board-list-head strong { font-size: 15px; }
+.cast-board-list-head span { color: #998a72; font-size: 10px; }
+.cast-post-card { display: grid; gap: 8px; width: 100%; padding: 17px 19px; border: 1px solid #eee5d4; border-radius: 18px; background: #fff; text-align: left; box-shadow: 0 6px 19px #7452270a; }
+.cast-post-card:hover { border-color: #e4bd59; transform: translateY(-1px); }
+.cast-post-card > .tag { justify-self: start; }
+.cast-post-card > strong { color: #352d23; font-size: 14px; }
+.cast-post-summary { color: #8e8373; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cast-post-meta { display: flex; justify-content: space-between; gap: 9px; color: #a1988a; font-size: 10px; }
+.cast-empty { padding: 28px; border: 1px dashed #e4d5b7; border-radius: 16px; color: #897b65; text-align: center; font-size: 12px; }
+.cast-comments { display: grid; gap: 10px; margin: 25px 0 15px; padding-top: 18px; border-top: 1px solid #eee5d4; }
+.cast-comments > strong { font-size: 13px; }
+.cast-comments p { display: grid; gap: 3px; margin: 0; padding: 10px; border-radius: 12px; background: #fff8e8; font-size: 11px; }
+.cast-comments p span { color: #655b4f; white-space: pre-wrap; }
+.cast-comment-form { display: flex; gap: 7px; }
+.cast-comment-form input { flex: 1; min-width: 0; padding: 10px; border: 1px solid #e6dbc6; border-radius: 11px; font-size: 12px; }
+.cast-comment-form button { white-space: nowrap; }
+.cast-delete-post { margin-left: 8px; padding: 9px 4px; border: 0; background: none; color: #a3695c; font-size: 11px; font-weight: 750; }
+.cast-map-intro { margin-bottom: 14px; padding: 20px 23px; }
+.cast-map-intro strong { display: block; margin: 7px 0 4px; font-size: 18px; letter-spacing: -.04em; }
+.cast-map-intro > span:last-child { font-size: 44px; }
+.cast-map-shortcuts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.cast-map-shortcuts button { display: grid; grid-template-columns: 38px 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; padding: 13px 14px; border: 1px solid #eee5d4; border-radius: 18px; background: #fff; text-align: left; font-size: 23px; }
+.cast-map-shortcuts button:hover { border-color: #e4bd59; }
+.cast-map-shortcuts button strong { font-size: 12px; }
+.cast-map-shortcuts button small { grid-column: 2; margin-top: -7px; color: #978b79; font-size: 10px; }
+.pixel-map-card { border: 2px solid #e6c66e; border-radius: 20px; }
+.pixel-map-topline { background: #fff0bd; color: #74501b; }
+.pixel-map-topline .pixel-live { border-radius: 999px; color: #8d701f; }
+.pixel-map-controls { background: #fffdf9; }
+.pixel-map-controls span { color: #756a59; }
+.pixel-control { border-color: #edcf7e; border-radius: 11px; background: #fff5d7; color: #8b621b; }
+.pixel-control:hover, .pixel-control:active { background: #ffeab0; }
+.pixel-talk { border-radius: 11px; background: #f1be35; color: #3f2d10; }
+.map-attendance { border-color: #e6d6ae; border-radius: 18px; background: #fff9e8; }
+.map-attendance strong { display: block; margin-top: 4px; color: #463723; }
+.map-attendance p { margin: 4px 0 0; color: #8b7c66; font-size: 10px; }
+.cast-attended { flex: none; border-radius: 999px; background: #e6f3da; color: #4c7b36; padding: 9px 12px; font-size: 11px; font-weight: 800; }
+.cast-wardrobe-summary { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; padding: 17px; border-radius: 20px; border: 1px solid #f0d488; background: #fff3ca; }
+.cast-wardrobe-emoji { display: grid; place-items: center; flex: none; width: 55px; height: 55px; border-radius: 17px; background: #fff; font-size: 29px; }
+.cast-wardrobe-summary > div { flex: 1; min-width: 0; }
+.cast-wardrobe-summary strong { display: block; margin-top: 3px; font-size: 14px; }
+.cast-wardrobe-summary p { margin: 4px 0 0; color: #887751; font-size: 11px; line-height: 1.5; }
+.cast-wardrobe-summary button { flex: none; }
+.shop-item { border-radius: 18px; }
+.shop-item .item-emoji { display: grid; place-items: center; margin: auto; width: 65px; height: 65px; border-radius: 19px; background: #fff1c7; }
+.room-card { max-width: 760px; }
+.room-card > .cast-feature-kicker { margin-bottom: 10px; }
+.room-preview { position: relative; display: block; min-height: 240px; overflow: hidden; background: linear-gradient(#fff0ba 0 70%, #e2b27f 70% 100%); }
+.room-preview.room-mint { background: linear-gradient(#dff2de 0 70%, #cda77b 70% 100%); }
+.room-preview.room-sunset { background: linear-gradient(#ffdfcb 0 70%, #bc8d78 70% 100%); }
+.room-preview.room-lavender { background: linear-gradient(#e9dffc 0 70%, #c8a889 70% 100%); }
+.room-preview-label { position: absolute; z-index: 2; top: 15px; left: 17px; padding: 6px 10px; border-radius: 999px; background: #ffffffd9; font-size: 11px; font-weight: 850; }
+.room-window { position: absolute; top: 47px; right: 16%; display: grid; place-items: center; width: 78px; height: 78px; border: 8px solid #fffdf7; border-radius: 40px 40px 8px 8px; background: #b9dfff; font-size: 29px; box-shadow: 0 5px 0 #ad906b44; }
+.room-plant { position: absolute; z-index: 2; bottom: 47px; left: 16%; font-size: 43px; }
+.room-furniture { position: absolute; z-index: 2; bottom: 28px; left: 50%; transform: translateX(-50%); font-size: 74px; }
+.room-floor { position: absolute; left: 0; right: 0; bottom: 0; height: 20px; background: #a36e46; opacity: .38; }
+.room-form { padding-top: 12px; }
+.room-form select, .room-form input { border-radius: 12px; border-color: #e9dbc1; }
+.room-share { margin-top: 20px; padding-top: 17px; border-top: 1px solid #eee5d4; }
+.room-share > strong, .room-found > strong { font-size: 14px; }
+.room-share > p { color: #8b7e6c; font-size: 11px; }
+.room-found { margin: 18px 0; }
+.room-found > strong { display: block; margin-bottom: 10px; }
+.room-found .room-preview { min-height: 170px; }
+.cast-attendance-history { display: grid; gap: 9px; padding-top: 16px; border-top: 1px solid #eee5d4; }
+.cast-attendance-history > strong { font-size: 12px; }
+.cast-attendance-history > div { display: flex; flex-wrap: wrap; gap: 6px; }
+.cast-attendance-history span { padding: 6px 9px; border-radius: 999px; background: #e8f3dd; color: #527a3d; font-size: 10px; font-weight: 750; }
+@media (max-width: 700px) {
+  .cast-board-hero { padding: 18px; }
+  .cast-board-hero-art { width: 82px; height: 82px; border-radius: 24px; font-size: 45px; }
+  .cast-board-chips { margin-top: 16px; }
+  .cast-board-chips button { padding: 8px 11px; font-size: 10px; }
+  .cast-map-intro { padding: 17px; }
+  .cast-map-intro strong { font-size: 15px; }
+  .cast-map-intro > span:last-child { font-size: 34px; }
+  .cast-map-shortcuts button { padding: 10px; font-size: 20px; grid-template-columns: 28px 1fr; }
+  .cast-map-shortcuts button strong { font-size: 10px; }
+  .cast-map-shortcuts button small { font-size: 9px; }
+  .cast-wardrobe-summary { flex-wrap: wrap; }
+  .cast-wardrobe-summary > div { flex-basis: calc(100% - 71px); }
+  .cast-wardrobe-summary button { margin-left: auto; }
+}

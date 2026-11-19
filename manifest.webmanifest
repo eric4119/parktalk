@@ -1,0 +1,15 @@
+{
+  "name": "파크톡 | ParkTalk",
+  "short_name": "파크톡",
+  "description": "에버랜드 방문객과 캐스트를 위한 파크톡 웹앱",
+  "lang": "ko",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fffaf0",
+  "theme_color": "#ffd550",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

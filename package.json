@@ -1,0 +1,8 @@
+{
+  "name": "parktalk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "파크톡 설치형 웹앱 시연판",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}

@@ -19,7 +19,6 @@
 .auth-hill--back { background: #a5d5bb; left: -10%; transform: rotate(-6deg); bottom: -13%; }
 .auth-hill--front { background: #78bca0; left: 18%; bottom: -21%; height: 34%; }
 .auth-wheel { position: absolute; right: 13%; bottom: 21%; width: 170px; height: 170px; border: 10px solid #7563bb; border-radius: 50%; display: grid; place-items: center; font-size: 110px; color: #8975c6; opacity: .65; }
-.auth-people { position: absolute; bottom: 17%; left: 15%; font-size: 43px; letter-spacing: -4px; color: #403b72; }
 .auth-panel { display: grid; place-items: center; padding: 40px clamp(28px,5vw,80px); }
 .auth-panel__inner { width: min(100%,480px); }
 .auth-panel__eyebrow { display: inline-block; color: #7153d2; font-weight: 800; font-size: 11px; letter-spacing: .11em; margin-bottom: 9px; }
@@ -55,3 +54,7 @@
 .auth-quick { border: 0; padding: 6px 0; background: none; color: #6c50d0; font-size: 12px; font-weight: 800; text-decoration: underline; text-underline-offset: 4px; }
 @media (max-width: 850px) { .auth-layout { grid-template-columns: 1fr; min-height: 100vh; } .auth-hero { min-height: 225px; padding: 24px; } .auth-hero__top { font-size: 20px; } .auth-hero__copy { margin: 30px 0 4px; } .auth-hero h1 { font-size: 31px; margin: 7px 0; } .auth-hero p, .auth-hero__foot { display: none; } .auth-sun { width: 110px; height: 110px; top: 28%; } .auth-wheel { display: none; } .auth-panel { padding: 30px 22px 45px; align-items: start; } }
 @media (max-width: 480px) { .auth-hero { min-height: 196px; } .auth-panel h2 { font-size: 24px; } .role-card { padding: 16px; } .role-card__icon { width: 49px; height: 49px; } .auth-hero__badge { display: none; } }
+.auth-role-field { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; border: 0; }
+.auth-role-field legend { margin-bottom: 8px; font-size: 12px; font-weight: 800; color: #353047; }
+.auth-role-field label { flex: 1; display: flex; align-items: center; gap: 7px; border: 1px solid #e5e1f1; border-radius: 11px; padding: 12px; font-size: 12px; white-space: nowrap; }
+.auth-role-field input { width: auto; accent-color: #7455dc; }

@@ -2,17 +2,17 @@
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#f4f1ff" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#ffd550" />
     <title>파크톡 앱 미리보기</title>
     <style>
       * { box-sizing: border-box; }
       html, body { margin: 0; min-height: 100%; }
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        color: #292543;
-        background: radial-gradient(circle at 15% 15%, #eae5ff, transparent 30%),
-          radial-gradient(circle at 85% 80%, #dff5ee, transparent 30%), #f8f7fc;
+        color: #302b24;
+        background: radial-gradient(circle at 15% 15%, #ffe898, transparent 30%),
+          radial-gradient(circle at 85% 80%, #fff1c8, transparent 30%), #fffaf0;
       }
       .preview {
         min-height: 100dvh;
@@ -23,31 +23,21 @@
         padding: 32px;
       }
       .intro { width: min(340px, 30vw); }
-      .intro__mark {
-        display: inline-grid;
-        place-items: center;
-        width: 42px;
-        height: 42px;
-        border-radius: 14px;
-        background: #6e54cf;
-        color: white;
-        font-size: 24px;
-      }
-      .intro h1 { margin: 20px 0 10px; font-size: 36px; letter-spacing: -.06em; }
-      .intro p { margin: 0; color: #706d85; line-height: 1.7; }
-      .intro__hint { display: block; margin-top: 24px; font-size: 13px; color: #867fb5; }
+      .intro__logo { display: block; width: 290px; max-width: 100%; border-radius: 24px; box-shadow: 0 15px 40px #a4691020; }
+      .intro h1 { margin: 28px 0 10px; font-size: 36px; letter-spacing: -.06em; }
+      .intro p { margin: 0; color: #6e6558; line-height: 1.7; }
+      .intro__hint { display: block; margin-top: 24px; font-size: 13px; color: #9d7622; }
+      .phone-stage { flex: none; width: 423px; height: 882px; }
       .phone {
         position: relative;
-        flex: none;
-        width: 414px;
-        height: min(900px, calc(100dvh - 64px));
-        min-height: 560px;
+        width: 423px;
+        height: 882px;
         padding: 11px;
         overflow: hidden;
         border: 4px solid #25223a;
         border-radius: 44px;
         background: #25223a;
-        box-shadow: 0 30px 85px #30254d35, 0 4px 12px #30254d1c;
+        box-shadow: 0 30px 85px #614b2435, 0 4px 12px #614b241c;
       }
       .phone::before {
         position: absolute;
@@ -70,9 +60,14 @@
         border-radius: 29px;
         background: white;
       }
-      @media (max-width: 760px) {
+      @media (max-width: 900px) and (min-width: 521px) {
+        .intro { display: none; }
+        .preview { padding: 16px; }
+      }
+      @media (max-width: 520px) {
         .preview { display: block; min-height: 100dvh; padding: 0; }
         .intro { display: none; }
+        .phone-stage { width: 100% !important; height: 100dvh !important; }
         .phone {
           width: 100%;
           height: 100dvh;
@@ -81,6 +76,7 @@
           border: 0;
           border-radius: 0;
           box-shadow: none;
+          transform: none !important;
         }
         .phone::before { display: none; }
         iframe { border-radius: 0; }
@@ -90,14 +86,36 @@
   <body>
     <main class="preview">
       <div class="intro">
-        <span class="intro__mark">✦</span>
-        <h1>ParkTalk</h1>
+        <img class="intro__logo" src="assets/parktalk-logo.png" alt="ParkTalk 파크톡 로고" />
+        <h1>파크에서 함께하는 하루</h1>
         <p>휴대폰 화면으로 파크톡을 체험해 보세요. 방문객과 캐스트 모드를 모두 선택할 수 있습니다.</p>
         <span class="intro__hint">이 화면은 앱 형태를 확인하기 위한 시연입니다.</span>
       </div>
-      <div class="phone">
-        <iframe src="./index.html" title="파크톡 모바일 웹앱" allow="geolocation; clipboard-write"></iframe>
+      <div class="phone-stage">
+        <div class="phone">
+          <iframe src="./index.html" title="파크톡 모바일 웹앱" allow="geolocation; clipboard-write"></iframe>
+        </div>
       </div>
     </main>
+    <script>
+      const stage = document.querySelector(".phone-stage");
+      const phone = document.querySelector(".phone");
+      function fitPreview() {
+        if (window.matchMedia("(max-width: 520px)").matches) {
+          stage.style.width = "";
+          stage.style.height = "";
+          phone.style.transform = "";
+          return;
+        }
+        // Keep the iframe at a real 393 × 852 CSS-pixel phone viewport while scaling its frame.
+        const scale = Math.min(1, (window.innerWidth - 32) / 423, (window.innerHeight - 32) / 882);
+        stage.style.width = `${423 * scale}px`;
+        stage.style.height = `${882 * scale}px`;
+        phone.style.transformOrigin = "top left";
+        phone.style.transform = `scale(${scale})`;
+      }
+      fitPreview();
+      window.addEventListener("resize", fitPreview);
+    </script>
   </body>
 </html>
