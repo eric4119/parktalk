@@ -13,7 +13,7 @@ const navGroups = [
     "board|캐스트 게시판|board",
     "tag|중고거래|trade",
     "grid|부서별 게시판|department",
-    "personAdd|신규 캐스트|new",
+    "personAdd|신규 캐스트 Q&A|new",
   ],
   [
     "소통",
@@ -22,7 +22,7 @@ const navGroups = [
   ],
   ["생활", "food|식당 메뉴|menu", "calendar|가게 예약|booking"],
   ["동물 친구", "sparkles|동물 키우기|map"],
-  ["도움", "sparkles|AI 생활 도우미|ai", "search|습득물 등록|found"],
+  ["도움", "sparkles|AI 생활 도우미|ai", "search|분실물·습득물|lost"],
 ];
 const iosIcon = (name) => window.ParkIcons(name);
 const seeds = [
@@ -119,7 +119,7 @@ function nav() {
     .join("");
 }
 function bottomNav() {
-  const boardPages = ["board", "free", "trade", "department", "carpool", "new", "qa", "praise"];
+  const boardPages = ["board", "free", "trade", "department", "carpool", "new", "qa", "praise", "missing", "lost"];
   const selected = boardPages.includes(state.page) ? "board" : state.page;
   $("#castBottomNav").innerHTML = [
     ["home", "홈"], ["board", "게시판"], ["messages", "채팅"], ["settings", "앱 설정"],
@@ -200,51 +200,20 @@ function home() {
 <div class="stack">
 <div class="quick">
 <button data-nav="new">
-<span class="quick-icon">${iosIcon("board")}</span>신규 캐스트 게시판</button>
+<span class="quick-icon">${iosIcon("board")}</span>신규 캐스트 Q&A</button>
 <button data-nav="matching">
 <span class="quick-icon">${iosIcon("people")}</span>랜덤매칭 참여</button>
 <button data-nav="messages">
 <span class="quick-icon">${iosIcon("messages")}</span>채팅·쪽지</button>
 </div>
-<section class="card list-card">
-<h2 class="section-title">캐스트들의 이야기</h2>
-<div class="tabs">${["전체", "인기", "우리 부서", "질문"].map((t, i) => `<button class="tab ${i === 0 ? "active" : ""}" data-home-tab="${t}">${t}</button>`).join("")}</div>
-<div id="homePosts">${posts.filter((post) => categories.includes(post.category)).slice(0, 4).map(postRow).join("")}</div>
-<div class="promo">
-<span class="promo-icon">${iosIcon("store")}</span>
-<div>
-<strong>근처 가게 단체 혜택</strong>
-<small>캐스트와 함께하는 가게를 둘러보세요.</small>
-</div>
-<button data-nav="booking">예약 문의 ›</button>
-</div>
-</section>
+${window.ParkBoards.home()}
+<button class="pb-benefit" data-nav="booking"><span class="promo-icon">${iosIcon("store")}</span><span><strong>근처 가게 단체 혜택</strong><small>제휴 혜택과 예약 문의</small></span><span>›</span></button>
 </div>${sideCards()}</div>`
   );
 }
 function board() {
-  const category = state.page === "free" ? "자유게시판" : (boardPages[state.page] || null);
-  const visible = posts.filter((post) => categories.includes(post.category));
-  const list = visible.filter((post) =>
-    (!category || post.category === category) &&
-    (!state.search || [post.title, post.body, post.category, post.author]
-      .join(" ").toLowerCase().includes(state.search.toLowerCase()))
-  );
-  const chips = [["board", "전체"], ...categories.slice(1).map((name) => [boardRoute[name], name])];
-  return head("캐스트 게시판", "동료와 정보와 일상을 나눠요.", `<button class="primary" id="writeBtn">＋ 글쓰기</button>`) +
-    `<section class="cast-board-hero">
-      <div><span class="cast-feature-kicker">CAST COMMUNITY</span><h2>오늘의 이야기를<br>함께 나눠요</h2><p>자유 · 중고 · 부서별 · 신규 캐스트</p></div>
-      <span class="cast-board-hero-art" aria-hidden="true">${iosIcon("messages")}</span>
-    </section>
-    <nav class="cast-board-chips" aria-label="게시판 종류">${chips.map(([route, label]) =>
-      `<button type="button" data-board-route="${route}" class="${(state.page === route || (state.page === "board" && route === "board")) ? "active" : ""}">${label}</button>`
-    ).join("")}</nav>
-    <section class="cast-board-list"><div class="cast-board-list-head"><strong>${category || "전체 글"}</strong><span>${list.length}개의 글</span></div>
-    ${list.length ? list.map((post) => `<button type="button" class="cast-post-card" data-post="${posts.indexOf(post)}">
-      <span class="tag ${tagClass(post.category)}">${esc(post.category)}</span>
-      <strong>${esc(post.title)}</strong><span class="cast-post-summary">${esc(post.body)}</span>
-      <span class="cast-post-meta">${esc(post.author)} <span>${iosIcon("heart")} ${Number(post.likes) || 0} · 댓글 ${Number(post.comments) || 0}</span></span>
-    </button>`).join("") : '<div class="cast-empty">아직 등록된 글이 없어요. 첫 이야기를 남겨보세요.</div>'}</section>`;
+  const kinds = { free:'free', trade:'trade', department:'department', new:'question', qa:'question', praise:'praise', missing:'missing', lost:'lost' };
+  return window.ParkBoards.page('cast', kinds[state.page]);
 }
 function matching() {
   return (
@@ -277,14 +246,7 @@ function map() {
       <p>동물 선택과 돌보기 방식은 정해진 뒤 이 화면에 추가됩니다.</p>
     </section>`;
 }
-function foundItems() {
-  const items = JSON.parse(localStorage.getItem("parktalk-found-items") || "[]");
-  return head("습득물 등록", "캐스트가 발견한 물건의 사진을 등록해요.") + `<section class="card padded room-card">
-    <p class="note">현재는 이 브라우저의 방문객 분실물 게시판에만 표시됩니다. 실제 접수와 다른 기기 공유는 서버 연동 후 가능합니다.</p>
-    <form id="foundItemForm" class="pv-board-form"><label>물건 이름<input name="title" maxlength="60" required></label><label>발견 장소<input name="place" maxlength="80" required></label><label>설명<textarea name="body" maxlength="300" required></textarea></label><label>사진 (1MB 이하)<input name="photo" type="file" accept="image/png,image/jpeg,image/webp" required></label><button class="primary" type="submit">시연 습득물 등록</button></form>
-    <div class="pv-place-list">${items.map((item) => `<article class="pv-board-post"><img src="${/^data:image\/(png|jpeg|webp);base64,/.test(item.photoUrl) ? item.photoUrl : ""}" alt="습득물 사진"><strong>${esc(item.title)}</strong><small>${esc(item.place)}</small><p>${esc(item.body)}</p></article>`).join("")}</div>
-  </section>`;
-}
+function foundItems() { return window.ParkBoards.page('cast', 'lost'); }
 function menu() {
   return (
     head("오늘의 식당 메뉴", "관리자가 제공하는 날짜별 메뉴를 확인해요.") +
@@ -351,7 +313,7 @@ function render() {
             "carpool",
             "new",
             "qa",
-            "praise",
+            "praise", "missing", "lost",
           ].includes(state.page)
         ? board()
         : state.page === "matching"
@@ -371,25 +333,9 @@ function render() {
                     : messages();
   document.title = `${state.page === "home" ? "오늘도 함께" : "파크톡"} | ParkTalk`;
 }
-function writePost() {
-  const chosen = state.page === "free" ? "자유게시판" : boardPages[state.page];
-  modal(
-    `<h2>새 글쓰기</h2>
-<p class="muted">시연 계정의 글은 현재 브라우저에만 저장됩니다.</p>
-<label class="form-field">게시판<select id="postCat">${categories
-      .slice(1)
-      .map((c) => `<option ${chosen === c ? "selected" : ""}>${c}</option>`)
-      .join("")}</select>
-</label>
-<label class="form-field">제목<input id="postTitle" maxlength="80" required>
-</label>
-<label class="form-field">내용<textarea id="postBody" maxlength="1000" required>
-</textarea>
-</label>
-<button class="primary" id="savePost" type="button">게시하기</button>`,
-  );
-}
+function writePost() { window.ParkBoards.write(); }
 function postDetail(i) {
+  if (window.ParkAuth?.role() !== "cast") return;
   let p = posts[i];
   if (!p) return;
   const replies = Array.isArray(p.replies) ? p.replies : [];
@@ -555,6 +501,7 @@ document.addEventListener("submit", (event) => {
   $(".chat-messages")?.scrollTo(0, $(".chat-messages").scrollHeight);
 });
 function go(page) {
+  if (window.ParkAuth && window.ParkAuth.role() !== "cast") return toast("캐스트 모드에서 이용해 주세요.");
   state.page = page;
   state.filter = "전체";
   $(".sidebar").classList.remove("open");
@@ -564,6 +511,7 @@ function go(page) {
 }
 $("#search").addEventListener("input", (e) => {
   state.search = e.target.value;
+  window.ParkBoards.setQuery(state.search);
   if (state.search && state.page === "home") go("board");
   else render();
 });

@@ -190,3 +190,61 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .auth-panel h2 { font-size: 26px; }
   .auth-lead { font-size: 12px; }
 }
+
+/* Shared community lists */
+.pb-directory { display: grid; }
+.pb-directory button { display: flex; align-items: center; gap: 14px; width: 100%; border: 0; border-bottom: 1px solid #f0f1ed; background: white; padding: 17px 0; text-align: left; color: #303d46; }
+.pb-directory button:last-child { border-bottom: 0; }
+.pb-directory strong { flex: none; width: 65px; font-size: 14px; }
+.pb-directory button > span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #84908d; font-size: 13px; }
+.pb-directory b { color: #acb4ac; }
+.pb-benefit { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 19px; border: 1px solid #f1e3af; border-radius: 20px; background: #fff9e8; color: #36414a; }
+.pb-benefit > span:nth-child(2) { flex: 1; }
+.pb-benefit strong { display: block; font-size: 14px; }
+.pb-benefit small { display: block; margin-top: 5px; color: #8c8169; font-size: 11px; }
+.pb-top { display: flex; justify-content: space-between; align-items: center; }
+.pb-role { color: #7c6b3b; background: #faf4df; padding: 4px 7px; border-radius: 8px; font-size: 10px; }
+.pb-hint { font-size: 11px; line-height: 1.6; color: #7b878d; }
+.pb-search { display: grid; gap: 7px; margin-bottom: 20px; font-size: 12px; color: #70808b; }
+.pb-search input { width: 100%; border: 1px solid #e5e9e5; border-radius: 13px; padding: 13px; background: #f9faf8; color: #303d46; font-size: 14px; }
+.pb-page .page-head { align-items: center; }
+.pb-page .page-head .primary { flex: none; white-space: nowrap; }
+.pb-page .page-head h1 { font-size: 26px; }
+.pb-page .cast-post-meta { flex-wrap: wrap; gap: 6px; }
+.pb-photo { display: block; max-width: 100%; max-height: 320px; object-fit: contain; margin: 15px auto; border-radius: 12px; }
+.pb-body { white-space: pre-wrap; font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
+#pb-fields { display: grid; gap: 14px; }
+#pb-compose { margin: 0; padding: 0; }
+.pb-page .pv-missing-help { margin-bottom: 18px; }
+@media (max-width: 380px) { .pb-page .page-head h1 { font-size: 22px; } }
+
+/* Stable, horizontally scrollable board tabs. */
+.grid > .stack, .pb-page, .pb-home { min-width: 0; }
+.pb-page .cast-board-chips, .pb-home-tabs {
+  max-width: 100%; min-width: 0; align-items: center;
+  overflow-x: auto; overflow-y: hidden; padding: 5px 2px 9px;
+  -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;
+}
+.pb-page .cast-board-chips button, .pb-home-tabs button {
+  flex-shrink: 0; min-height: 38px; padding: 9px 14px; line-height: 1.5;
+  white-space: nowrap;
+}
+.pb-home-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pb-home-heading .section-title { margin: 0; }
+.pb-more { border: 0; background: transparent; color: #7e8885; font-size: 12px; white-space: nowrap; padding: 8px 0 8px 8px; }
+.pb-home-tabs { margin: 12px 0 4px; gap: 7px; }
+.pb-home-post { display: grid; gap: 9px; width: 100%; padding: 17px 0; border: 0; border-bottom: 1px solid #edf0eb; text-align: left; background: white; color: #303d46; }
+.pb-home-post:last-child { border-bottom: 0; }
+.pb-home-post > strong { font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+.pb-home-meta { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 10px; color: #85918c; }
+.pb-home-empty { padding: 21px 0; margin: 0; font-size: 12px; line-height: 1.7; color: #84918b; }
+.pb-actions { display: flex; align-items: center; gap: 7px; flex: none; }
+.pb-search-toggle { display: grid; place-items: center; width: 38px; height: 38px; padding: 8px; border: 0; background: transparent; color: #596b72; border-radius: 12px; }
+.pb-search-toggle[aria-expanded=true] { background: #fff1c7; color: #8b651d; }
+.pb-search-toggle svg { width: 21px; height: 21px; }
+.pb-search[hidden] { display: none; }
+.pb-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 700px) {
+  .pb-page .page-head { flex-wrap: wrap; gap: 13px; }
+  .pb-page .pb-actions { margin-left: auto; }
+}

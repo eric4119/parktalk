@@ -68,7 +68,7 @@
   let gps = null; // Memory only. Never written to localStorage or shown as coordinates.
   let midpointSuggestion = false;
   let notice = "";
-  let boardKind = "free";
+  let boardKind = "praise";
   let visitorPosts = [];
   let searchTerm = "";
   let destinationId = "capybara";
@@ -119,7 +119,7 @@
   function home() {
     return `<div class="pv-content pv-home">
       ${title("방문객 모드", `${escapeHtml(userName)}님, 반가워요`, "일행과 연결하고 필요한 정보를 찾아보세요.")}
-      <section class="pv-missing-banner"><span>미아·보호자 찾기</span><strong>아이와 떨어졌다면<br>즉시 근처 캐스트에게 알려주세요.</strong><a href="tel:0313205050">손님상담실 ${HELP_PHONE} 전화하기</a><button type="button" data-pv-board="missing">미아 안내 게시판 보기 ${icon("arrow")}</button></section>
+      <section class="pv-missing-banner"><span>미아·보호자 찾기</span><strong>아이와 떨어졌다면<br>즉시 근처 캐스트에게 알려주세요.</strong><a href="tel:0313205050">손님상담실 ${HELP_PHONE} 전화하기</a></section>
       <div class="pv-section-heading">
 <h2>일행과 연결하기</h2>
 <span>STEP 01</span>
@@ -148,8 +148,7 @@
 <strong>내 위치는 내가 결정해요.</strong>
 <br>위치 확인은 직접 버튼을 누른 뒤에만 시작됩니다.</p>
 </div>
-      <div class="pv-section-heading"><h2>게시판</h2><span>함께 찾고 나눠요</span></div>
-      <div class="pv-board-grid"><button type="button" data-pv-board="praise">${icon("heart")}<strong>칭찬</strong></button><button type="button" data-pv-board="missing">${icon("child")}<strong>미아</strong></button><button type="button" data-pv-board="lost">${icon("found")}<strong>분실물</strong></button></div>
+
     </div>`;
   }
   function create() {
@@ -245,22 +244,7 @@
     </div>`;
   }
   function boardPage() {
-    const labels = { free: "자유 게시판", lost: "분실물", praise: "칭찬", missing: "미아 찾기" };
-    let found = [];
-    try { found = JSON.parse(localStorage.getItem("parktalk-found-items") || "[]"); } catch { found = []; }
-    const entries = [...(boardKind === "lost" ? found.map((item) => ({ ...item, kind: "lost", author: "캐스트 등록" })) : []), ...visitorPosts.filter((item) => item.kind === boardKind)];
-    const fields = boardKind === "missing"
-      ? `<label>나이<input name="age" type="number" min="0" max="18" required></label><label>성별<select name="gender"><option>여아</option><option>남아</option><option>기타 / 확인 불가</option></select></label><label>인상착의<textarea name="clothes" maxlength="250" placeholder="옷 색상, 신발 등" required></textarea></label><label>마지막으로 본 장소<input name="place" maxlength="80" required></label><label>사진<input name="photo" type="file" accept="image/*"></label>`
-      : boardKind === "lost"
-        ? `<label>물건 이름<input name="title" maxlength="60" required></label><label>분실 장소<input name="place" maxlength="80" required></label><label>물건 설명<textarea name="body" maxlength="300" required></textarea></label><label>사진<input name="photo" type="file" accept="image/*"></label>`
-        : `<label>제목<input name="title" maxlength="60" required></label><label>내용<textarea name="body" maxlength="400" required></textarea></label>`;
-    return `<div class="pv-content pv-board-page">${title("방문객 게시판", labels[boardKind], "방문객을 위한 시연 게시판입니다.")}
-      <div class="pv-board-tabs">${Object.entries(labels).map(([id, label]) => `<button type="button" data-pv-board="${id}" class="${boardKind === id ? "active" : ""}">${label}</button>`).join("")}</div>
-      ${boardKind === "missing" ? `<div class="pv-missing-help"><strong>미아 발생 시 게시글보다 먼저 연락해 주세요.</strong><a href="tel:0313205050">에버랜드 손님상담실 ${HELP_PHONE}</a><small>가까운 캐스트에게도 즉시 알려주세요.</small></div>` : ""}
-      ${boardKind === "lost" ? '<p class="pv-guide-note">캐스트가 등록한 습득물 사진을 확인하거나 잃어버린 물건을 등록하는 화면입니다. 실제 다른 기기와의 공유는 아직 연결되지 않았습니다.</p>' : ""}
-      <div class="pv-place-list">${entries.length ? entries.map((post) => `<article class="pv-board-post">${post.photoUrl && (/^blob:/.test(post.photoUrl) || /^data:image\/(png|jpeg|webp);base64,/.test(post.photoUrl)) ? `<img src="${post.photoUrl}" alt="게시글 첨부 사진">` : ""}<small>${escapeHtml(post.author || "방문객 시연")}</small><strong>${escapeHtml(post.title || `${post.age}세 ${post.gender}`)}</strong><p>${escapeHtml(post.body || post.clothes || "")}</p>${post.place ? `<small>마지막 장소: ${escapeHtml(post.place)}</small>` : ""}</article>`).join("") : '<div class="pv-empty-note">아직 등록된 시연 게시글이 없어요.</div>'}</div>
-      <form id="pv-board-form" class="pv-card pv-board-form"><h2>${boardKind === "missing" ? "미아 정보 양식" : boardKind === "lost" ? "찾는 물건 등록" : "게시글 작성"}</h2>${fields}<button type="submit" class="pv-button">시연 게시글 등록 ${icon("arrow")}</button><p>입력 내용은 이 화면을 닫으면 사라집니다. 실제 미아 신고나 분실물 접수로 전송되지 않습니다.</p></form>
-    </div>`;
+    return `<div class="pv-content">${window.ParkBoards.page('visitor', boardKind)}</div>`;
   }
   function explorePage() {
     const query = searchTerm.trim().toLowerCase();

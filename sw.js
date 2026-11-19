@@ -1,8 +1,8 @@
-const CACHE = "parktalk-v15-20261119";
+const CACHE = "parktalk-v17-20261120";
 const APP_FILES = [
   "./", "./index.html", "./app.html", "./style.css",
   "./auth.css", "./visitor.css", "./theme.css", "./cast-features.css", "./fresh-ui.css",
-  "./ui-icons.js", "./script.js", "./visitor.js", "./auth.js", "./pwa.js",
+  "./ui-icons.js", "./boards.js", "./script.js", "./visitor.js", "./auth.js", "./pwa.js",
   "./manifest.webmanifest", "./icons/icon.svg", "./assets/parktalk-logo-transparent.png"
 ];
 
