@@ -30,7 +30,7 @@
   }
   function hero() {
     return `<div class="auth-hero">
-      <div class="auth-hero__top"><span class="auth-logo-frame"><img class="auth-logo" src="assets/parktalk-logo.png" alt="ParkTalk 파크톡 로고"></span><span class="auth-hero__badge">파크에서 함께</span></div>
+      <div class="auth-hero__top"><span class="auth-logo-frame"><img class="auth-logo" src="assets/parktalk-logo-transparent.png" alt="ParkTalk 파크톡 로고"></span><span class="auth-hero__badge">파크에서 함께</span></div>
       <div class="auth-hero__art" aria-hidden="true"><div class="auth-sun"></div><div class="auth-cloud auth-cloud--one"></div><div class="auth-cloud auth-cloud--two"></div><div class="auth-hill auth-hill--back"></div><div class="auth-hill auth-hill--front"></div><div class="auth-wheel">${window.ParkIcons("sparkles")}</div></div>
       <div class="auth-hero__copy"><span class="auth-kicker">WELCOME TO PARKTALK</span><h1>파크에서 만나는<br>우리의 하루</h1><p>일행과 다시 만나고, 동료와 이야기를 나누는 공간.</p></div>
       <div class="auth-hero__foot">두 가지 모드 · 하나의 파크톡</div>

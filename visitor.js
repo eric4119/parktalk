@@ -103,7 +103,7 @@
   function header() {
     return `<header class="pv-header">
 <div>
-<button type="button" class="pv-logo-home" data-pv-view="home" aria-label="파크톡 홈으로 이동"><img class="pv-logo" src="assets/parktalk-logo.png" alt="ParkTalk 파크톡 로고"></button>
+<button type="button" class="pv-logo-home" data-pv-view="home" aria-label="파크톡 홈으로 이동"><img class="pv-logo" src="assets/parktalk-logo-transparent.png" alt="ParkTalk 파크톡 로고"></button>
 <span class="pv-role">VISITOR</span>
 </div>
 <button type="button" class="pv-profile-shortcut" data-pv-view="profile" aria-label="앱 설정 열기">${escapeHtml(userName.slice(0, 1))}</button>
@@ -397,7 +397,7 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
       }[view]?.() || home();
     target.innerHTML = `<div class="pv-shell">
 <aside class="pv-sidebar">
-<div class="pv-sidebar-brand"><button type="button" class="pv-logo-home" data-pv-view="home" aria-label="파크톡 홈으로 이동"><img class="pv-logo" src="assets/parktalk-logo.png" alt="ParkTalk 파크톡 로고"></button>
+<div class="pv-sidebar-brand"><button type="button" class="pv-logo-home" data-pv-view="home" aria-label="파크톡 홈으로 이동"><img class="pv-logo" src="assets/parktalk-logo-transparent.png" alt="ParkTalk 파크톡 로고"></button>
 <small>방문객 모드</small>
 </div>
 <nav aria-label="일반 사용자 메뉴">${navigation()}</nav>

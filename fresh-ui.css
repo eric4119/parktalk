@@ -135,6 +135,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .auth-layout { background: #fff; box-shadow: none; }
 .auth-hero { background: linear-gradient(145deg, #fffdf5 0%, #fff3c9 100%); }
 .auth-logo-frame { box-shadow: 0 6px 20px #5c4b1212; }
+.auth-logo-frame { background: transparent; box-shadow: none; border-radius: 0; }
+.auth-logo { object-fit: contain; }
+.brand-logo, .pv-logo, .cast-mobile-brand img { object-fit: contain; border-radius: 0; }
 .auth-hero__badge, .auth-panel__note, .auth-info { background: #fff7df; color: #746644; }
 .auth-hero h1, .auth-panel h2 { color: #25313b; }
 .auth-hero p, .auth-hero__foot, .auth-lead { color: #6f7a75; }
