@@ -2,7 +2,7 @@
 .cast-board-hero, .cast-map-intro { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 24px 27px; border: 1px solid #f0d488; border-radius: 24px; background: linear-gradient(115deg, #ffe9a4, #fff5d5); overflow: hidden; }
 .cast-board-hero h2 { margin: 7px 0 6px; color: #382c1e; font-size: clamp(22px, 3vw, 30px); line-height: 1.25; letter-spacing: -.06em; }
 .cast-board-hero p, .cast-map-intro p { margin: 0; color: #816a43; font-size: 11px; line-height: 1.6; }
-.cast-board-hero-art { display: grid; place-items: center; flex: none; width: 105px; height: 105px; border-radius: 30px; background: #fff8e4aa; font-size: 58px; transform: rotate(-7deg); }
+.cast-board-hero-art { display: grid; place-items: center; flex: none; width: 105px; height: 105px; border-radius: 30px; background: #fff8e4aa; }
 .cast-board-chips { display: flex; gap: 8px; margin: 19px 0 17px; overflow-x: auto; scrollbar-width: none; }
 .cast-board-chips::-webkit-scrollbar { display: none; }
 .cast-board-chips button { flex: none; padding: 9px 14px; border: 1px solid #e9dcc2; border-radius: 999px; background: #fff; color: #776a56; font-size: 11px; font-weight: 800; }

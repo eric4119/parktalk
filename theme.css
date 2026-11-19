@@ -83,6 +83,33 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .pv-logo-home:focus-visible, .cast-mobile-brand:focus-visible { outline: 3px solid #c98516; outline-offset: 2px; border-radius: 10px; }
 .auth-guest { display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; margin-top: 13px; padding: 7px; border: 0; background: transparent; color: #8b621d; font-size: 11px; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
 .auth-guest span { font-size: 13px; }
+.ui-icon { display: inline-block; width: 20px; height: 20px; flex: none; vertical-align: middle; }
+.quick-icon, .promo-icon { display: inline-flex; align-items: center; justify-content: center; color: #a36b18; }
+.quick-icon .ui-icon { width: 21px; height: 21px; }
+.promo-icon .ui-icon { width: 28px; height: 28px; }
+.menu-food { display: grid; place-items: center; width: 52px; height: 52px; margin: 14px 0 9px; border-radius: 15px; background: #fff1c5; }
+.menu-food .ui-icon { width: 39px; height: 25px; color: #9c681d; }
+.match-emoji .ui-icon { width: 24px; height: 24px; color: #a36b18; }
+.match-card-icon { display: grid; place-items: center; width: 45px; height: 45px; border-radius: 13px; background: #fff0c2; color: #9c681d; }
+.match-card-icon .ui-icon { width: 25px; height: 25px; }
+.avatar-scene .ui-icon { width: 60px; height: 60px; color: #af791e; }
+.animal-coming-soon__mark .ui-icon { width: 59px; height: 59px; color: #9c681d; }
+.cast-board-hero-art .ui-icon { width: 54px; height: 54px; color: #a96f1d; transform: translateY(1px); }
+.pv-board-grid button .ui-icon { width: 26px; height: 26px; color: #a36b18; }
+.pv-query-chips button .ui-icon { width: 16px; height: 16px; }
+.pv-place-emoji .ui-icon { width: 23px; height: 23px; color: #9e6a18; }
+.stats .ui-icon { width: 13px; height: 13px; }
+.cast-post-meta .ui-icon, #likeBtn .ui-icon { width: 13px; height: 13px; }
+.chat-avatar .ui-icon { width: 19px; height: 19px; }
+.pv-midpoint-pin .ui-icon { width: 14px; height: 14px; }
+.auth-wheel .ui-icon { width: 56px; height: 56px; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+.search-wrap .ui-icon { width: 18px; height: 18px; }
+.mobile-menu .ui-icon, #settingsBtn .ui-icon { width: 21px; height: 21px; }
+.animal-coming-soon { min-height: 380px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 13px; }
+.animal-coming-soon__mark { display: grid; place-items: center; width: 122px; height: 122px; border-radius: 50%; background: #e7f2ee; font-size: 58px; }
+.animal-coming-soon h2 { margin: 0; font-size: 21px; }
+.animal-coming-soon p { margin: 0; color: #77796e; font-size: 13px; line-height: 1.6; }
 .app { background: var(--park-paper); }
 .sidebar, .pv-sidebar { border-color: var(--park-line); background: #fffdf9; }
 .nav-group { color: #9b8e76; }

@@ -1,6 +1,7 @@
 /* ParkTalk visitor prototype. Group state stays in this browser; GPS coordinates never do. */
 (() => {
   const STORAGE = "parktalk-visitor-group-v1";
+  const DEMO_GROUPS = "parktalk-visitor-demo-groups-v1";
   const INVITE = "parktalk-visitor-invite-v1";
   const HELP_PHONE = "031-320-5050";
   const GUIDE_URL = "https://grp.everland.com/files/everland.pdf";
@@ -40,6 +41,13 @@
     if (group) localStorage.setItem(STORAGE, JSON.stringify(group));
     else localStorage.removeItem(STORAGE);
   };
+  const demoGroups = () => {
+    try {
+      const all = JSON.parse(localStorage.getItem(DEMO_GROUPS) || "{}");
+      return Object.fromEntries(Object.entries(all).filter(([, item]) => item?.expiresAt > Date.now()));
+    } catch { return {}; }
+  };
+  const saveDemoGroups = (groups) => localStorage.setItem(DEMO_GROUPS, JSON.stringify(groups));
   const midnightTonight = () => { const day = new Date(); day.setHours(24, 0, 0, 0); return day.getTime(); };
   const makeCode = () => {
     const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -75,29 +83,11 @@
       render();
     }, 3600);
   }
-  function icon(name) {
-    const paths = {
-      home: '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 21v-7h6v7"/>',
-      people:
-        '<circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2"/><path d="M17 6a3 3 0 0 1 0 6M17 14a5 5 0 0 1 4 5v1"/>',
-      map: '<path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2z"/><path d="M9 3v16M15 5v16"/>',
-      search: '<circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/>',
-      user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
-      pin: '<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
-      shield:
-        '<path d="M12 2 4 5v6c0 5 3 9 8 11 5-2 8-6 8-11V5z"/><path d="m9 12 2 2 4-4"/>',
-      arrow: '<path d="M5 12h14m-6-6 6 6-6 6"/>',
-      spark:
-        '<path d="m12 2 1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"/>',
-      back: '<path d="M19 12H5m6 6-6-6 6-6"/>',
-      link: '<path d="M10 13a5 5 0 0 0 7 .2l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7-.2l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
-    };
-    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.spark}</svg>`;
-  }
+  const icon = (name) => window.ParkIcons(name);
   function navigation() {
     const links = [
       ["home", "홈", "home"],
-      ["people", "게시판", "board"],
+      ["board", "게시판", "board"],
       ["people", "일행", "group"],
       ["map", "지도", "map"],
       ["user", "앱 설정", "profile"],
@@ -159,7 +149,7 @@
 <br>위치 확인은 직접 버튼을 누른 뒤에만 시작됩니다.</p>
 </div>
       <div class="pv-section-heading"><h2>게시판</h2><span>함께 찾고 나눠요</span></div>
-      <div class="pv-board-grid"><button type="button" data-pv-board="praise">💜<strong>칭찬</strong></button><button type="button" data-pv-board="missing">🧒<strong>미아</strong></button><button type="button" data-pv-board="lost">🔎<strong>분실물</strong></button></div>
+      <div class="pv-board-grid"><button type="button" data-pv-board="praise">${icon("heart")}<strong>칭찬</strong></button><button type="button" data-pv-board="missing">${icon("child")}<strong>미아</strong></button><button type="button" data-pv-board="lost">${icon("found")}<strong>분실물</strong></button></div>
     </div>`;
   }
   function create() {
@@ -188,7 +178,7 @@
 <p class="pv-field-hint">영문 대문자와 숫자 6자리</p>
 <button class="pv-button" type="submit">시연 그룹에 참여 ${icon("arrow")}</button>
 </form>
-      <div class="pv-privacy-callout">${icon("shield")}<p>현재는 브라우저 단독 시연입니다. 다른 기기의 그룹 존재 여부는 확인할 수 없고, 실제 일행과 연결되지는 않아요.</p>
+      <div class="pv-privacy-callout">${icon("shield")}<p>이 브라우저에서 만든 시연 그룹의 코드만 확인할 수 있어요. 다른 기기의 일행과 연결하려면 서버가 필요합니다.</p>
 </div>
     </div>`;
   }
@@ -282,9 +272,9 @@
     return `<div class="pv-content pv-explore">
       ${title("파크 탐색", "어디로 가고 싶나요?", "동물과 간식 매장을 검색해 목적지 구역을 확인해 보세요.")}
       <form id="pv-search-form" class="pv-search-form"><label for="pv-place-query">장소 또는 먹거리 검색</label><div><input id="pv-place-query" name="query" value="${escapeHtml(searchTerm)}" placeholder="카피바라, 핫도그, 츄러스" autocomplete="off"><button type="submit">검색</button></div></form>
-      <div class="pv-query-chips"><button type="button" data-pv-query="카피바라">🐾 카피바라</button><button type="button" data-pv-query="핫도그">🌭 핫도그</button><button type="button" data-pv-query="츄러스">🥨 츄러스</button></div>
+      <div class="pv-query-chips"><button type="button" data-pv-query="카피바라">${icon("paw")} 카피바라</button><button type="button" data-pv-query="핫도그">${icon("hotdog")} 핫도그</button><button type="button" data-pv-query="츄러스">${icon("churros")} 츄러스</button></div>
       <div class="pv-section-heading"><h2>${searchTerm ? "검색 결과" : "추천 장소"}</h2><span>${matches.length}곳</span></div>
-      ${matches.length ? `<div class="pv-place-list">${matches.map((place) => `<button type="button" class="pv-place-card" data-pv-destination="${place.id}"><span class="pv-place-emoji">${place.kind === "동물" ? "🐾" : "🍴"}</span><span><small>${place.kind} · ${zones[place.zone]} · 공식 지도 ${place.number}번</small><strong>${place.name}</strong><em>${place.detail}</em></span>${icon("arrow")}</button>`).join("")}</div>` : '<div class="pv-empty-note">검색 결과가 없어요. 카피바라, 핫도그 또는 츄러스로 다시 검색해 보세요.</div>'}
+      ${matches.length ? `<div class="pv-place-list">${matches.map((place) => `<button type="button" class="pv-place-card" data-pv-destination="${place.id}"><span class="pv-place-emoji">${icon(place.kind === "동물" ? "paw" : "food")}</span><span><small>${place.kind} · ${zones[place.zone]} · 공식 지도 ${place.number}번</small><strong>${place.name}</strong><em>${place.detail}</em></span>${icon("arrow")}</button>`).join("")}</div>` : '<div class="pv-empty-note">검색 결과가 없어요. 카피바라, 핫도그 또는 츄러스로 다시 검색해 보세요.</div>'}
       <p class="pv-guide-note">2025년 11월 에버랜드 공식 가이드 기준입니다. 동물 전시와 메뉴·매장 운영은 현장에서 달라질 수 있어요.</p>
       <a class="pv-guide-link" href="${GUIDE_URL}" target="_blank" rel="noopener noreferrer">에버랜드 공식 가이드 지도 보기 ↗</a>
     </div>`;
@@ -325,7 +315,7 @@
 <div class="pv-map-walk pv-map-walk-b">
 </div>
 <span class="pv-map-poi pv-map-poi-a">모임 장소</span>
-<span class="pv-map-poi pv-map-poi-b">중앙광장</span>${(group.members || [userName]).map((member, index) => `<span class="pv-sim-pin pv-sim-pin-${index % 4} pv-member-${index % 4}" aria-label="${escapeHtml(member)} 시연 표시">${escapeHtml(member.slice(0, 1))}</span>`).join("")}${midpointSuggestion ? '<span class="pv-midpoint-pin">★ 집합장소 예시</span>' : ""}<div class="pv-map-watermark">실제 공원 지도가 아닌 시연 배경</div>
+<span class="pv-map-poi pv-map-poi-b">중앙광장</span>${(group.members || [userName]).map((member, index) => `<span class="pv-sim-pin pv-sim-pin-${index % 4} pv-member-${index % 4}" aria-label="${escapeHtml(member)} 시연 표시">${escapeHtml(member.slice(0, 1))}</span>`).join("")}${midpointSuggestion ? `<span class="pv-midpoint-pin">${icon("pin")} 집합장소 예시</span>` : ""}<div class="pv-map-watermark">실제 공원 지도가 아닌 시연 배경</div>
 </div>
       <div class="pv-map-sheet">
 <div class="pv-sheet-handle">
@@ -338,7 +328,7 @@
 <span>${(group.members || [userName]).length}명 · 시연</span>
 </div>
 ${(group.members || [userName]).map((member, index) => `<div class="pv-member-row"><span class="pv-member-avatar pv-member-${index % 4}">${escapeHtml(member.slice(0, 1))}</span><div><strong>${escapeHtml(member)}${index === 0 ? " (나)" : ""}</strong><small>${index === 0 ? gps ? "기기 위치 권한 확인됨 · 좌표 저장 안 함" : group.consent ? "동의됨 · 위치 확인 전" : "위치 표시 꺼짐" : "시연 인원 · 실제 위치 연결 전"}</small></div></div>`).join("")}
-<div class="pv-midpoint"><strong>AI 집합장소 추천 · 시연</strong><p>${midpointSuggestion ? "중앙광장 — 모두가 알기 쉬운 만남 장소 예시입니다." : "버튼을 눌러 집합장소 예시를 확인하세요."}</p><button type="button" class="pv-secondary-button" data-pv-action="midpoint">집합장소 추천 보기</button><small>현재는 일행 좌표로 중간 지점을 계산하지 않습니다.</small></div>
+<div class="pv-midpoint"><strong>집합장소 예시 · 시연</strong><p>${midpointSuggestion ? "중앙광장 — 모두가 알기 쉬운 만남 장소 예시입니다." : "버튼을 눌러 집합장소 예시를 확인하세요."}</p><button type="button" class="pv-secondary-button" data-pv-action="midpoint">집합장소 추천 보기</button><small>현재는 일행 좌표로 중간 지점을 계산하지 않습니다.</small></div>
 <p class="pv-map-limitation">다른 일행의 실시간 위치는 서버·지도 연동 후 표시됩니다.</p>${
       group.consent
         ? `<button type="button" class="pv-button" data-pv-action="locate">${icon("pin")} 내 기기 위치 확인하기</button>
@@ -515,6 +505,11 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
         toast("위치 표시 동의를 취소했어요.");
         break;
       case "end":
+        if (group?.source === "created") {
+          const groups = demoGroups();
+          delete groups[group.code];
+          saveDemoGroups(groups);
+        }
         saveGroup(null);
         group = null;
         gps = null;
@@ -540,6 +535,8 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
       if (group.members.length >= 8) return toast("시연 인원은 8명까지 추가할 수 있어요.");
       group.members.push(name.slice(0, 20));
       saveGroup(group);
+      const groups = demoGroups();
+      if (groups[group.code]) { groups[group.code].members = group.members; saveDemoGroups(groups); }
       render();
     } else if (event.target.id === "pv-board-form") {
       event.preventDefault();
@@ -576,6 +573,7 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
       };
       gps = null;
       saveGroup(group);
+      saveDemoGroups({ ...demoGroups(), [group.code]: { name, code: group.code, members: [userName], expiresAt: group.expiresAt } });
       setView("group");
       toast(
         "시연 그룹을 만들었어요. 실제 일행 연결은 서버 구현 후 가능합니다.",
@@ -587,14 +585,18 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
         .replace(/[^A-Z0-9]/g, "");
       if (!/^[A-Z0-9]{6}$/.test(code))
         return toast("영문과 숫자 6자리 코드를 입력해 주세요.");
+      const matchingGroup = demoGroups()[code];
+      if (!matchingGroup)
+        return toast("이 브라우저에서 만든 시연 그룹을 찾지 못했어요. 다른 기기의 코드는 서버 연결 후 사용할 수 있습니다.");
       group = {
-        name: "초대받은 시연 그룹",
+        name: matchingGroup.name,
         code,
         source: "joined",
         consent: false,
-        members: [userName],
-        expiresAt: midnightTonight(),
+        members: [...new Set([...(matchingGroup.members || []), userName])],
+        expiresAt: matchingGroup.expiresAt,
       };
+      saveDemoGroups({ ...demoGroups(), [code]: { ...matchingGroup, members: group.members } });
       gps = null;
       saveGroup(group);
       sessionStorage.removeItem(INVITE);

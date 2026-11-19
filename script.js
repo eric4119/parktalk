@@ -21,28 +21,10 @@ const navGroups = [
     "people|랜덤매칭|matching",
   ],
   ["생활", "food|식당 메뉴|menu", "calendar|가게 예약|booking"],
-  ["아바타", "map|아바타 맵|map", "bag|꾸미기 상점|shop"],
+  ["동물 친구", "sparkles|동물 키우기|map"],
   ["도움", "sparkles|AI 생활 도우미|ai", "search|습득물 등록|found"],
 ];
-function iosIcon(name) {
-  const paths = {
-    home: '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 21v-7h6v7"/>',
-    board: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>',
-    tag: '<path d="M20.5 12.5 12 21l-9-9V4a1 1 0 0 1 1-1h8l8.5 8.5a1 1 0 0 1 0 1Z"/><circle cx="8" cy="8" r="1.4"/>',
-    grid: '<rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/>',
-    personAdd: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20v-2a6.5 6.5 0 0 1 13 0v2M18 8v8M14 12h8"/>',
-    messages: '<path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5 8.4 8.4 0 0 1-3.4-.7L4 20l1.7-4.5A7.5 7.5 0 1 1 20 11.5Z"/><path d="M8.5 11.5h7"/>',
-    people: '<circle cx="9" cy="8" r="3"/><path d="M2.5 20v-1.5a6.5 6.5 0 0 1 13 0V20"/><path d="M17 5.5a3 3 0 0 1 0 5.8M18 14.3a5 5 0 0 1 3.5 4.7V20"/>',
-    food: '<path d="M4 3v7a3 3 0 0 0 6 0V3M7 3v18M15 3c-2 2-3 5-3 9h5V3M17 3v18"/>',
-    calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 14h3M8 17h6"/>',
-    map: '<path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2zM9 3v16M15 5v16"/>',
-    bag: '<rect x="4" y="7" width="16" height="14" rx="2"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/>',
-    sparkles: '<path d="m12 2 1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9zM20 17l.6 1.4L22 19l-1.4.6L20 21l-.6-1.4L18 19l1.4-.6z"/>',
-    search: '<circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/>',
-    settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-1.86 1.86-.06-.06A1.7 1.7 0 0 0 16 18.4a1.7 1.7 0 0 0-1 1.56V21h-2v-1.04a1.7 1.7 0 0 0-1-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06-1.86-1.86.06-.06A1.7 1.7 0 0 0 8.6 15a1.7 1.7 0 0 0-1.56-1H6v-2h1.04a1.7 1.7 0 0 0 1.56-1 1.7 1.7 0 0 0-.34-1.88L8.2 9.06 10.06 7.2l.06.06A1.7 1.7 0 0 0 12 7.6a1.7 1.7 0 0 0 1-1.56V5h2v1.04a1.7 1.7 0 0 0 1 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 1.86 1.86-.06.06A1.7 1.7 0 0 0 19.4 11a1.7 1.7 0 0 0 1.56 1H22v2h-1.04A1.7 1.7 0 0 0 19.4 15Z"/>',
-  };
-  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.home}</svg>`;
-}
+const iosIcon = (name) => window.ParkIcons(name);
 const seeds = [
   {
     category: "신규 캐스트",
@@ -87,14 +69,12 @@ const seeds = [
 ];
 let posts =
   JSON.parse(localStorage.getItem("parktalk-posts") || "null") || seeds;
-let points = Number(localStorage.getItem("parktalk-points") || "120");
 let state = { page: "home", filter: "전체", search: "", mapX: 48 };
 let demoChat = JSON.parse(localStorage.getItem("parktalk-demo-chat") || "[]");
 let assistantTurns = [];
+let joinedRooms = JSON.parse(sessionStorage.getItem("parktalk-demo-joined-rooms") || "[]");
+const isJoined = (name) => joinedRooms.includes(name);
 const save = () => localStorage.setItem("parktalk-posts", JSON.stringify(posts));
-const attendanceKey = () => `parktalk-attendance:${window.ParkAuth?.id?.() || "demo"}`;
-const attendanceHistoryKey = () => `parktalk-attendance-history:${window.ParkAuth?.id?.() || "demo"}`;
-const todayKst = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
 const boardPages = { board: null, trade: "중고거래", department: "부서별 게시판", new: "신규 캐스트" };
 const boardRoute = { 자유게시판: "free", 중고거래: "trade", "부서별 게시판": "department", "신규 캐스트": "new" };
 const esc = (x) =>
@@ -170,14 +150,14 @@ function postRow(p, i) {
 <h3>${esc(p.title)}</h3>
 <small>${esc(p.author)} · 방금 전</small>
 </div>
-<span class="stats">♡ ${p.likes}　▢ ${p.comments}</span>
+<span class="stats">${iosIcon("heart")} ${p.likes}　${iosIcon("messages")} ${p.comments}</span>
 </div>`;
 }
 function sideCards() {
   return `<div class="stack right-col">
 <section class="card padded menu-card">
 <span class="eyebrow">오늘의 식당 메뉴</span>
-<div class="menu-food">🍽️</div>
+<div class="menu-food">${iosIcon("meal")}</div>
 <strong>관리자 등록 메뉴</strong>
 <p>메뉴 정보는 관리자가 등록하면 이곳에 표시됩니다.</p>
 <button class="outline" style="margin-top:12px" data-nav="menu">자세히 보기</button>
@@ -185,27 +165,27 @@ function sideCards() {
 <section class="card padded">
 <h2 class="section-title">랜덤매칭 대기방</h2>
 <div class="match-row">
-<span class="match-emoji">🎲</span>
+<span class="match-emoji">${iosIcon("dice")}</span>
 <div>
 <strong>퇴근 후 보드게임</strong>
-<small>20:30 · 2 / 4명</small>
+<small>20:30 · ${2 + Number(isJoined("퇴근 후 보드게임"))} / 4명</small>
 </div>
-<button class="outline" data-join="보드게임">참여</button>
+<button class="outline" data-join="퇴근 후 보드게임">${isJoined("퇴근 후 보드게임") ? "참여 취소" : "참여"}</button>
 </div>
 <div class="match-row">
-<span class="match-emoji">🍜</span>
+<span class="match-emoji">${iosIcon("food")}</span>
 <div>
 <strong>같이 저녁 먹어요</strong>
-<small>21:00 · 3 / 4명</small>
+<small>21:00 · ${3 + Number(isJoined("같이 저녁 먹어요"))} / 4명</small>
 </div>
-<button class="outline" data-join="저녁 모임">참여</button>
+<button class="outline" data-join="같이 저녁 먹어요">${isJoined("같이 저녁 먹어요") ? "참여 취소" : "참여"}</button>
 </div>
 </section>
 <section class="card avatar-card">
-<span class="eyebrow">나만의 캐릭터로 함께</span>
-<div class="avatar-scene">👩🏻‍🦰</div>
-<p>오늘도 맵에서 동료를 만나요</p>
-<button class="primary" data-nav="map">아바타 맵 입장하기</button>
+<span class="eyebrow">새로운 공간을 준비 중이에요</span>
+<div class="avatar-scene">${iosIcon("paw")}</div>
+<p>동물 친구를 고르고 함께 키우는 공간이 생길 예정이에요.</p>
+<button class="primary" data-nav="map">동물 키우기 보기</button>
 </section>
 </div>`;
 }
@@ -220,18 +200,18 @@ function home() {
 <div class="stack">
 <div class="quick">
 <button data-nav="new">
-<span>◫</span>신규 캐스트 가이드</button>
+<span class="quick-icon">${iosIcon("board")}</span>신규 캐스트 게시판</button>
 <button data-nav="matching">
-<span>♧</span>랜덤매칭 참여</button>
+<span class="quick-icon">${iosIcon("people")}</span>랜덤매칭 참여</button>
 <button data-nav="messages">
-<span>▤</span>채팅·쪽지</button>
+<span class="quick-icon">${iosIcon("messages")}</span>채팅·쪽지</button>
 </div>
 <section class="card list-card">
 <h2 class="section-title">캐스트들의 이야기</h2>
 <div class="tabs">${["전체", "인기", "우리 부서", "질문"].map((t, i) => `<button class="tab ${i === 0 ? "active" : ""}" data-home-tab="${t}">${t}</button>`).join("")}</div>
 <div id="homePosts">${posts.filter((post) => categories.includes(post.category)).slice(0, 4).map(postRow).join("")}</div>
 <div class="promo">
-<span style="font-size:24px">🏪</span>
+<span class="promo-icon">${iosIcon("store")}</span>
 <div>
 <strong>근처 가게 단체 혜택</strong>
 <small>캐스트와 함께하는 가게를 둘러보세요.</small>
@@ -254,7 +234,7 @@ function board() {
   return head("캐스트 게시판", "동료와 정보와 일상을 나눠요.", `<button class="primary" id="writeBtn">＋ 글쓰기</button>`) +
     `<section class="cast-board-hero">
       <div><span class="cast-feature-kicker">CAST COMMUNITY</span><h2>오늘의 이야기를<br>함께 나눠요</h2><p>자유 · 중고 · 부서별 · 신규 캐스트</p></div>
-      <span class="cast-board-hero-art" aria-hidden="true">💬</span>
+      <span class="cast-board-hero-art" aria-hidden="true">${iosIcon("messages")}</span>
     </section>
     <nav class="cast-board-chips" aria-label="게시판 종류">${chips.map(([route, label]) =>
       `<button type="button" data-board-route="${route}" class="${(state.page === route || (state.page === "board" && route === "board")) ? "active" : ""}">${label}</button>`
@@ -263,25 +243,25 @@ function board() {
     ${list.length ? list.map((post) => `<button type="button" class="cast-post-card" data-post="${posts.indexOf(post)}">
       <span class="tag ${tagClass(post.category)}">${esc(post.category)}</span>
       <strong>${esc(post.title)}</strong><span class="cast-post-summary">${esc(post.body)}</span>
-      <span class="cast-post-meta">${esc(post.author)} <span>♡ ${Number(post.likes) || 0} · 댓글 ${Number(post.comments) || 0}</span></span>
+      <span class="cast-post-meta">${esc(post.author)} <span>${iosIcon("heart")} ${Number(post.likes) || 0} · 댓글 ${Number(post.comments) || 0}</span></span>
     </button>`).join("") : '<div class="cast-empty">아직 등록된 글이 없어요. 첫 이야기를 남겨보세요.</div>'}</section>`;
 }
 function matching() {
   return (
     head("랜덤매칭", "시간과 관심사가 맞는 동료를 만나보세요.") +
     `<div class="two-cards">${[
-      ["🎲", "퇴근 후 보드게임", "20:30", "2 / 4명"],
-      ["🍜", "같이 저녁 먹어요", "21:00", "3 / 4명"],
-      ["☕", "쉬는 날 카페 투어", "토요일 14:00", "1 / 4명"],
-      ["🚗", "주말 카풀", "일요일 18:00", "2 / 3명"],
+      ["dice", "퇴근 후 보드게임", "20:30", "2 / 4명"],
+      ["food", "같이 저녁 먹어요", "21:00", "3 / 4명"],
+      ["coffee", "쉬는 날 카페 투어", "토요일 14:00", "1 / 4명"],
+      ["car", "주말 카풀", "일요일 18:00", "2 / 3명"],
     ]
       .map(
         (x) =>
           `<section class="card padded info-card">
-<div style="font-size:37px">${x[0]}</div>
+<div class="match-card-icon">${iosIcon(x[0])}</div>
 <h3>${x[1]}</h3>
-<p>${x[2]} · ${x[3]} 참여 중</p>
-<button class="outline" data-join="${x[1]}">대기방 참여</button>
+<p>${x[2]} · ${Number(x[3].split("/")[0].trim()) + Number(isJoined(x[1]))} / ${x[3].split("/")[1].trim()} 참여 중</p>
+<button class="outline" data-join="${x[1]}">${isJoined(x[1]) ? "참여 취소" : "시연 참여"}</button>
 </section>`,
       )
       .join("")}</div>
@@ -289,46 +269,12 @@ function matching() {
   );
 }
 function map() {
-  const today = todayKst();
-  const attended = localStorage.getItem(attendanceKey()) === today;
-  return (
-    head(
-      "아바타 맵",
-      "픽셀 세상에서 걷고 점프하며 동료를 만나보세요.",
-    ) +
-    `<section class="cast-map-intro"><div><span class="cast-feature-kicker">AVATAR WORLD</span><strong>나만의 캐릭터로 파크를 걸어봐요</strong><p>걷기와 점프를 체험하고, 이곳에서 오늘의 출석을 남겨요.</p></div><span aria-hidden="true">🎡</span></section>
-    <div class="cast-map-shortcuts"><button type="button" data-nav="shop">🧢 <strong>아바타 꾸미기</strong><small>옷과 소품 착용</small></button><button type="button" data-nav="room">🛋️ <strong>내 방 꾸미기</strong><small>벽지와 가구 선택</small></button></div>
-    <section class="card pixel-map-card">
-      <div class="pixel-map-topline"><span>✦ 파크톡 플레이그라운드</span><span class="pixel-live">1명 접속 중 · 시연 맵</span></div>
-      <div class="pixel-map-frame"><canvas id="pixelMap" width="960" height="420" aria-label="파크톡 픽셀 아바타 맵"></canvas></div>
-      <div class="pixel-map-controls">
-        <span>← → 또는 A D 이동 · 스페이스 / ↑ 점프 · E 대화</span>
-        <button class="pixel-control" data-map-control="left" aria-label="왼쪽 이동">←</button>
-        <button class="pixel-control" data-map-control="right" aria-label="오른쪽 이동">→</button>
-        <button class="pixel-control" data-map-control="jump" aria-label="점프">↑</button>
-        <button class="pixel-talk" id="talkNpc">대화 요청</button>
-      </div>
-    </section>
-    <div class="card padded map-attendance"><div><span class="cast-feature-kicker">TODAY'S CHECK-IN</span><strong>아바타 맵 출석</strong><p>매일 이곳에서 출석하면 10P를 받아요.</p></div>${attended ? `<span class="cast-attended">✓ 오늘 출석 완료</span>` : `<button class="primary" id="attendanceBtn">오늘 출석하기</button>`}</div>
-    <p class="note pixel-map-note">움직임과 의상은 이 브라우저에서 체험할 수 있습니다. 다른 캐스트와의 동시 접속 및 대화 수락은 서버 연동 후 제공됩니다.</p>`
-  );
-}
-function room() {
-  const rooms = JSON.parse(localStorage.getItem("parktalk-demo-rooms") || "{}");
-  const me = window.ParkAuth?.name() || "신입 캐스트";
-  const own = rooms[me] || { theme: "햇살", item: "소파" };
-  const looking = state.roomLookup?.trim();
-  const found = looking ? rooms[looking] : null;
-  const preview = (owner, room) => `<div class="room-preview room-${room.theme === "민트" ? "mint" : room.theme === "노을" ? "sunset" : room.theme === "라벤더" ? "lavender" : "sunny"}">
-    <div class="room-preview-label">${esc(owner)}의 방</div><div class="room-window">☀️</div><div class="room-plant">🪴</div>
-    <div class="room-furniture">${room.item === "책상" ? "🪑" : room.item === "침대" ? "🛏️" : "🛋️"}</div><div class="room-floor"></div>
-  </div>`;
-  return head("방 꾸미기", "벽지와 가구를 고르고 나만의 공간을 만들어요.", `<button class="outline" data-nav="map">아바타 맵으로</button>`) +
-    `<section class="card padded room-card"><span class="cast-feature-kicker">MY ROOM</span>${preview(me, own)}
-      <form id="roomForm" class="room-form"><label>벽지<select name="theme"><option ${own.theme === "햇살" ? "selected" : ""}>햇살</option><option ${own.theme === "라벤더" ? "selected" : ""}>라벤더</option><option ${own.theme === "민트" ? "selected" : ""}>민트</option><option ${own.theme === "노을" ? "selected" : ""}>노을</option></select></label><label>가구<select name="item"><option ${own.item === "소파" ? "selected" : ""}>소파</option><option ${own.item === "책상" ? "selected" : ""}>책상</option><option ${own.item === "침대" ? "selected" : ""}>침대</option></select></label><button class="primary" type="submit">내 방 저장</button></form>
-      <div class="room-share"><strong>친구 방 둘러보기</strong><p>닉네임으로 같은 브라우저에 저장된 방을 찾아볼 수 있어요.</p><form id="roomLookupForm" class="room-form"><label>캐스트 닉네임<input name="nickname" placeholder="닉네임 입력" value="${esc(looking || "")}"></label><button class="outline" type="submit">방 찾기</button></form></div>
-      ${looking ? found ? `<div class="room-found"><strong>${esc(looking)}님의 방</strong>${preview(looking, found)}</div>` : '<p class="note">이 브라우저에 저장된 방이 없어요.</p>' : ""}
-      <p class="muted">다른 기기의 방을 검색하려면 서버 연결이 필요합니다.</p>
+  return head("동물 키우기", "함께할 동물 친구를 만나는 공간을 준비하고 있어요.") +
+    `<section class="card padded animal-coming-soon">
+      <div class="animal-coming-soon__mark" aria-hidden="true">${iosIcon("paw")}</div>
+      <span class="pill">기획 중</span>
+      <h2>어떤 동물 친구와 함께할까요?</h2>
+      <p>동물 선택과 돌보기 방식은 정해진 뒤 이 화면에 추가됩니다.</p>
     </section>`;
 }
 function foundItems() {
@@ -356,78 +302,37 @@ function booking() {
 <span class="pill">시연 화면</span>
 <h2 style="font-size:17px">제휴 가게를 준비하고 있어요</h2>
 <p class="muted">가게 정보와 할인 내용은 관리자가 확인해 등록합니다.</p>
-<button class="outline" id="bookingBtn">예약 흐름 체험</button>
+<button class="outline" type="button" disabled>예약 기능 준비 중</button>
 </section>`
-  );
-}
-function shop() {
-  const wardrobe = ParkWardrobe.get();
-  const goods = [
-    ["🎩", "보라 모자", 50],
-    ["👕", "캐스트 티셔츠", 80],
-    ["🎀", "리본 장식", 40],
-    ["👓", "둥근 안경", 60],
-    ["🧢", "파란 모자", 50],
-    ["✨", "반짝 효과", 100],
-  ];
-  return (
-    head(
-      "꾸미기 상점",
-      "아이템을 교환하고 아바타에게 바로 입혀보세요.",
-      `<span class="pill">보유 포인트 ${points} P</span>`,
-    ) +
-    `<section class="cast-wardrobe-summary"><span class="cast-wardrobe-emoji">🧍</span><div><span class="cast-feature-kicker">MY AVATAR</span><strong>현재 착용한 아이템</strong><p>${Object.values(wardrobe.equipped).length ? Object.values(wardrobe.equipped).map(esc).join(" · ") : "아직 착용한 아이템이 없어요."}</p></div><button class="outline" data-nav="map">맵에서 보기</button></section>
-    <div class="item-grid">${goods
-      .map(([icon, name, price]) => {
-        const owned = wardrobe.owned.includes(name);
-        const slot = ParkWardrobe.items[name].slot;
-        const equipped = wardrobe.equipped[slot] === name;
-        return `<div class="card shop-item">
-        <div class="item-emoji">${icon}</div>
-        <strong>${name}</strong>
-        <small>${owned ? (equipped ? "아바타에 적용 중" : "보유 중") : `${price} P`}</small>
-        <button class="outline" data-item="${name}" data-price="${price}" ${equipped ? "disabled" : ""}>
-          ${equipped ? "착용 중" : owned ? "착용하기" : "교환하고 착용"}
-        </button>
-      </div>`;
-      })
-      .join("")}</div>
-    <p class="note" style="margin-top:14px">구매와 착용 상태는 이 브라우저에 저장됩니다. 아바타 맵에서 전신 캐릭터에 적용된 모습을 확인하세요.</p>`
   );
 }
 function ai() {
   return head("AI 생활 도우미", "캐스트 생활에 관해 질문해 보세요.") + `<section class="card padded chat-card">
     <p class="note">현재는 준비된 정보로 답하는 챗봇 시연입니다. 실제 AI 모델과 관리자 FAQ 연동은 아직 없습니다.</p>
-    <div class="chat-messages" aria-label="도우미 대화"><p class="chat-bubble chat-bubble--other">안녕하세요! 식단표, 사원증 인증, 출석, 방 꾸미기에 관해 물어보세요.</p>${assistantTurns.map((turn) => `<p class="chat-bubble chat-bubble--me">${esc(turn.question)}</p><p class="chat-bubble chat-bubble--other">${esc(turn.answer)}</p>`).join("")}</div>
+    <div class="chat-messages" aria-label="도우미 대화"><p class="chat-bubble chat-bubble--other">안녕하세요! 식단표와 사원증 인증에 관해 물어보세요.</p>${assistantTurns.map((turn) => `<p class="chat-bubble chat-bubble--me">${esc(turn.question)}</p><p class="chat-bubble chat-bubble--other">${esc(turn.answer)}</p>`).join("")}</div>
     <form id="assistantForm" class="chat-compose"><input name="question" maxlength="200" aria-label="도우미에게 질문" placeholder="궁금한 내용을 입력해 주세요" required><button class="primary" type="submit">질문</button></form>
   </section>`;
 }
 function assistantAnswer(question) {
   if (/식단|메뉴|밥/.test(question)) return "식단표는 관리자가 등록하면 메뉴 화면에 표시됩니다. 현재 등록된 메뉴는 없습니다.";
   if (/사원증|인증|로그인/.test(question)) return "캐스트 사원증 인증 방식과 에버랜드 DB 연동 여부는 아직 정해지지 않았습니다.";
-  if (/출석/.test(question)) return "아바타 맵에서 오늘 출석하기를 누르세요. 기록은 앱 설정의 내 프로필에서 확인할 수 있습니다.";
-  if (/방|꾸미기|아바타/.test(question)) return "아바타 맵에서 방 꾸미기를 열어 벽지와 가구를 선택할 수 있어요.";
+  if (/동물|키우기/.test(question)) return "동물 친구를 고르고 키우는 기능은 기획 중입니다. 화면은 미리 볼 수 있어요.";
   return "아직 준비된 답변이 없어요. 관리자 FAQ와 AI 기능을 연결하면 더 자세히 안내할 수 있습니다.";
 }
 function messages() {
   return head("채팅", "시연 대화로 화면을 체험해 보세요.") +
     `<section class="card padded chat-card">
-      <div class="chat-heading"><span class="chat-avatar">✦</span><div><strong>파크톡 시연 대화</strong><small>이 브라우저에만 표시됩니다</small></div></div>
+      <div class="chat-heading"><span class="chat-avatar">${iosIcon("messages")}</span><div><strong>파크톡 시연 대화</strong><small>이 브라우저에만 표시됩니다</small></div></div>
       <div class="chat-messages" aria-label="시연 대화 내용"><p class="chat-bubble chat-bubble--other">안녕하세요! 여기서 채팅 화면을 체험할 수 있어요.</p>${demoChat.map((message) => `<p class="chat-bubble chat-bubble--me">${esc(message)}</p>`).join("")}</div>
       <form id="demoChatForm" class="chat-compose"><input name="message" maxlength="200" aria-label="시연 메시지" placeholder="메시지를 입력해 보세요" required><button class="primary" type="submit">보내기</button></form>
       <div class="chat-footer"><p class="muted chat-note">실제 캐스트에게 메시지가 전송되지 않습니다.</p>${demoChat.length ? '<button class="chat-clear" type="button" data-chat-clear>시연 대화 지우기</button>' : ""}</div>
     </section>`;
 }
 function settings() {
-  const attendance = localStorage.getItem(attendanceKey());
-  const history = JSON.parse(localStorage.getItem(attendanceHistoryKey()) || "[]");
   return head("앱 설정", "내 이용 정보를 확인하고 모드를 변경해요.") +
-    `<section class="card padded settings-card"><div class="settings-profile"><span class="mini-avatar">👩🏻‍🦰</span><div><strong>${esc(window.ParkAuth?.name() || "신입 캐스트")}</strong><small>캐스트 모드 · 시연 계정</small></div></div>
+    `<section class="card padded settings-card"><div class="settings-profile"><span class="mini-avatar">${iosIcon("user")}</span><div><strong>${esc(window.ParkAuth?.name() || "신입 캐스트")}</strong><small>캐스트 모드 · 시연 계정</small></div></div>
       <div class="settings-row"><span>이용 모드</span><strong>캐스트</strong></div>
       <div class="settings-row"><span>사원증 인증</span><strong>기획 중</strong></div>
-      <div class="settings-row"><span>최근 출석</span><strong>${attendance ? esc(attendance) : "기록 없음"}</strong></div>
-      <div class="settings-row"><span>누적 출석</span><strong>${history.length || (attendance ? 1 : 0)}일</strong></div>
-      ${history.length ? `<div class="cast-attendance-history"><strong>출석 기록</strong><div>${history.slice(-5).reverse().map((day) => `<span>✓ ${esc(day)}</span>`).join("")}</div></div>` : ""}
       <p class="note">실제 계정 인증과 다른 사용자와의 채팅은 서버 연동 후 제공됩니다.</p>
       <div class="settings-actions"><button class="outline" type="button" data-auth-action="switch">일반 사용자 모드로 전환</button><button class="outline" type="button" data-auth-action="logout">로그아웃</button></div>
     </section>`;
@@ -457,20 +362,14 @@ function render() {
               ? menu()
               : state.page === "booking"
                 ? booking()
-                : state.page === "shop"
-                  ? shop()
                   : state.page === "ai"
                     ? ai()
-                    : state.page === "room"
-                      ? room()
-                    : state.page === "found"
+                        : state.page === "found"
                       ? foundItems()
                     : state.page === "settings"
                       ? settings()
                     : messages();
   document.title = `${state.page === "home" ? "오늘도 함께" : "파크톡"} | ParkTalk`;
-  if (state.page === "map") ParkMap.mount();
-  else ParkMap.unmount();
 }
 function writePost() {
   const chosen = state.page === "free" ? "자유게시판" : boardPages[state.page];
@@ -499,7 +398,7 @@ function postDetail(i) {
 <h2 style="margin-top:13px">${esc(p.title)}</h2>
 <p class="muted">${esc(p.author)} · 시연 게시글</p>
 <p style="font-size:13px;line-height:1.8;margin:20px 0;white-space:pre-wrap">${esc(p.body)}</p>
-<button class="outline" id="likeBtn" type="button">♡ 좋아요 ${p.likes}</button> <button class="outline" id="messagePostBtn" type="button">쪽지 보내기</button>
+<button class="outline" id="likeBtn" type="button">${iosIcon("heart")} 좋아요 ${p.likes}</button> <button class="outline" type="button" disabled>쪽지 기능 준비 중</button>
 ${p.createdAt && p.author === (window.ParkAuth?.name?.() || "신입 캐스트") ? '<button class="cast-delete-post" id="deletePostBtn" type="button">내 글 삭제</button>' : ""}
 <div class="cast-comments"><strong>댓글 ${Number(p.comments) || 0}</strong>${replies.map((reply) => `<p><b>${esc(reply.author)}</b><span>${esc(reply.body)}</span></p>`).join("")}</div>
 <form id="postCommentForm" data-post-index="${i}" class="cast-comment-form"><input name="comment" maxlength="300" placeholder="댓글을 입력해 주세요" aria-label="댓글 입력" required><button class="primary" type="submit">등록</button></form>`,
@@ -510,8 +409,6 @@ ${p.createdAt && p.author === (window.ParkAuth?.name?.() || "신입 캐스트") 
     postDetail(i);
     render();
   };
-  $("#messagePostBtn").onclick = () =>
-    toast("쪽지는 서버 연동 후 사용할 수 있어요.");
   const deleteButton = $("#deletePostBtn");
   if (deleteButton) deleteButton.onclick = () => {
     posts.splice(i, 1);
@@ -562,42 +459,13 @@ document.addEventListener("click", (e) => {
     render();
     toast("글이 이 브라우저에 저장됐어요.");
   } else if (b.dataset.post !== undefined) postDetail(Number(b.dataset.post));
-  else if (b.dataset.join)
-    toast("시연 화면입니다. 매칭 서버 연결 후 참여할 수 있어요.");
-  else if (b.dataset.item) {
-    const name = b.dataset.item;
-    const wardrobe = ParkWardrobe.get();
-    if (wardrobe.owned.includes(name)) {
-      ParkWardrobe.equip(name);
-      toast(`${name}을(를) 착용했어요.`);
-    } else {
-      const price = Number(b.dataset.price);
-      if (points < price) {
-        toast("포인트가 부족해요.");
-        return;
-      }
-      points -= price;
-      localStorage.setItem("parktalk-points", points);
-      ParkWardrobe.own(name);
-      toast(`${name} 교환 및 착용 완료!`);
-    }
+  else if (b.dataset.join) {
+    const name = b.dataset.join;
+    joinedRooms = isJoined(name) ? joinedRooms.filter((room) => room !== name) : [...joinedRooms, name];
+    sessionStorage.setItem("parktalk-demo-joined-rooms", JSON.stringify(joinedRooms));
     render();
-  } else if (b.id === "attendanceBtn") {
-    if (state.page !== "map") return;
-    let day = todayKst();
-    if (localStorage.getItem(attendanceKey()) === day) {
-      toast("오늘은 이미 출석했어요.");
-      return;
-    }
-    localStorage.setItem(attendanceKey(), day);
-    const history = JSON.parse(localStorage.getItem(attendanceHistoryKey()) || "[]");
-    if (!history.includes(day)) localStorage.setItem(attendanceHistoryKey(), JSON.stringify([...history, day]));
-    points += 10;
-    localStorage.setItem("parktalk-points", points);
-    render();
-    toast("출석했어요! 앱 설정에서 기록을 확인할 수 있습니다.");
-  } else if (b.id === "bookingBtn")
-    toast("예약 승인 기능은 서버 연결 후 사용할 수 있어요.");
+    toast(isJoined(name) ? "시연 대기방에 참여했어요. 실제 동료와 연결되지는 않습니다." : "시연 대기방 참여를 취소했어요.");
+  }
   else if (b.id === "settingsBtn")
     modal(
       `<h2>캐스트 계정</h2>
@@ -674,22 +542,6 @@ document.addEventListener("submit", (event) => {
     const question = String(new FormData(event.target).get("question") || "").trim();
     if (!question) return;
     assistantTurns.push({ question: question.slice(0, 200), answer: assistantAnswer(question) });
-    render();
-    return;
-  }
-  if (event.target.id === "roomForm") {
-    event.preventDefault();
-    const data = new FormData(event.target);
-    const rooms = JSON.parse(localStorage.getItem("parktalk-demo-rooms") || "{}");
-    rooms[window.ParkAuth?.name() || "신입 캐스트"] = { theme: String(data.get("theme")), item: String(data.get("item")) };
-    localStorage.setItem("parktalk-demo-rooms", JSON.stringify(rooms));
-    render();
-    toast("내 방을 이 브라우저에 저장했어요.");
-    return;
-  }
-  if (event.target.id === "roomLookupForm") {
-    event.preventDefault();
-    state.roomLookup = String(new FormData(event.target).get("nickname") || "").slice(0, 20);
     render();
     return;
   }
