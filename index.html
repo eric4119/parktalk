@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#7554e8" />
+    <title>ParkTalk | 오늘도 함께, 파크톡</title>
+    <meta name="description" content="방문객 일행 찾기와 캐스트 커뮤니티를 연결하는 파크톡 시연 웹앱" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="map.css" />
+    <link rel="stylesheet" href="auth.css" />
+    <link rel="stylesheet" href="visitor.css" />
+  </head>
+  <body>
+    <section id="authApp" class="auth-app" hidden></section>
+    <div class="app" hidden>
+      <aside class="sidebar">
+        <a class="brand" href="#home"
+          ><span>ParkTalk</span><small>캐스트를 위한 이야기 공간</small></a
+        >
+        <nav id="nav"></nav>
+        <div class="side-bottom">
+          <div class="mini-avatar">👩🏻‍🦰</div>
+          <div><strong>신입 캐스트</strong><small>시연 계정</small></div>
+          <button id="settingsBtn" title="프로필">⚙</button>
+        </div>
+      </aside>
+      <div class="main-wrap">
+        <header class="topbar">
+          <button class="mobile-menu" id="menuBtn" aria-label="메뉴 열기">
+            ☰
+          </button>
+          <div class="search-wrap">
+            <span>⌕</span
+            ><input
+              id="search"
+              placeholder="궁금한 이야기를 검색해요"
+              aria-label="게시글 검색"
+            />
+          </div>
+          <div class="top-actions">
+            <button
+              class="icon-btn"
+              id="messagesBtn"
+              title="쪽지"
+              aria-label="쪽지 보기"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path
+                  d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5 8.4 8.4 0 0 1-3.4-.7L4 20l1.7-4.5A7.5 7.5 0 1 1 20 11.5Z"
+                />
+                <path d="M8.5 11.5h7" />
+              </svg>
+            </button>
+            <button
+              class="icon-btn"
+              id="noticesBtn"
+              title="알림"
+              aria-label="알림 보기"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z" />
+                <path d="M10 21h4" />
+              </svg>
+            </button>
+            <span class="top-avatar">👩🏻‍🦰</span
+            ><span class="top-name">신입 캐스트</span
+            ><span class="demo-chip">체험 모드</span>
+          </div>
+        </header>
+        <main id="view"></main>
+        <nav id="castBottomNav" class="cast-bottom-nav" aria-label="캐스트 하단 메뉴"></nav>
+      </div>
+    </div>
+    <div id="visitorApp" hidden></div>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <dialog id="modal">
+      <form method="dialog">
+        <button class="close" aria-label="닫기">×</button>
+        <div id="modalBody"></div>
+      </form>
+    </dialog>
+    <script src="map.js"></script>
+    <script src="script.js"></script>
+    <script src="visitor.js"></script>
+    <script src="auth.js"></script>
+  </body>
+</html>
