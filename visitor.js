@@ -8,9 +8,9 @@
   const zones = { global: "정문 · 글로벌페어", zootopia: "주토피아", american: "아메리칸 어드벤처", magic: "매직랜드" };
   const places = [
     { id: "capybara", name: "카피바라 · 뿌빠타운", zone: "zootopia", number: "206", kind: "동물", detail: "카피바라를 만날 수 있는 뿌빠타운", terms: "카피바라 capybara 뿌빠타운 동물원 동물" },
-    { id: "amazon", name: "아마존 스낵", zone: "zootopia", number: "228", kind: "간식", detail: "핫도그 · 츄러스", terms: "핫도그 츄러스 간식 아마존 스낵" },
-    { id: "newdel", name: "뉴델 스낵", zone: "american", number: "67", kind: "간식", detail: "핫도그 · 츄러스", terms: "핫도그 츄러스 간식 뉴델 스낵" },
-    { id: "merlin", name: "멀린스 스낵", zone: "magic", number: "139", kind: "간식", detail: "핫도그 · 츄러스", terms: "핫도그 츄러스 간식 멀린스 스낵" },
+    { id: "amazon", name: "아마존 스냅", zone: "zootopia", number: "228", kind: "간식", detail: "핫도그 · 츄러스", terms: "핫도그 츄러스 간식 아마존 스냅" },
+    { id: "newdel", name: "뉴델 스냅", zone: "american", number: "67", kind: "간식", detail: "핫도그 · 츄러스", terms: "핫도그 츄러스 간식 뉴델 스냅" },
+    { id: "merlin", name: "멀린스 스냅", zone: "magic", number: "139", kind: "간식", detail: "핫도그 · 츄러스", terms: "핫도그 츄러스 간식 멀린스 스냅" },
   ];
   const root = () => document.getElementById("visitorApp");
   const escapeHtml = (value) =>
@@ -65,11 +65,10 @@
   let userName = "방문객";
   let view = "home";
   let group = null;
-  let gps = null; // Memory only. Never written to localStorage or shown as coordinates.
+  let gps = null;
   let midpointSuggestion = false;
   let notice = "";
   let boardKind = "praise";
-  let visitorPosts = [];
   let searchTerm = "";
   let destinationId = "capybara";
   let startZone = "global";
@@ -121,6 +120,15 @@
       ${title("방문객 모드", `${escapeHtml(userName)}님, 반가워요`, "일행과 연결하고 필요한 정보를 찾아보세요.")}
       <section class="pv-missing-banner"><span>미아·보호자 찾기</span><strong>아이와 떨어졌다면<br>즉시 근처 캐스트에게 알려주세요.</strong><a href="tel:0313205050">손님상담실 ${HELP_PHONE} 전화하기</a></section>
       <div class="pv-section-heading">
+<h2>소통 · 신고 양식</h2>
+<span>BOARD</span>
+</div>
+      <div class="pv-board-grid">
+        <button type="button" data-pv-board="praise">${icon("heart")}<strong>칭찬하기</strong></button>
+        <button type="button" data-pv-board="lost">${icon("found")}<strong>분실물·습득물</strong></button>
+        <button type="button" data-pv-board="missing">${icon("child")}<strong>미아 찾기</strong></button>
+      </div>
+      <div class="pv-section-heading">
 <h2>일행과 연결하기</h2>
 <span>STEP 01</span>
 </div>
@@ -148,7 +156,6 @@
 <strong>내 위치는 내가 결정해요.</strong>
 <br>위치 확인은 직접 버튼을 누른 뒤에만 시작됩니다.</p>
 </div>
-
     </div>`;
   }
   function create() {
@@ -428,7 +435,10 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
     const button = event.target.closest("button");
     if (!button || !root()?.contains(button)) return;
     if (button.dataset.pvView) return setView(button.dataset.pvView);
-    if (button.dataset.pvBoard) { boardKind = button.dataset.pvBoard; return setView("board"); }
+    if (button.dataset.pvBoard) {
+      boardKind = button.dataset.pvBoard;
+      return setView("board");
+    }
     if (button.dataset.pvQuery) {
       searchTerm = button.dataset.pvQuery;
       return setView("explore");
@@ -522,15 +532,6 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
       const groups = demoGroups();
       if (groups[group.code]) { groups[group.code].members = group.members; saveDemoGroups(groups); }
       render();
-    } else if (event.target.id === "pv-board-form") {
-      event.preventDefault();
-      const data = new FormData(event.target);
-      const photo = data.get("photo");
-      if (photo instanceof File && photo.size > 3_000_000) return toast("사진은 3MB 이하로 선택해 주세요.");
-      const post = { kind: boardKind, title: String(data.get("title") || ""), body: String(data.get("body") || ""), age: String(data.get("age") || ""), gender: String(data.get("gender") || ""), clothes: String(data.get("clothes") || ""), place: String(data.get("place") || ""), photoUrl: photo instanceof File && photo.size ? URL.createObjectURL(photo) : "" };
-      visitorPosts.unshift(post);
-      render();
-      toast("게시글 화면에 표시했어요. 실제 접수나 공유는 되지 않습니다.");
     } else if (event.target.id === "pv-search-form") {
       event.preventDefault();
       searchTerm = String(new FormData(event.target).get("query") || "").trim().slice(0, 60);
@@ -613,8 +614,6 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
       listener = submitListener = null;
       clearTimeout(toast.timer);
       gps = null;
-      visitorPosts.forEach((post) => { if (post.photoUrl) URL.revokeObjectURL(post.photoUrl); });
-      visitorPosts = [];
       const target = root();
       if (target) target.innerHTML = "";
     },
