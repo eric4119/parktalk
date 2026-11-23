@@ -85,6 +85,7 @@
     { id: 'magic',    name: '매직랜드 광장',          query: null,  lat: 37.2965, lng: 127.2010 },
     { id: 'zootopia', name: '주토피아 사파리',         query: null,  lat: 37.2978, lng: 127.2050 },
   ];
+  let visitorPosts = [];
   let midpointSuggestion = false;
   let notice = "";
   let boardKind = "praise";
