@@ -443,8 +443,10 @@ ${group.consent
     return Math.round(Math.sqrt(dLat * dLat + dLng * dLng));
   }
 
-  function drawRoute(fromLat, fromLng, toLat, toLng) {
-    if (!naverMap) return;
+  // Cloudflare Worker URL — 배포 후 채워넣기
+  const DIRECTION_WORKER_URL = '';
+
+  function drawRouteSimulated(fromLat, fromLng, toLat, toLng) {
     if (routePolyline) routePolyline.setMap(null);
     routePolyline = new naver.maps.Polyline({
       map: naverMap,
@@ -463,6 +465,34 @@ ${group.consent
       new naver.maps.LatLng(Math.max(fromLat, toLat) + 0.0003, Math.max(fromLng, toLng) + 0.0003),
     );
     naverMap.fitBounds(bounds);
+  }
+
+  function drawRoute(fromLat, fromLng, toLat, toLng) {
+    if (!naverMap) return;
+    if (routePolyline) { routePolyline.setMap(null); routePolyline = null; }
+    if (!DIRECTION_WORKER_URL) { drawRouteSimulated(fromLat, fromLng, toLat, toLng); return; }
+
+    const start = `${fromLng},${fromLat}`;
+    const goal  = `${toLng},${toLat}`;
+    fetch(`${DIRECTION_WORKER_URL}?start=${start}&goal=${goal}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.code !== 0) throw new Error(data.message);
+        const rawPath = data.route.traoptimal[0].path;
+        const path = rawPath.map(([lng, lat]) => new naver.maps.LatLng(lat, lng));
+        routePolyline = new naver.maps.Polyline({
+          map: naverMap,
+          path,
+          strokeColor: '#2563eb',
+          strokeOpacity: 0.9,
+          strokeWeight: 5,
+        });
+        const bounds = new naver.maps.LatLngBounds();
+        path.forEach(p => bounds.extend(p));
+        naverMap.fitBounds(bounds, { top: 60, right: 20, bottom: 160, left: 20 });
+        render();
+      })
+      .catch(() => drawRouteSimulated(fromLat, fromLng, toLat, toLng));
   }
 
   function clearMemberMarkers() {
