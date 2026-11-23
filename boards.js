@@ -1077,6 +1077,42 @@
     if (selected === 'popular' && document.querySelector('.pb-page')) refresh();
   }, 60000);
 
+  // AI 도우미용 게시판 검색. 현재 모드에서 볼 수 있는 글만, 제목·본문·댓글을 함께 본다.
+  const PARTICLES = /(으로|에서|에게|까지|부터|이랑|하고|이에요|예요|은|는|이|가|을|를|에|의|도|로|와|과|요|야|나|좀)$/;
+  const GENERIC = new Set(['어떻게','어디','어디서','뭐야','무엇','알려줘','알려주세요','궁금','궁금해','있어','있나','있나요','있어요','하나요','해요','되나요','어떤','누가','언제','왜']);
+  function stems(text) {
+    return [...new Set(String(text || '').toLowerCase().split(/[^0-9a-z가-힣]+/).map(w => {
+      let s = w;
+      for (let i = 0; i < 2; i++) s = s.replace(PARTICLES, '');
+      return s;
+    }).filter(s => s.length >= 2 && !GENERIC.has(s)))];
+  }
+  function search(question, limit = 3) {
+    const words = stems(question);
+    if (!words.length) return [];
+    return data.filter(p => allowed(p.kind)).map(p => {
+      const title = String(p.title || '').toLowerCase(), body = String(p.body || p.clothes || '').toLowerCase();
+      const replies = (p.replies || []).map(r => String(r.body || ''));
+      let score = 0, hits = 0;
+      for (const w of words) {
+        let hit = false;
+        if (title.includes(w)) { score += 3; hit = true; }
+        if (body.includes(w)) { score += 2; hit = true; }
+        if (replies.some(r => r.toLowerCase().includes(w))) { score += 2; hit = true; }
+        if (hit) hits++;
+      }
+      return { p, score, hits };
+    }).filter(x => x.score >= 3 && x.hits >= (words.length >= 4 ? 2 : 1))
+      .sort((a, b) => b.score - a.score || (b.p.createdAt || 0) - (a.p.createdAt || 0))
+      .slice(0, limit)
+      .map(({ p }) => ({
+        id: p.id, kind: p.kind, board: `${labels[p.kind]} 게시판`,
+        title: String(p.title || '').slice(0, 80), body: String(p.body || p.clothes || '').slice(0, 400),
+        author: p.author, authorType: p.authorType || '캐스트', createdAt: p.createdAt || null,
+        replies: (p.replies || []).slice(-5).map(r => ({ author: r.author, authorType: r.authorType || '', body: String(r.body || '').slice(0, 200) })),
+      }));
+  }
+
   window.ParkBoards = {
     page,
     home,
@@ -1086,6 +1122,7 @@
     list,
     linkPosts,
     resolvePost,
+    search,
     setQuery: (value) => {
       query = value;
       searchOpen = Boolean(value);

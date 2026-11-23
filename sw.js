@@ -1,8 +1,8 @@
-const CACHE = "parktalk-v17-20261120";
+const CACHE = "parktalk-v22-20261123";
 const APP_FILES = [
   "./", "./index.html", "./app.html", "./style.css",
   "./auth.css", "./visitor.css", "./theme.css", "./cast-features.css", "./fresh-ui.css",
-  "./ui-icons.js", "./boards.js", "./script.js", "./visitor.js", "./auth.js", "./pwa.js",
+  "./ui-icons.js", "./park-data.js", "./official-faq.json", "./boards.js", "./script.js", "./visitor.js", "./auth.js", "./pwa.js",
   "./manifest.webmanifest", "./icons/icon.svg", "./assets/parktalk-logo-transparent.png"
 ];
 
@@ -22,6 +22,7 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   const url = new URL(event.request.url);
+  if (url.pathname.includes("/api/")) return;
   if (url.origin !== self.location.origin || !url.pathname.startsWith(new URL("./", self.registration.scope).pathname)) return;
   event.respondWith(
     fetch(event.request).then((response) => {
