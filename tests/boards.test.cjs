@@ -43,3 +43,15 @@ test('visitor page exposes only shared boards and no inline composer',()=>{
  assert.match(html,/data-pb-kind="praise"/);assert.match(html,/data-pb-write/);
  assert.doesNotMatch(html,/data-pb-kind="free"|data-pb-kind="department"|<form/);
 });
+test('assistant search finds posts by title, body and comments, labels the board, and hides cast boards from visitors',()=>{
+ const dorm=post('dorm','free',now-10,[]);dorm.title='기숙사 생활 팁 있나요';dorm.body='처음 들어가요';dorm.replies=[{author:'선배',body:'세탁실은 아침에 비어 있어요',createdAt:now}];
+ const lost=post('lost','lost',now,[]);lost.title='우산 분실했어요';lost.body='정문 근처에서 파란 우산';
+ const {api,setRole}=setup([dorm,lost]);
+ const found=api.search('기숙사 세탁실 언제 비어?');
+ assert.equal(found[0].id,'dorm');assert.equal(found[0].board,'자유 게시판');assert.match(found[0].replies[0].body,/세탁실/);
+ assert.equal(api.search('파란 우산 분실')[0].board,'분실물 게시판');
+ assert.equal(api.search('어떻게 해요?').length,0);
+ setRole('visitor');
+ assert.equal(api.search('기숙사 세탁실').length,0);
+ assert.equal(api.search('파란 우산 분실').length,1);
+});

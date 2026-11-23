@@ -6,6 +6,8 @@
   const visitorRoot = document.getElementById("visitorApp");
   let session = readSession();
   let formMode = "login";
+  // 새로고침 전에 보던 화면(#board, #visitor/map 등). 처음 로딩할 때만 복원한다.
+  const startHash = decodeURIComponent(location.hash.slice(1));
 
   function readSession() {
     try {
@@ -59,20 +61,21 @@
     authRoot.querySelector("input")?.focus();
     window.scrollTo(0, 0);
   }
-  function enter(next) {
+  function enter(next, restore = false) {
     session = { name: next.name.slice(0, 20), role: next.role, accountRole: next.accountRole, id: next.id };
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
     const dialog = document.getElementById("modal");
     if (dialog?.open) dialog.close();
     if (session.role === "visitor") {
+      window.ParkCast?.leave();
       visible("visitor");
-      window.ParkVisitor.mount({ name: session.name });
-      history.replaceState(null, "", "#visitor");
+      const view = restore && startHash.startsWith("visitor/") ? startHash.slice("visitor/".length) : undefined;
+      window.ParkVisitor.mount({ name: session.name, view });
     } else {
       window.ParkVisitor?.unmount();
       visible("cast");
-      document.querySelectorAll(".top-name, .side-bottom strong").forEach((el) => { el.textContent = session.name; });
-      go("home");
+      // 이름·아바타 표시는 script.js의 render()가 계정 정보로 갱신한다.
+      window.ParkCast.go(restore && window.ParkCast.hasPage(startHash) ? startHash : "home");
     }
     window.scrollTo(0, 0);
   }
@@ -82,13 +85,24 @@
     document.querySelector(".sidebar")?.classList.remove("open");
     sessionStorage.removeItem(SESSION_KEY);
     session = null;
+    window.ParkCast?.leave();
     window.ParkVisitor?.unmount();
     window.ParkVisitor?.clearLocalSession();
     history.replaceState(null, "", location.pathname);
     form("login");
   }
+  function castVerificationNotice() {
+    const html = `<h2>캐스트 인증이 필요해요</h2>
+      <p class="muted">캐스트 모드는 에버랜드 캐스트 전용 공간이라 캐스트 인증을 마친 계정만 들어갈 수 있어요.</p>
+      <p class="note">사원증 인증 방식은 아직 준비 중입니다. 인증이 열리면 앱 설정에서 신청할 수 있어요. 지금은 일반 사용자 모드를 그대로 이용해 주세요.</p>
+      <button class="outline" type="button" data-auth-action="close-notice">확인</button>`;
+    if (window.parkModal) window.parkModal(html);
+    else window.parkToast?.("캐스트 모드는 캐스트 인증을 마친 계정만 이용할 수 있어요.");
+  }
   function switchRole() {
-    if (session?.accountRole !== "cast") return;
+    if (!session) return;
+    // 캐스트 계정만 두 모드를 오갈 수 있다. 일반 회원은 캐스트 인증 안내만 보여준다.
+    if (session.accountRole !== "cast") return castVerificationNotice();
     enter({ ...session, role: session.role === "cast" ? "visitor" : "cast" });
   }
   authRoot.addEventListener("click", (event) => {
@@ -123,8 +137,9 @@
     if (!button || authRoot.contains(button)) return;
     if (button.dataset.authAction === "logout") logout();
     if (button.dataset.authAction === "switch") switchRole();
+    if (button.dataset.authAction === "close-notice") document.getElementById("modal")?.close();
   });
-  window.ParkAuth = { role: () => session?.role || null, accountRole: () => session?.accountRole || null, name: () => session?.name || null, id: () => session?.id || null, logout, switchRole };
+  window.ParkAuth = { role: () => session?.role || null, accountRole: () => session?.accountRole || null, name: () => session?.name || null, id: () => session?.id || null, canSwitch: () => session?.accountRole === "cast", logout, switchRole };
   window.parkToast = window.parkToast || ((message) => alert(escapeText(message)));
-  if (session) enter(session); else form("login");
+  if (session) enter(session, true); else form("login");
 })();

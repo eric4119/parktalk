@@ -1,0 +1,66 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; background: #f6f5f1; color: #23283a; font-size: 14px; }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; border: 1px solid #d9d6cc; background: #fff; border-radius: 8px; padding: 6px 12px; color: inherit; }
+button:hover { background: #f1efe8; }
+input, select, textarea { width: 100%; border: 1px solid #d9d6cc; border-radius: 8px; padding: 8px 10px; background: #fff; }
+textarea { resize: vertical; }
+label { display: grid; gap: 4px; font-weight: 600; font-size: 13px; }
+label small { font-weight: 400; color: #7a7f8f; }
+h1 { margin: 0 0 4px; font-size: 22px; }
+h2 { margin: 0; font-size: 16px; }
+
+.ad-muted { color: #6b7080; font-size: 13px; }
+.ad-hint { color: #8a8f9e; font-size: 12px; margin: 0; }
+.ad-empty { color: #8a8f9e; padding: 24px; text-align: center; }
+.ad-primary { background: #ffd550; border-color: #f0c22e; font-weight: 700; }
+.ad-primary:hover { background: #ffcd2e; }
+.ad-danger { color: #c0392b; }
+
+.ad-login { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+.ad-login form { width: min(380px, 100%); display: grid; gap: 14px; }
+
+.ad-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 28px; background: #fff; border-bottom: 1px solid #e7e4da; position: sticky; top: 0; z-index: 2; }
+.ad-header > div:first-child { display: flex; gap: 12px; align-items: baseline; }
+.ad-header__actions { display: flex; gap: 8px; align-items: center; }
+.ad-header__actions a { color: inherit; font-size: 13px; }
+.ad-tabs { display: flex; gap: 6px; padding: 14px 28px 0; }
+.ad-tabs button { border-radius: 999px; padding: 8px 18px; font-weight: 600; }
+.ad-tabs button.active { background: #23283a; color: #fff; border-color: #23283a; }
+.ad-main { padding: 18px 28px 60px; max-width: 1200px; }
+.ad-section { display: grid; gap: 14px; }
+
+.ad-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ad-row input[type=date] { width: auto; }
+.ad-chips { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 12px; color: #6b7080; }
+.ad-chips button { font-size: 12px; padding: 4px 10px; border-radius: 999px; }
+.ad-chips button.active { background: #fff1c2; border-color: #f0c22e; }
+
+.ad-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr); gap: 18px; align-items: start; }
+.ad-list { display: grid; gap: 10px; }
+.ad-card { background: #fff; border: 1px solid #e7e4da; border-radius: 14px; padding: 16px; }
+.ad-card p { margin: 8px 0 0; line-height: 1.6; }
+.ad-card--partner { border-color: #f0c22e; background: #fffbea; }
+.ad-card__head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.ad-pill { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: #eef0f5; color: #5b6275; white-space: nowrap; }
+.ad-partner { color: #8a5a00; }
+.ad-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+.ad-tags span { font-size: 11px; background: #f1efe8; border-radius: 6px; padding: 2px 6px; }
+.ad-actions { display: flex; gap: 6px; margin-top: 12px; }
+.ad-form { display: grid; gap: 12px; position: sticky; top: 76px; }
+.ad-check { display: flex; align-items: center; gap: 8px; }
+.ad-check input { width: auto; }
+
+#adminToast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: #23283a; color: #fff; padding: 10px 16px; border-radius: 10px; opacity: 0; transition: .2s; pointer-events: none; }
+#adminToast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-width: 800px) {
+  .ad-grid { grid-template-columns: 1fr; }
+  .ad-form { position: static; }
+  .ad-header, .ad-tabs, .ad-main { padding-left: 16px; padding-right: 16px; }
+}
+
+.ad-cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; margin-top: 12px; font-weight: 500; }
+.ad-row input:not([type=date]) { flex: 1; }
+details.ad-hint { margin-top: 8px; }
+details.ad-hint code { background: #f1efe8; padding: 1px 4px; border-radius: 4px; }

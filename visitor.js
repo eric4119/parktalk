@@ -344,7 +344,8 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
 <strong>${group?.consent ? "동의함" : "꺼짐"}</strong>
 </div>
 </div>
-      ${window.ParkAuth?.accountRole?.() === "cast" ? '<button type="button" class="pv-secondary-button pv-wide" data-auth-action="switch">캐스트 모드로 전환</button>' : ""}
+      <button type="button" class="pv-secondary-button pv-wide" data-auth-action="switch">캐스트 모드로 전환</button>
+      ${window.ParkAuth?.accountRole?.() === "cast" ? "" : '<p class="pv-profile-note">캐스트 모드는 캐스트 인증을 마친 계정만 이용할 수 있어요.</p>'}
       <button type="button" class="pv-secondary-button pv-wide" data-pv-action="logout">로그아웃</button>
 <p class="pv-profile-note">현재 계정과 그룹은 이 브라우저에서만 체험할 수 있습니다.</p>
     </div>`;
@@ -399,10 +400,13 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
 </div>
 </div>${notice ? `<div class="pv-toast" role="status">${escapeHtml(notice)}</div>` : ""}`;
   }
+  // 새로고침해도 다시 열 수 있는 화면(다른 화면은 직전 선택 상태가 필요해서 홈으로 돌아간다)
+  const RESTORABLE = ["home", "board", "group", "map", "profile", "explore", "create", "join"];
   function setView(next) {
     view = next;
     render();
     window.scrollTo?.(0, 0);
+    history.replaceState(null, "", `#visitor/${RESTORABLE.includes(view) ? view : "home"}`);
   }
   async function copy(value) {
     try {
@@ -595,7 +599,8 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
       this.unmount();
       userName = String(user.name || user.nickname || "방문객").slice(0, 30);
       group = readGroup();
-      view = "home";
+      view = RESTORABLE.includes(user.view) ? user.view : "home";
+      history.replaceState(null, "", `#visitor/${view}`);
       const code = new URLSearchParams(location.search).get("invite");
       if (code && /^[A-Z0-9]{6}$/i.test(code)) {
         sessionStorage.setItem(INVITE, code.toUpperCase());
