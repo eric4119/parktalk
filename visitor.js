@@ -74,6 +74,7 @@
   let routePolyline = null;
   let memberMarkers = [];
   let memberMoveTimer = null;
+  let mapSheetOpen = false;
 
   // ===== 에버랜드 집합장소 후보 =====
   // 좌표는 대략적 위치 — Naver Maps에서 실제 핀 찍어 보정 필요
@@ -297,27 +298,9 @@
     if (!group)
       return `<div class="pv-content">${title("일행 지도", "먼저 그룹에 참여해 주세요", "그룹을 만든 뒤 지도를 이용할 수 있어요.")}<button type="button" class="pv-button" data-pv-view="group">일행으로 이동 ${icon("arrow")}</button>
 </div>`;
-    return `<div class="pv-map-page">
-<div class="pv-map-heading">
-<div>
-<span class="pv-eyebrow">${escapeHtml(group.name)}</span>
-<h1>일행 찾기</h1>
-</div>
-<span class="pv-map-demo">네이버 지도</span>
-</div>
-      <div id="pv-naver-map" class="pv-naver-map-container" aria-label="에버랜드 네이버 지도"></div>
-      <div class="pv-map-sheet">
-<div class="pv-sheet-handle">
-</div>
-<div class="pv-map-sheet-head">
-<div>
-<strong>일행 위치</strong>
-<p>그룹 코드 ${group.code}</p>
-</div>
-<span>${(group.members || [userName]).length}명 · 시연</span>
-</div>
-${(group.members || [userName]).map((member, index) => `<div class="pv-member-row"><span class="pv-member-avatar pv-member-${index % 4}">${escapeHtml(member.slice(0, 1))}</span><div><strong>${escapeHtml(member)}${index === 0 ? " (나)" : ""}</strong><small>${index === 0 ? gps ? "기기 위치 권한 확인됨 · 좌표 저장 안 함" : group.consent ? "동의됨 · 위치 확인 전" : "위치 표시 꺼짐" : "시연 인원 · 실제 위치 연결 전"}</small></div></div>`).join("")}
-${(() => {
+
+    const members = group.members || [userName];
+    const sheetContent = (() => {
       if (routeMode && closestPoint && gps?.lat) {
         const dist = calcDistM(gps.lat, gps.lng, closestPoint.lat, closestPoint.lng);
         const mins = Math.max(1, Math.round(dist / 67));
@@ -332,15 +315,29 @@ ${(() => {
 <small class="pv-route-note">시연용 경로입니다. 실제 경로와 다를 수 있습니다.</small>
 </div>`;
       }
-      return `<div class="pv-midpoint"><strong>집합장소 추천</strong><p>${closestPoint ? `${escapeHtml(closestPoint.name)} — 현재 위치에서 가장 가까운 집합장소입니다.` : midpointSuggestion ? "GPS 위치를 확인하면 가장 가까운 집합장소를 추천해 드려요." : "버튼을 눌러 집합장소를 추천받아 보세요."}</p>${closestPoint && gps?.lat ? `<button type="button" class="pv-button" data-pv-action="route-start">${icon("pin")} 경로 안내 시작</button>` : `<button type="button" class="pv-secondary-button" data-pv-action="midpoint">집합장소 추천 보기</button>`}${!MEETING_POINTS.length ? '<small>집합장소 후보가 아직 없어요.</small>' : ''}</div>`;
-    })()}
-<p class="pv-map-limitation">다른 일행의 실시간 위치는 서버·지도 연동 후 표시됩니다.</p>${
-      group.consent
-        ? `<button type="button" class="pv-button" data-pv-action="locate">${icon("pin")} 내 기기 위치 확인하기</button>
-<button type="button" class="pv-secondary-button" data-pv-action="revoke">위치 표시 동의 취소</button>`
-        : `<button type="button" class="pv-button" data-pv-view="consent">위치 표시 동의하기 ${icon("arrow")}</button>`
-    }</div>
-    </div>`;
+      return `
+<div class="pv-sheet-members">
+${members.map((member, i) => `<div class="pv-member-row"><span class="pv-member-avatar pv-member-${i % 4}">${escapeHtml(member.slice(0, 1))}</span><div><strong>${escapeHtml(member)}${i === 0 ? " (나)" : ""}</strong><small>${i === 0 ? gps ? "위치 확인됨" : group.consent ? "동의됨 · 확인 전" : "꺼짐" : "시연"}</small></div></div>`).join("")}
+</div>
+<div class="pv-sheet-actions">
+${closestPoint ? `<div class="pv-midpoint-row"><strong>📍 ${escapeHtml(closestPoint.name)}</strong><span>가장 가까운 집합장소</span></div>` : ""}
+${closestPoint && gps?.lat ? `<button type="button" class="pv-button pv-wide" data-pv-action="route-start">${icon("pin")} 경로 안내 시작</button>` : `<button type="button" class="pv-secondary-button pv-wide" data-pv-action="midpoint">집합장소 추천 보기</button>`}
+${group.consent
+  ? `<div class="pv-sheet-small-actions"><button type="button" class="pv-mini-button" data-pv-action="locate">${icon("pin")} 내 위치 확인하기</button><button type="button" class="pv-mini-button pv-mini-muted" data-pv-action="revoke">동의 취소</button></div>`
+  : `<button type="button" class="pv-button pv-wide" data-pv-view="consent">위치 표시 동의하기 ${icon("arrow")}</button>`}
+</div>`;
+    })();
+
+    return `<div class="pv-map-fullpage">
+<div id="pv-naver-map" class="pv-naver-map-full" aria-label="에버랜드 네이버 지도"></div>
+<div class="pv-bottom-sheet${mapSheetOpen ? " pv-sheet-open" : ""}" id="pv-map-bs">
+  <button type="button" class="pv-bs-handle-wrap" data-pv-action="sheet-toggle" aria-label="정보 패널 열기/닫기">
+    <div class="pv-bs-handle"></div>
+    <span class="pv-bs-peek"><strong>${escapeHtml(group.name)}</strong><small>${members.length}명 · ${gps ? "위치 확인됨" : "위치 대기"}</small></span>
+  </button>
+  <div class="pv-bs-body">${sheetContent}</div>
+</div>
+</div>`;
   }
   function profilePage() {
     return `<div class="pv-content">${title("앱 설정", `${escapeHtml(userName)}님`, "일반 사용자 모드로 이용 중입니다.")}
@@ -561,6 +558,7 @@ ${(() => {
     if (view === 'map' && group) requestAnimationFrame(initNaverMap);
   }
   function setView(next) {
+    if (next !== 'map') mapSheetOpen = false;
     view = next;
     render();
     window.scrollTo?.(0, 0);
@@ -647,6 +645,10 @@ ${(() => {
           () => toast("기기 위치를 확인하지 못했어요. 브라우저 권한을 확인해 주세요."),
           { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
         );
+        break;
+      case "sheet-toggle":
+        mapSheetOpen = !mapSheetOpen;
+        render();
         break;
       case "revoke":
         if (!group) return;
