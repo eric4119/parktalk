@@ -3,3 +3,5 @@ node_modules/
 .DS_Store
 data/
 desktop.ini
+direction-worker.js
+.claude/
