@@ -70,10 +70,19 @@
   let userMarker = null;
   let closestMarker = null;
   let closestPoint = null;
+  let routeMode = false;
+  let routePolyline = null;
+  let memberMarkers = [];
+  let memberMoveTimer = null;
 
   // ===== 에버랜드 집합장소 후보 =====
-  // 나중에 추가: { id: 'gate', name: '정문 광장', lat: 37.00000, lng: 127.00000 }
+  // 좌표는 대략적 위치 — Naver Maps에서 실제 핀 찍어 보정 필요
   const MEETING_POINTS = [
+    { id: 'gate',     name: '정문 광장',           lat: 37.2910, lng: 127.2014 },
+    { id: 'global',   name: '글로벌페어 중앙',      lat: 37.2932, lng: 127.2022 },
+    { id: 'american', name: '아메리칸 어드벤처 광장', lat: 37.2948, lng: 127.1998 },
+    { id: 'magic',    name: '매직랜드 중앙',         lat: 37.2963, lng: 127.2035 },
+    { id: 'zootopia', name: '주토피아 사파리 입구',   lat: 37.2978, lng: 127.2058 },
   ];
   let midpointSuggestion = false;
   let notice = "";
@@ -308,7 +317,23 @@
 <span>${(group.members || [userName]).length}명 · 시연</span>
 </div>
 ${(group.members || [userName]).map((member, index) => `<div class="pv-member-row"><span class="pv-member-avatar pv-member-${index % 4}">${escapeHtml(member.slice(0, 1))}</span><div><strong>${escapeHtml(member)}${index === 0 ? " (나)" : ""}</strong><small>${index === 0 ? gps ? "기기 위치 권한 확인됨 · 좌표 저장 안 함" : group.consent ? "동의됨 · 위치 확인 전" : "위치 표시 꺼짐" : "시연 인원 · 실제 위치 연결 전"}</small></div></div>`).join("")}
-<div class="pv-midpoint"><strong>집합장소 추천</strong><p>${closestPoint ? `${escapeHtml(closestPoint.name)} — 현재 위치에서 가장 가까운 집합장소입니다.` : midpointSuggestion ? "GPS 위치를 확인하면 가장 가까운 집합장소를 추천해 드려요." : "버튼을 눌러 집합장소를 추천받아 보세요."}</p><button type="button" class="pv-secondary-button" data-pv-action="midpoint">집합장소 추천 보기</button>${!MEETING_POINTS.length ? '<small>집합장소 후보가 아직 없어요.</small>' : ''}</div>
+${(() => {
+      if (routeMode && closestPoint && gps?.lat) {
+        const dist = calcDistM(gps.lat, gps.lng, closestPoint.lat, closestPoint.lng);
+        const mins = Math.max(1, Math.round(dist / 67));
+        return `<div class="pv-route-panel">
+<div class="pv-route-dest"><span class="pv-route-icon">📍</span><div><strong>${escapeHtml(closestPoint.name)}</strong><small>도보 약 ${mins}분 · ${dist}m</small></div><button type="button" class="pv-route-close" data-pv-action="route-cancel">✕</button></div>
+<ol class="pv-route-steps">
+<li class="pv-route-step pv-step-active">${icon("pin")} 현재 위치에서 출발</li>
+<li class="pv-route-step">직진 약 ${Math.round(dist * 0.4)}m</li>
+<li class="pv-route-step">오른쪽으로 이동 약 ${Math.round(dist * 0.6)}m</li>
+<li class="pv-route-step pv-step-dest">📍 ${escapeHtml(closestPoint.name)} 도착</li>
+</ol>
+<small class="pv-route-note">시연용 경로입니다. 실제 경로와 다를 수 있습니다.</small>
+</div>`;
+      }
+      return `<div class="pv-midpoint"><strong>집합장소 추천</strong><p>${closestPoint ? `${escapeHtml(closestPoint.name)} — 현재 위치에서 가장 가까운 집합장소입니다.` : midpointSuggestion ? "GPS 위치를 확인하면 가장 가까운 집합장소를 추천해 드려요." : "버튼을 눌러 집합장소를 추천받아 보세요."}</p>${closestPoint && gps?.lat ? `<button type="button" class="pv-button" data-pv-action="route-start">${icon("pin")} 경로 안내 시작</button>` : `<button type="button" class="pv-secondary-button" data-pv-action="midpoint">집합장소 추천 보기</button>`}${!MEETING_POINTS.length ? '<small>집합장소 후보가 아직 없어요.</small>' : ''}</div>`;
+    })()}
 <p class="pv-map-limitation">다른 일행의 실시간 위치는 서버·지도 연동 후 표시됩니다.</p>${
       group.consent
         ? `<button type="button" class="pv-button" data-pv-action="locate">${icon("pin")} 내 기기 위치 확인하기</button>
@@ -353,16 +378,9 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
       center: new naver.maps.LatLng(37.2941, 127.2027),
       zoom: 17,
     });
-    MEETING_POINTS.forEach(p => {
-      new naver.maps.Marker({
-        position: new naver.maps.LatLng(p.lat, p.lng),
-        map: naverMap,
-        title: p.name,
-        icon: { content: `<div class="pv-candidate-pin">${escapeHtml(p.name)}</div>`, anchor: new naver.maps.Point(0, 36) },
-      });
-    });
     if (gps?.lat) placeUserMarker(gps.lat, gps.lng);
     if (closestPoint) placeClosestMarker(closestPoint.lat, closestPoint.lng);
+    initSimMemberMarkers();
   }
 
   function placeUserMarker(lat, lng) {
@@ -399,11 +417,96 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
     return best;
   }
 
+  function calcDistM(lat1, lng1, lat2, lng2) {
+    const dLat = (lat2 - lat1) * 111000;
+    const dLng = (lng2 - lng1) * 88000;
+    return Math.round(Math.sqrt(dLat * dLat + dLng * dLng));
+  }
+
+  function drawRoute(fromLat, fromLng, toLat, toLng) {
+    if (!naverMap) return;
+    if (routePolyline) routePolyline.setMap(null);
+    routePolyline = new naver.maps.Polyline({
+      map: naverMap,
+      path: [
+        new naver.maps.LatLng(fromLat, fromLng),
+        new naver.maps.LatLng(fromLat, toLng),
+        new naver.maps.LatLng(toLat, toLng),
+      ],
+      strokeColor: '#2563eb',
+      strokeOpacity: 0.85,
+      strokeWeight: 5,
+      strokeStyle: 'solid',
+    });
+    const bounds = new naver.maps.LatLngBounds(
+      new naver.maps.LatLng(Math.min(fromLat, toLat) - 0.0003, Math.min(fromLng, toLng) - 0.0003),
+      new naver.maps.LatLng(Math.max(fromLat, toLat) + 0.0003, Math.max(fromLng, toLng) + 0.0003),
+    );
+    naverMap.fitBounds(bounds);
+  }
+
+  function clearMemberMarkers() {
+    clearInterval(memberMoveTimer);
+    memberMoveTimer = null;
+    memberMarkers.forEach(m => m.setMap(null));
+    memberMarkers = [];
+  }
+
+  function initSimMemberMarkers() {
+    if (!naverMap || !group) return;
+    clearMemberMarkers();
+    const others = (group.members || []).slice(1); // 본인 제외
+    if (!others.length) return;
+
+    // 각 멤버를 에버랜드 내 고정 시작 좌표에 배치
+    const BASE = [
+      { lat: 37.2955, lng: 127.2010 },
+      { lat: 37.2948, lng: 127.2040 },
+      { lat: 37.2920, lng: 127.2035 },
+      { lat: 37.2965, lng: 127.2025 },
+      { lat: 37.2938, lng: 127.1998 },
+      { lat: 37.2972, lng: 127.2050 },
+      { lat: 37.2928, lng: 127.2008 },
+    ];
+
+    others.forEach((name, i) => {
+      const base = BASE[i % BASE.length];
+      const pos = new naver.maps.LatLng(base.lat, base.lng);
+      const marker = new naver.maps.Marker({
+        position: pos,
+        map: naverMap,
+        title: name,
+        icon: {
+          content: `<div class="pv-member-pin pv-member-${(i + 1) % 4}">${escapeHtml(name.slice(0, 1))}</div>`,
+          anchor: new naver.maps.Point(16, 16),
+        },
+        zIndex: 5,
+      });
+      marker._base = base;
+      memberMarkers.push(marker);
+    });
+
+    // 2초마다 각 마커를 ±0.0001도 범위에서 미세하게 이동
+    memberMoveTimer = setInterval(() => {
+      if (!naverMap) { clearMemberMarkers(); return; }
+      memberMarkers.forEach(m => {
+        const b = m._base;
+        const jitter = 0.00008;
+        const lat = b.lat + (Math.random() - 0.5) * jitter;
+        const lng = b.lng + (Math.random() - 0.5) * jitter;
+        m.setPosition(new naver.maps.LatLng(lat, lng));
+      });
+    }, 2000);
+  }
+
   function clearMapState() {
     if (userMarker) { userMarker.setMap(null); userMarker = null; }
     if (closestMarker) { closestMarker.setMap(null); closestMarker = null; }
+    if (routePolyline) { routePolyline.setMap(null); routePolyline = null; }
+    clearMemberMarkers();
     naverMap = null;
     closestPoint = null;
+    routeMode = false;
   }
 
   function render() {
@@ -574,6 +677,18 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
           if (closestPoint) placeClosestMarker(closestPoint.lat, closestPoint.lng);
         }
         midpointSuggestion = true;
+        render();
+        break;
+      case "route-start":
+        if (!closestPoint || !gps?.lat) return;
+        routeMode = true;
+        render();
+        requestAnimationFrame(() => drawRoute(gps.lat, gps.lng, closestPoint.lat, closestPoint.lng));
+        break;
+      case "route-cancel":
+        routeMode = false;
+        if (routePolyline) { routePolyline.setMap(null); routePolyline = null; }
+        if (naverMap && gps?.lat) naverMap.setCenter(new naver.maps.LatLng(gps.lat, gps.lng));
         render();
         break;
       case "logout":
