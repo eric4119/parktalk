@@ -77,13 +77,13 @@
   let mapSheetOpen = false;
 
   // ===== 에버랜드 집합장소 후보 =====
-  // 좌표는 대략적 위치 — Naver Maps에서 실제 핀 찍어 보정 필요
-  const MEETING_POINTS = [
-    { id: 'gate',     name: '정문 광장',           lat: 37.2910, lng: 127.2014 },
-    { id: 'global',   name: '글로벌페어 중앙',      lat: 37.2932, lng: 127.2022 },
-    { id: 'american', name: '아메리칸 어드벤처 광장', lat: 37.2948, lng: 127.1998 },
-    { id: 'magic',    name: '매직랜드 중앙',         lat: 37.2963, lng: 127.2035 },
-    { id: 'zootopia', name: '주토피아 사파리 입구',   lat: 37.2978, lng: 127.2058 },
+  // fallback 좌표 보유 → geocoder 성공 시 실제 좌표로 교체됨
+  let MEETING_POINTS = [
+    { id: 'gate',     name: '정문 광장',            query: '에버랜드 정문',             lat: 37.2910, lng: 127.2014 },
+    { id: 'global',   name: '글로벌페어 광장',       query: '에버랜드 글로벌페어',        lat: 37.2932, lng: 127.2022 },
+    { id: 'american', name: '아메리칸어드벤처 광장',  query: '에버랜드 아메리칸어드벤처',   lat: 37.2948, lng: 127.1998 },
+    { id: 'magic',    name: '매직랜드 광장',          query: '에버랜드 매직랜드',          lat: 37.2963, lng: 127.2035 },
+    { id: 'zootopia', name: '주토피아 사파리',         query: '에버랜드 주토피아',          lat: 37.2978, lng: 127.2058 },
   ];
   let midpointSuggestion = false;
   let notice = "";
@@ -367,6 +367,27 @@ ${group.consent
 <p class="pv-profile-note">현재 계정과 그룹은 이 브라우저에서만 체험할 수 있습니다.</p>
     </div>`;
   }
+  function geocodeMeetingPoints() {
+    if (!naver?.maps?.Service?.geocode) return;
+    MEETING_POINTS.forEach((pt, i) => {
+      naver.maps.Service.geocode({ query: pt.query }, function(status, response) {
+        if (status === naver.maps.Service.Status.ERROR) return;
+        const addrs = response.v2?.addresses;
+        if (!addrs || !addrs.length) return;
+        const item = addrs[0];
+        const lat = parseFloat(item.y);
+        const lng = parseFloat(item.x);
+        if (!lat || !lng) return;
+        MEETING_POINTS[i] = { ...pt, lat, lng, geocoded: true };
+        if (gps?.lat) {
+          closestPoint = findClosest(gps.lat, gps.lng);
+          if (naverMap && closestPoint) placeClosestMarker(closestPoint.lat, closestPoint.lng);
+          render();
+        }
+      });
+    });
+  }
+
   function initNaverMap() {
     const el = document.getElementById('pv-naver-map');
     if (!el) return;
@@ -378,6 +399,7 @@ ${group.consent
     if (gps?.lat) placeUserMarker(gps.lat, gps.lng);
     if (closestPoint) placeClosestMarker(closestPoint.lat, closestPoint.lng);
     initSimMemberMarkers();
+    geocodeMeetingPoints();
   }
 
   function placeUserMarker(lat, lng) {
