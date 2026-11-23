@@ -79,11 +79,11 @@
   // ===== 에버랜드 집합장소 후보 =====
   // fallback 좌표 보유 → geocoder 성공 시 실제 좌표로 교체됨
   let MEETING_POINTS = [
-    { id: 'gate',     name: '정문 광장',            query: '에버랜드 정문',             lat: 37.2910, lng: 127.2014 },
-    { id: 'global',   name: '글로벌페어 광장',       query: '에버랜드 글로벌페어',        lat: 37.2932, lng: 127.2022 },
-    { id: 'american', name: '아메리칸어드벤처 광장',  query: '에버랜드 아메리칸어드벤처',   lat: 37.2948, lng: 127.1998 },
-    { id: 'magic',    name: '매직랜드 광장',          query: '에버랜드 매직랜드',          lat: 37.2963, lng: 127.2035 },
-    { id: 'zootopia', name: '주토피아 사파리',         query: '에버랜드 주토피아',          lat: 37.2978, lng: 127.2058 },
+    { id: 'gate',     name: '정문 광장',            query: '경기도 용인시 처인구 포곡읍 에버랜드로 199', lat: 37.2933, lng: 127.2013 },
+    { id: 'global',   name: '글로벌페어 광장',       query: null,  lat: 37.2940, lng: 127.2022 },
+    { id: 'american', name: '아메리칸어드벤처 광장',  query: null,  lat: 37.2950, lng: 127.1995 },
+    { id: 'magic',    name: '매직랜드 광장',          query: null,  lat: 37.2965, lng: 127.2010 },
+    { id: 'zootopia', name: '주토피아 사파리',         query: null,  lat: 37.2978, lng: 127.2050 },
   ];
   let midpointSuggestion = false;
   let notice = "";
@@ -370,6 +370,7 @@ ${group.consent
   function geocodeMeetingPoints() {
     if (!naver?.maps?.Service?.geocode) return;
     MEETING_POINTS.forEach((pt, i) => {
+      if (!pt.query) return;
       naver.maps.Service.geocode({ query: pt.query }, function(status, response) {
         if (status === naver.maps.Service.Status.ERROR) return;
         const addrs = response.v2?.addresses;
