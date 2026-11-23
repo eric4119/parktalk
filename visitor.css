@@ -1122,4 +1122,45 @@
 .pv-sim-pin-1 { top: 53%; left: 53%; }
 .pv-sim-pin-2 { top: 34%; left: 72%; }
 .pv-sim-pin-3 { top: 66%; left: 29%; }
+
+/* ===== 네이버 지도 ===== */
+.pv-naver-map-container {
+  width: 100%;
+  height: 350px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #e8eeea;
+}
+.pv-user-pin {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  cursor: default;
+}
+.pv-candidate-pin {
+  background: #f59e0b;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0,0,0,.2);
+  cursor: default;
+}
+.pv-closest-pin {
+  font-size: 26px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.35));
+  cursor: default;
+}
 .pv-midpoint-pin { position: absolute; z-index: 3; top: 47%; left: 37%; padding: 5px 8px; border-radius: 8px; background: #fff; color: #7755d5; box-shadow: 0 3px 10px #292b4929; font-size: 10px; font-weight: 800; }
