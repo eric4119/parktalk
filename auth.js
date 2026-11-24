@@ -61,11 +61,7 @@
       <main class="auth-panel">
         <h2>${signup ? "파크톡 회원가입" : "파크톡 로그인"}</h2>
         <p class="auth-lead">${signup ? "회원가입할 때 이용 유형을 선택해 주세요." : "아이디와 비밀번호로 시작해요."}</p>
-        <div class="auth-tabs" role="tablist" aria-label="로그인 또는 회원가입">
-          <button type="button" class="${signup ? "" : "active"}" data-auth-action="mode" data-mode="login" role="tab" aria-selected="${!signup}">로그인</button>
-          <button type="button" class="${signup ? "active" : ""}" data-auth-action="mode" data-mode="signup" role="tab" aria-selected="${signup}">회원가입</button>
-        </div>
-        <form id="parkAuthForm" class="auth-form" novalidate>
+<form id="parkAuthForm" class="auth-form" novalidate>
           ${signup ? `<div class="auth-input-wrap"><span class="auth-input-icon">${SVG_AT}</span><input name="nickname" type="text" minlength="2" maxlength="20" placeholder="사용할 닉네임" required></div>` : ""}
           <div class="auth-input-wrap"><span class="auth-input-icon">${SVG_PERSON}</span><input name="userId" type="text" minlength="3" maxlength="30" autocomplete="username" placeholder="아이디 입력" required></div>
           <div class="auth-input-wrap has-toggle"><span class="auth-input-icon">${SVG_LOCK}</span><input name="password" type="password" minlength="4" autocomplete="${signup ? "new-password" : "current-password"}" placeholder="비밀번호 입력" required><button class="auth-pw-toggle" type="button" data-auth-action="toggle-pw" aria-label="비밀번호 보기">${SVG_EYE}</button></div>
@@ -74,7 +70,6 @@
         </form>
         ${signup ? "" : '<button type="button" class="auth-guest" data-auth-action="guest">로그인 없이 시연하기 <span aria-hidden="true">↗</span></button>'}
         ${signup ? "" : '<p class="auth-signup-link">계정이 없으신가요? <button type="button" data-auth-action="mode" data-mode="signup">회원가입</button></p>'}
-        <p class="auth-demo-disclaimer">시연용 계정입니다. 아이디·닉네임·이용 유형만 이 브라우저에 저장하고 비밀번호는 저장하거나 검증하지 않습니다. 실제 비밀번호를 입력하지 마세요.</p>
       </main>
     </div>`;
     authRoot.querySelector("input")?.focus();
