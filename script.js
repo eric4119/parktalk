@@ -33,6 +33,7 @@ const navGroups = [
 ];
 
 let state = { page: "home", search: "", menuDate: null };
+let boardMenuOpen = false;
 let demoChat = JSON.parse(localStorage.getItem("parktalk-demo-chat") || "[]");
 let assistantTurns = [];
 let joinedRooms = JSON.parse(sessionStorage.getItem("parktalk-demo-joined-rooms") || "[]");
@@ -57,7 +58,7 @@ function account() {
 }
 function refreshProfile() {
   const me = account();
-  document.querySelectorAll(".top-avatar, .side-bottom .mini-avatar").forEach((el) => { el.textContent = me.initial; });
+  document.querySelectorAll(".top-avatar, .side-bottom .mini-avatar").forEach((el) => { el.innerHTML = window.ParkProfiles.avatar(window.ParkAuth?.id?.(), me.name); });
   document.querySelectorAll(".top-name, .side-bottom strong").forEach((el) => { el.textContent = me.name; });
   const sideType = $(".side-bottom small");
   if (sideType) sideType.textContent = me.type;
@@ -81,6 +82,7 @@ function nav() {
       .slice(1)
       .map((i) => {
         const [icon, label, id] = i.split("|");
+        if (id === "board") return `<button class="nav-item ${state.page === "board" ? "active" : ""}" type="button" data-board-toggle aria-expanded="${boardMenuOpen}" aria-controls="boardSubnav"><span class="nav-icon">${iosIcon(icon)}</span>${label}<span class="nav-chevron">${boardMenuOpen ? "⌃" : "⌄"}</span></button><div id="boardSubnav" class="board-subnav" ${boardMenuOpen ? "" : "hidden"}>${[["popular","인기 게시판"],["free","자유게시판"],["trade","중고 거래"],["department","부서별 게시판"],["question","신규 캐스트 Q&A"],["praise","칭찬 게시판"],["missing","미아 게시판"],["lost","분실물 게시판"]].map(([kind,text]) => `<button type="button" data-board-section="${kind}" class="${window.ParkBoards.currentKind() === kind && state.page === "board" ? "active" : ""}">${text}</button>`).join("")}</div>`;
         return `<button class="nav-item ${state.page === id ? "active" : ""}" data-nav="${id}">
 <span class="nav-icon">${iosIcon(icon)}</span>${label}</button>`;
       })
@@ -180,13 +182,7 @@ function matching() {
   );
 }
 function map() {
-  return head("동물 키우기", "함께할 동물 친구를 만나는 공간을 준비하고 있어요.") +
-    `<section class="card padded animal-coming-soon">
-      <div class="animal-coming-soon__mark" aria-hidden="true">${iosIcon("paw")}</div>
-      <span class="pill">기획 중</span>
-      <h2>어떤 동물 친구와 함께할까요?</h2>
-      <p>동물 선택과 돌보기 방식은 정해진 뒤 이 화면에 추가됩니다.</p>
-    </section>`;
+  return window.ParkPets.render();
 }
 function todayMenuPreview() {
   const D = window.ParkData;
@@ -301,7 +297,7 @@ function messages() {
 function settings() {
   const me = account();
   return head("앱 설정", "내 이용 정보를 확인하고 모드를 변경해요.") +
-    `<section class="card padded settings-card"><div class="settings-profile"><span class="mini-avatar">${esc(me.initial)}</span><div><strong>${esc(me.name)}</strong><small>캐스트 모드 · ${me.type}</small></div></div>
+    `<section class="card padded settings-card"><button type="button" class="settings-profile profile-edit-row" data-profile-edit><span class="mini-avatar">${window.ParkProfiles.avatar(window.ParkAuth?.id?.(), me.name)}</span><div><strong>${esc(me.name)}</strong><small>캐스트 모드 · ${me.type}</small></div><span class="profile-edit-hint">수정 ›</span></button>
       <div class="settings-row"><span>이용 모드</span><strong>캐스트</strong></div>
       <div class="settings-row"><span>계정 유형</span><strong>${me.type}</strong></div>
       <div class="settings-row"><span>사원증 인증</span><strong>기획 중</strong></div>
@@ -336,8 +332,10 @@ function render() {
   document.title = `${page.title || "파크톡"} | ParkTalk`;
 }
 function go(page) {
+  window.ParkBoards.leaveDetail();
   if (window.ParkAuth && window.ParkAuth.role() !== "cast") return toast("캐스트 모드에서 이용해 주세요.");
   state.page = pages[page] ? page : "home";
+  if (state.page === "map") window.ParkPets.enter();
   $(".sidebar").classList.remove("open");
   render();
   scrollTo(0, 0);
@@ -353,6 +351,8 @@ function leave() {
 document.addEventListener("click", (e) => {
   const b = e.target.closest("button,[data-nav]");
   if (!b) return;
+  if (b.hasAttribute("data-board-toggle")) { boardMenuOpen = !boardMenuOpen; nav(); return; }
+  if (b.dataset.boardSection) { window.ParkBoards.selectKind(b.dataset.boardSection); go("board"); return; }
   if (b.classList.contains("close")) $("#modal").close();
   else if (b.dataset.nav) {
     if (b.tagName === "A") e.preventDefault();

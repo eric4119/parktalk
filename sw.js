@@ -1,8 +1,13 @@
-const CACHE = "parktalk-v22-20261123";
+const CACHE = "parktalk-v37-20261124";
 const APP_FILES = [
   "./", "./index.html", "./app.html", "./style.css",
   "./auth.css", "./visitor.css", "./theme.css", "./cast-features.css", "./fresh-ui.css",
-  "./ui-icons.js", "./park-data.js", "./official-faq.json", "./boards.js", "./script.js", "./visitor.js", "./auth.js", "./pwa.js",
+  "./ui-icons.js", "./park-data.js", "./official-faq.json", "./boards.js", "./profiles.js", "./pets.js", "./pets.css", "./script.js", "./visitor.js", "./auth.js", "./pwa.js",
+  "./assets/pets/panda-worn-base.png", "./assets/pets/panda-worn-feed.png", "./assets/pets/panda-worn-play.png", "./assets/pets/panda-worn-sleep.png", "./assets/pets/panda-worn-pet.png",
+  "./assets/pets/panda-reactions.png", "./assets/pets/capybara-reactions.png", "./assets/pets/tiger-reactions.png", "./assets/pets/penguin-reactions.png",
+  "./assets/pets/hat-v2.png", "./assets/pets/glasses-v2.png", "./assets/pets/necklace-v2.png",
+  "./assets/pets/room-cream.png", "./assets/pets/room-front.png", "./assets/pets/panda.png", "./assets/pets/capybara.png", "./assets/pets/tiger.png", "./assets/pets/penguin.png",
+  "./assets/pets/bed.png", "./assets/pets/plant.png", "./assets/pets/sofa.png", "./assets/pets/lamp.png",
   "./manifest.webmanifest", "./icons/icon.svg", "./assets/parktalk-logo-transparent.png"
 ];
 

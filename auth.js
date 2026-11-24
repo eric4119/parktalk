@@ -81,7 +81,7 @@
     window.scrollTo(0, 0);
   }
   function enter(next, restore = false) {
-    session = { name: next.name.slice(0, 20), role: next.role, accountRole: next.accountRole, id: next.id };
+    session = { name: (window.ParkProfiles?.name(next.id, next.name) || next.name).slice(0, 20), role: next.role, accountRole: next.accountRole, id: next.id };
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
     const dialog = document.getElementById("modal");
     if (dialog?.open) dialog.close();
@@ -97,6 +97,15 @@
       window.ParkCast.go(restore && window.ParkCast.hasPage(startHash) ? startHash : "home");
     }
     window.scrollTo(0, 0);
+  }
+  function updateProfile(name) {
+    if (!session) return;
+    const known = accounts();
+    if (known[session.id]) { known[session.id].name = name; localStorage.setItem(ACCOUNT_KEY, JSON.stringify(known)); }
+    session.name = name;
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    if (session.role === "visitor") window.ParkVisitor.updateProfile(name);
+    else window.ParkCast.render();
   }
   function logout() {
     const dialog = document.getElementById("modal");
@@ -166,7 +175,7 @@
     if (button.dataset.authAction === "switch") switchRole();
     if (button.dataset.authAction === "close-notice") document.getElementById("modal")?.close();
   });
-  window.ParkAuth = { role: () => session?.role || null, accountRole: () => session?.accountRole || null, name: () => session?.name || null, id: () => session?.id || null, canSwitch: () => session?.accountRole === "cast", logout, switchRole };
+  window.ParkAuth = { updateProfile, role: () => session?.role || null, accountRole: () => session?.accountRole || null, name: () => session?.name || null, id: () => session?.id || null, canSwitch: () => session?.accountRole === "cast", logout, switchRole };
   window.parkToast = window.parkToast || ((message) => alert(escapeText(message)));
   if (session) enter(session, true); else form("login");
 })();
