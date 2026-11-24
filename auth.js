@@ -39,7 +39,6 @@
     return `
       <div class="auth-header">
         <img class="auth-logo" src="assets/parktalk-logo-transparent.png" alt="ParkTalk 파크톡 로고">
-        <span class="auth-header__badge">파크에서 함께</span>
       </div>
       <div class="auth-hero__copy">
         <h1>파크에서 만나는<br>우리의 하루</h1>
