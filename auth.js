@@ -54,13 +54,14 @@
         <button class="auth-submit" type="submit">${signup ? "회원가입 체험하기" : "로그인하기"}<span aria-hidden="true">→</span></button>
       </form>
       ${signup ? "" : '<button type="button" class="auth-guest" data-auth-action="guest">로그인 없이 시연하기 <span aria-hidden="true">↗</span></button>'}
-      <p class="auth-demo-disclaimer">시연용 계정입니다. 아이디·닉네임·이용 유형만 이 브라우저에 저장하고 비밀번호는 저장하거나 검증하지 않습니다. 실제 비밀번호를 입력하지 마세요.</p>
+      <p class="auth-demo-disclaimer">시연용 계정입니다. 아이디·닉네임·이용 유형과 설정한 프로필 사진을 이 브라우저에 저장하고 비밀번호는 저장하거나 검증하지 않습니다. 실제 비밀번호를 입력하지 마세요.</p>
     </div></main></div>`;
     authRoot.querySelector("input")?.focus();
     window.scrollTo(0, 0);
   }
   function enter(next) {
-    session = { name: next.name.slice(0, 20), role: next.role, accountRole: next.accountRole, id: next.id };
+    window.ParkBoards.leaveDetail();
+    session = { name: (window.ParkProfiles.get(next.id)?.name || next.name).slice(0, 20), role: next.role, accountRole: next.accountRole, id: next.id };
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
     const dialog = document.getElementById("modal");
     if (dialog?.open) dialog.close();
@@ -74,9 +75,26 @@
       document.querySelectorAll(".top-name, .side-bottom strong").forEach((el) => { el.textContent = session.name; });
       go("home");
     }
+    updateShell();
     window.scrollTo(0, 0);
+    window.ParkBoards.resumeDetail();
+  }
+  function updateShell() {
+    document.querySelectorAll(".top-avatar, .side-bottom .mini-avatar").forEach(el => { el.innerHTML = window.ParkProfiles.avatar(session.id, session.name); });
+    document.querySelectorAll(".top-name, .side-bottom strong").forEach(el => { el.textContent = session.name; });
+  }
+  function updateProfile(name) {
+    if (!session) return;
+    const known=accounts();
+    if(known[session.id]) { known[session.id].name=name; localStorage.setItem(ACCOUNT_KEY,JSON.stringify(known)); }
+    session.name=name;
+    sessionStorage.setItem(SESSION_KEY,JSON.stringify(session));
+    if(session.role === "visitor") window.ParkVisitor.updateProfile(name);
+    else render();
+    updateShell();
   }
   function logout() {
+    window.ParkBoards.leaveDetail();
     const dialog = document.getElementById("modal");
     if (dialog?.open) dialog.close();
     document.querySelector(".sidebar")?.classList.remove("open");
@@ -124,7 +142,8 @@
     if (button.dataset.authAction === "logout") logout();
     if (button.dataset.authAction === "switch") switchRole();
   });
-  window.ParkAuth = { role: () => session?.role || null, accountRole: () => session?.accountRole || null, name: () => session?.name || null, id: () => session?.id || null, logout, switchRole };
+  window.ParkAuth = { updateProfile, role: () => session?.role || null, accountRole: () => session?.accountRole || null, name: () => session?.name || null, id: () => session?.id || null, logout, switchRole };
   window.parkToast = window.parkToast || ((message) => alert(escapeText(message)));
   if (session) enter(session); else form("login");
+
 })();

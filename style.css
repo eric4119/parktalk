@@ -869,3 +869,7 @@ dialog h2 {
 .room-form label { display: grid; flex: 1; min-width: 110px; gap: 6px; font-size: 12px; font-weight: 700; }
 .room-form input, .room-form select { width: 100%; border: 1px solid #dedfeb; border-radius: 8px; padding: 10px; background: white; }
 @media (max-width: 700px) { .map-attendance { align-items: flex-start; flex-direction: column; } .room-preview { min-height: 145px; font-size: 32px; } }
+
+/* Keep touch and wheel scrolling without the visible document scrollbar. */
+html, body { scrollbar-width: none; }
+html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; height: 0; }

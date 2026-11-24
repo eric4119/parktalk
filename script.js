@@ -11,9 +11,6 @@ const navGroups = [
     "커뮤니티",
     "home|커뮤니티 홈|home",
     "board|캐스트 게시판|board",
-    "tag|중고거래|trade",
-    "grid|부서별 게시판|department",
-    "personAdd|신규 캐스트 Q&A|new",
   ],
   [
     "소통",
@@ -102,6 +99,7 @@ function modal(html) {
   $("#modalBody").innerHTML = html;
   if (!$("#modal").open) $("#modal").showModal();
 }
+let boardMenuOpen=false;
 function nav() {
   const n = $("#nav");
   n.innerHTML = navGroups
@@ -111,6 +109,7 @@ function nav() {
           .slice(1)
           .map((i) => {
             let [icon, label, id] = i.split("|");
+            if(id==='board') return `<button class="nav-item ${['board','free','trade','department','new','qa','praise','missing','lost'].includes(state.page)?'active':''}" data-board-toggle aria-expanded="${boardMenuOpen}" aria-controls="boardSubnav"><span class="nav-icon">${iosIcon(icon)}</span>${label}<span class="nav-chevron">${boardMenuOpen?'⌃':'⌄'}</span></button><div id="boardSubnav" class="board-subnav" ${boardMenuOpen?'':'hidden'}>${[['popular','인기 게시판'],['free','자유게시판'],['trade','중고 거래'],['department','부서별 게시판'],['question','신규 캐스트 Q&A'],['praise','칭찬 게시판'],['missing','미아 게시판'],['lost','분실물 게시판']].map(([kind,text])=>`<button data-board-section="${kind}" class="${window.ParkBoards.currentKind()===kind&&state.page==='board'?'active':''}">${text}</button>`).join('')}</div>`;
             return `<button class="nav-item ${state.page === id ? "active" : ""}" data-nav="${id}">
 <span class="nav-icon">${iosIcon(icon)}</span>${label}</button>`;
           })
@@ -182,9 +181,9 @@ function sideCards() {
 </div>
 </section>
 <section class="card avatar-card">
-<span class="eyebrow">새로운 공간을 준비 중이에요</span>
+<span class="eyebrow">동물 친구의 방</span>
 <div class="avatar-scene">${iosIcon("paw")}</div>
-<p>동물 친구를 고르고 함께 키우는 공간이 생길 예정이에요.</p>
+<p>친구를 입양하고 방을 꾸며보세요.</p>
 <button class="primary" data-nav="map">동물 키우기 보기</button>
 </section>
 </div>`;
@@ -237,15 +236,7 @@ function matching() {
 <p class="note" style="margin-top:14px">시연용 대기방입니다. 실제 무작위 연결과 채팅은 서버 기능을 연결한 뒤 제공됩니다.</p>`
   );
 }
-function map() {
-  return head("동물 키우기", "함께할 동물 친구를 만나는 공간을 준비하고 있어요.") +
-    `<section class="card padded animal-coming-soon">
-      <div class="animal-coming-soon__mark" aria-hidden="true">${iosIcon("paw")}</div>
-      <span class="pill">기획 중</span>
-      <h2>어떤 동물 친구와 함께할까요?</h2>
-      <p>동물 선택과 돌보기 방식은 정해진 뒤 이 화면에 추가됩니다.</p>
-    </section>`;
-}
+function map() { return window.ParkPets.render(); }
 function foundItems() { return window.ParkBoards.page('cast', 'lost'); }
 function menu() {
   return (
@@ -292,7 +283,7 @@ function messages() {
 }
 function settings() {
   return head("앱 설정", "내 이용 정보를 확인하고 모드를 변경해요.") +
-    `<section class="card padded settings-card"><div class="settings-profile"><span class="mini-avatar">${iosIcon("user")}</span><div><strong>${esc(window.ParkAuth?.name() || "신입 캐스트")}</strong><small>캐스트 모드 · 시연 계정</small></div></div>
+    `<section class="card padded settings-card"><button type="button" class="settings-profile profile-edit-row" data-profile-edit aria-label="내 프로필 수정"><span class="mini-avatar">${window.ParkProfiles.avatar(window.ParkAuth.id(),window.ParkAuth.name())}</span><div><strong>${esc(window.ParkAuth?.name() || "신입 캐스트")}</strong><small>캐스트 모드 · 시연 계정</small></div><span class="profile-edit-hint">수정 ›</span></button>
       <div class="settings-row"><span>이용 모드</span><strong>캐스트</strong></div>
       <div class="settings-row"><span>사원증 인증</span><strong>기획 중</strong></div>
       <p class="note">실제 계정 인증과 다른 사용자와의 채팅은 서버 연동 후 제공됩니다.</p>
@@ -367,6 +358,8 @@ ${p.createdAt && p.author === (window.ParkAuth?.name?.() || "신입 캐스트") 
 document.addEventListener("click", (e) => {
   let b = e.target.closest("button,[data-post],[data-nav]");
   if (!b) return;
+  if (b.hasAttribute('data-board-toggle')) { boardMenuOpen=!boardMenuOpen; b.setAttribute('aria-expanded',String(boardMenuOpen)); b.querySelector('.nav-chevron').textContent=boardMenuOpen?'⌃':'⌄'; document.querySelector('#boardSubnav').hidden=!boardMenuOpen; return; }
+  if (b.dataset.boardSection) { window.ParkBoards.selectKind(b.dataset.boardSection); go('board'); return; }
   if (b.classList.contains("close")) $("#modal").close();
   else if (b.dataset.nav) {
     if (b.tagName === "A") e.preventDefault();
@@ -501,7 +494,9 @@ document.addEventListener("submit", (event) => {
   $(".chat-messages")?.scrollTo(0, $(".chat-messages").scrollHeight);
 });
 function go(page) {
+  window.ParkBoards.leaveDetail();
   if (window.ParkAuth && window.ParkAuth.role() !== "cast") return toast("캐스트 모드에서 이용해 주세요.");
+  if(page === "map") window.ParkPets.enter();
   state.page = page;
   state.filter = "전체";
   $(".sidebar").classList.remove("open");
@@ -510,6 +505,7 @@ function go(page) {
   history.replaceState(null, "", "#" + page);
 }
 $("#search").addEventListener("input", (e) => {
+  window.ParkBoards.leaveDetail();
   state.search = e.target.value;
   window.ParkBoards.setQuery(state.search);
   if (state.search && state.page === "home") go("board");

@@ -106,7 +106,7 @@
 <button type="button" class="pv-logo-home" data-pv-view="home" aria-label="파크톡 홈으로 이동"><img class="pv-logo" src="assets/parktalk-logo-transparent.png" alt="ParkTalk 파크톡 로고"></button>
 <span class="pv-role">VISITOR</span>
 </div>
-<button type="button" class="pv-profile-shortcut" data-pv-view="profile" aria-label="앱 설정 열기">${escapeHtml(userName.slice(0, 1))}</button>
+<button type="button" class="pv-profile-shortcut" data-pv-view="profile" aria-label="앱 설정 열기">${window.ParkProfiles.avatar(window.ParkAuth.id(),userName)}</button>
 </header>`;
   }
   function title(eyebrow, heading, description) {
@@ -323,13 +323,13 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
   }
   function profilePage() {
     return `<div class="pv-content">${title("앱 설정", `${escapeHtml(userName)}님`, "일반 사용자 모드로 이용 중입니다.")}
-      <div class="pv-card pv-profile-card">
-<span class="pv-profile-avatar">${escapeHtml(userName.slice(0, 1))}</span>
+      <button type="button" class="pv-card pv-profile-card profile-edit-row" data-profile-edit aria-label="내 프로필 수정">
+<span class="pv-profile-avatar">${window.ParkProfiles.avatar(window.ParkAuth.id(),userName)}</span>
 <div>
 <strong>${escapeHtml(userName)}</strong>
 <small>${window.ParkAuth?.accountRole?.() === "cast" ? "캐스트 계정 · 일반 사용자 모드" : "방문객 계정 · 시연 로그인"}</small>
-</div>
-</div>
+</div><span class="profile-edit-hint">수정 ›</span>
+</button>
       <div class="pv-card pv-profile-links">
 <div>
 <span>내 이용 모드</span>
@@ -386,7 +386,7 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
 </div>
 <nav aria-label="일반 사용자 메뉴">${navigation()}</nav>
 <div class="pv-sidebar-foot">
-<span class="pv-profile-avatar">${escapeHtml(userName.slice(0, 1))}</span>
+<span class="pv-profile-avatar">${window.ParkProfiles.avatar(window.ParkAuth.id(),userName)}</span>
 <div>
 <strong>${escapeHtml(userName)}</strong>
 <small>일반 사용자</small>
@@ -400,6 +400,7 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
 </div>${notice ? `<div class="pv-toast" role="status">${escapeHtml(notice)}</div>` : ""}`;
   }
   function setView(next) {
+    window.ParkBoards.leaveDetail();
     view = next;
     render();
     window.scrollTo?.(0, 0);
@@ -591,6 +592,8 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
     }
   }
   window.ParkVisitor = {
+    openBoard(kind) { boardKind=kind; setView("board"); },
+    updateProfile(name) { userName=name; render(); },
     mount(user = {}) {
       this.unmount();
       userName = String(user.name || user.nickname || "방문객").slice(0, 30);

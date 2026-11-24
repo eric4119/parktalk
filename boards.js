@@ -13,6 +13,12 @@
   let query = '';
   let homeKind = 'popular';
   let searchOpen = false;
+  let detailContext = null;
+  const DETAIL_KEY='parktalk-detail-route';
+  const detailRoute=()=>{try{return JSON.parse(sessionStorage.getItem(DETAIL_KEY)||'null');}catch{return null;}};
+  const saveDetailRoute=route=>{try{if(route)sessionStorage.setItem(DETAIL_KEY,JSON.stringify(route));else sessionStorage.removeItem(DETAIL_KEY);}catch{}};
+  const initialPostRoute = (typeof history !== 'undefined' ? history.state : null) || detailRoute();
+  let initialPostId = typeof location !== 'undefined' ? location.hash.match(/^#post\/([a-zA-Z0-9-]+)$/)?.[1] || initialPostRoute?.parkPost : null;
   let data = read(KEY, null);
   if (!Array.isArray(data)) {
     const kinds = { 자유게시판:'free', 중고거래:'trade', '부서별 게시판':'department', '신규 캐스트':'question', 'Q&A':'question' };
@@ -25,17 +31,19 @@
   }
   const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(data)); return true; } catch { window.parkToast('저장 공간이 부족해요. 사진 크기를 줄여주세요.'); data = read(KEY, []); return false; } };
   const recent = (post, now=Date.now()) => (post.likes||[]).filter(l => l.at > now-5*60*60*1000 && l.at <= now).length;
+  const authorName = p => window.ParkProfiles?.name(p.authorId,p.author) || p.author;
+  const avatar = p => window.ParkProfiles?.avatar(p.authorId,p.author) || escape((p.author||'사용자').slice(0,1));
   const total = p => (p.legacyLikes||0)+(p.likes?.length||0);
   const comments = p => (p.legacyComments||0)+(p.replies?.length||0);
   const time = at => at ? new Date(at).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '이전 시연 글';
   function list(kind, search='') {
     const q=search.trim().toLowerCase();
-    return data.filter(p => allowed(p.kind) && (kind==='popular' ? recent(p)>0 : p.kind===kind) && (!q || [p.title,p.body,p.author,p.clothes].join(' ').toLowerCase().includes(q)))
+    return data.filter(p => allowed(p.kind) && (kind==='popular' ? recent(p)>0 : p.kind===kind) && (!q || [p.title,p.body,authorName(p),p.clothes].join(' ').toLowerCase().includes(q)))
       .sort((a,b) => (kind==='popular' ? recent(b)-recent(a) : 0) || (b.createdAt||0)-(a.createdAt||0) || a.id.localeCompare(b.id));
   }
   function cards(kind) {
     const items=list(kind,query);
-    return `<div class="cast-board-list-head"><strong>${labels[kind]} 게시판</strong></div>${kind==='popular'?'<p class="pb-hint">최근 5시간 동안 받은 좋아요 순 · 동률은 최신 글 순</p>':''}${items.length ? items.map(p => `<button class="cast-post-card" data-pb-post="${p.id}"><span class="pb-top"><span class="tag free">${labels[p.kind]}${p.lostType?' · '+escape(p.lostType):''}</span><span class="pb-role">${escape(p.authorType||'캐스트')}</span></span><strong>${escape(p.title)}</strong><span class="cast-post-summary">${escape(p.body||p.clothes)}</span><span class="cast-post-meta"><span>${escape(p.author)} · ${time(p.createdAt)}</span><span>♡ ${total(p)} · 댓글 ${comments(p)}</span></span>${kind==='popular'?`<small class="pb-hint">최근 5시간 좋아요 ${recent(p)}</small>`:''}</button>`).join('') : `<div class="cast-empty">${query?'검색 결과가 없어요.':kind==='popular'?'최근 5시간 동안 좋아요를 받은 글이 없어요.':'아직 글이 없어요. 첫 글을 남겨주세요.'}</div>`}`;
+    return `<div class="cast-board-list-head"><strong>${labels[kind]} 게시판</strong></div>${kind==='popular'?'<p class="pb-hint">최근 5시간 동안 받은 좋아요 순 · 동률은 최신 글 순</p>':''}${items.length ? items.map(p => `<button class="cast-post-card" data-pb-post="${p.id}"><span class="pb-top"><span class="tag free">${labels[p.kind]}${p.lostType?' · '+escape(p.lostType):''}</span><span class="pb-role">${escape(p.authorType||'캐스트')}</span></span><strong>${escape(p.title)}</strong><span class="cast-post-summary">${escape(p.body||p.clothes)}</span><span class="cast-post-meta"><span>${escape(authorName(p))} · ${time(p.createdAt)}</span><span>♡ ${total(p)} · 댓글 ${comments(p)}</span></span>${kind==='popular'?`<small class="pb-hint">최근 5시간 좋아요 ${recent(p)}</small>`:''}</button>`).join('') : `<div class="cast-empty">${query?'검색 결과가 없어요.':kind==='popular'?'최근 5시간 동안 좋아요를 받은 글이 없어요.':'아직 글이 없어요. 첫 글을 남겨주세요.'}</div>`}`;
   }
   function page(mode, kind) {
     const tabs=mode==='cast'?castTabs:shared;
@@ -48,12 +56,13 @@
   }
   function homePosts() {
     const items = list(homeKind).slice(0, 4);
-    return items.length ? items.map(p => `<button class="pb-home-post" data-pb-post="${p.id}"><strong>${escape(p.title)}</strong><span class="pb-home-meta"><span>${escape(p.author)} · ${escape(p.authorType || '캐스트')}</span><span>♡ ${total(p)} · 댓글 ${comments(p)}</span></span></button>`).join('') : `<p class="pb-home-empty">${homeKind==='popular'?'최근 5시간 동안 좋아요를 받은 글이 없어요.':'아직 등록된 글이 없어요.'}</p>`;
+    return items.length ? items.map(p => `<button class="pb-home-post" data-pb-post="${p.id}"><strong>${escape(p.title)}</strong><span class="pb-home-meta"><span>${escape(authorName(p))} · ${escape(p.authorType || '캐스트')}</span><span>♡ ${total(p)} · 댓글 ${comments(p)}</span></span></button>`).join('') : `<p class="pb-home-empty">${homeKind==='popular'?'최근 5시간 동안 좋아요를 받은 글이 없어요.':'아직 등록된 글이 없어요.'}</p>`;
   }
   function home() {
     return `<section class="card list-card pb-home"><div class="pb-home-heading"><h2 class="section-title">캐스트들의 이야기</h2><button class="pb-more" data-pb-more>더보기 ›</button></div><nav class="cast-board-chips pb-home-tabs" aria-label="홈 게시판 종류">${castTabs.filter(k=>k!=='department').map(k=>`<button data-pb-home-kind="${k}" class="${k===homeKind?'active':''}" aria-pressed="${k===homeKind}">${labels[k]}</button>`).join('')}</nav><div id="pb-home-posts">${homePosts()}</div></section>`;
   }
   function refresh() {
+    if(detailContext){paintDetail();return;}
     // Keep the tab strip mounted so its scroll position and keyboard focus stay intact.
     const root=document.querySelector('.pb-page');
     if(root) {
@@ -65,6 +74,7 @@
       root.querySelector('#pb-list').innerHTML=cards(selected);
       root.querySelector('#pb-board-notice').innerHTML=boardNotice();
     }
+    document.querySelectorAll('[data-board-section]').forEach(button=>button.classList.toggle('active',Boolean(root)&&button.dataset.boardSection===selected));
     const homeRoot=document.querySelector('.pb-home');
     if(homeRoot) {
       homeRoot.querySelectorAll('[data-pb-home-kind]').forEach(button => {
@@ -76,12 +86,85 @@
     }
   }
   const safePhoto = src => /^data:image\/(png|jpeg|webp);base64,/.test(src||'') ? src : '';
-  function detail(id) {
-    const p=data.find(p=>p.id===id);
-    if(!p || !allowed(p.kind)) return window.parkToast('이 게시판은 캐스트만 볼 수 있어요.');
+  function detailMarkup(p) {
     const me=actor();
-    window.parkModal(`<span class="tag free">${labels[p.kind]}</span><h2>${escape(p.title)}</h2><p class="pb-hint">${escape(p.author)} · ${escape(p.authorType)} · ${time(p.createdAt)}</p>${safePhoto(p.photoUrl)?`<img class="pb-photo" src="${p.photoUrl}" alt="게시글 첨부 사진">`:''}<p class="pb-body">${escape(p.body||p.clothes)}</p>${p.age?`<p>${escape(p.age)}세 · ${escape(p.gender)}</p>`:''}${p.place?`<p>장소: ${escape(p.place)}</p>`:''}<button class="outline" data-pb-like="${p.id}" aria-pressed="${p.likes.some(l=>l.id===me.id)}">${p.likes.some(l=>l.id===me.id)?'♥':'♡'} 좋아요 ${total(p)}</button>${p.authorId===me.id?` <button class="outline" data-pb-delete="${p.id}">내 글 삭제</button>`:''}<div class="cast-comments"><strong>댓글 ${comments(p)}</strong>${(p.replies||[]).map(r=>`<p><b>${escape(r.author)} · ${escape(r.authorType||'캐스트')}</b><span>${escape(r.body)}</span></p>`).join('')}</div><form data-pb-comment="${p.id}" class="cast-comment-form"><input name="body" maxlength="300" aria-label="댓글 입력" placeholder="댓글을 입력해 주세요" required><button class="primary">등록</button></form>`);
+    return `<article class="pb-detail pb-detail-page" data-detail-id="${p.id}">
+      <header class="pb-detail-toolbar">
+        <button type="button" class="pb-detail-back" data-pb-back aria-label="게시글 목록으로 돌아가기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg></button>
+        <span class="pb-detail-board-name">${labels[p.kind]}${p.kind==='trade'?'':' 게시판'}</span>
+        <span aria-hidden="true"></span>
+      </header>
+      <div class="pb-detail-author">
+        <span class="pb-author-avatar">${avatar(p)}</span>
+        <div class="pb-detail-author-info"><strong>${escape(authorName(p))}<span class="pb-role">${escape(p.authorType)}</span></strong><time${p.createdAt?` datetime="${new Date(p.createdAt).toISOString()}"`:''}>${time(p.createdAt)}</time></div>
+        ${p.authorId===me.id?`<button class="pb-delete" data-pb-delete="${p.id}">삭제</button>`:''}
+      </div>
+      ${p.lostType && p.lostType!==labels[p.kind]?`<div class="pb-detail-category"><span class="pb-role">${escape(p.lostType)}</span></div>`:''}
+      <h1 tabindex="-1">${escape(p.title)}</h1>
+      <div class="pb-detail-content"><p class="pb-body">${escape(p.body||p.clothes)}</p>${safePhoto(p.photoUrl)?`<img class="pb-photo" src="${p.photoUrl}" alt="게시글 첨부 사진">`:''}${p.age?`<p class="pb-detail-info">나이·성별 <strong>${escape(p.age)}세 · ${escape(p.gender)}</strong></p>`:''}${p.place?`<p class="pb-detail-info">장소 <strong>${escape(p.place)}</strong></p>`:''}</div><div class="pb-detail-reactions"><button class="pb-like" data-pb-like="${p.id}" aria-pressed="${p.likes.some(l=>l.id===me.id)}">${window.ParkIcons('heart')}<span>좋아요</span><b>${total(p)}</b></button><span class="pb-comment-count">${window.ParkIcons('messages')} 댓글 ${comments(p)}</span></div><section class="pb-comments"><h3>댓글 <span>${comments(p)}</span></h3>${p.replies.length?p.replies.map(r=>`<div class="pb-comment"><span class="pb-author-avatar">${avatar(r)}</span><div><strong>${escape(authorName(r))}<span class="pb-role">${escape(r.authorType||'캐스트')}</span></strong><p>${escape(r.body)}</p><time>${time(r.createdAt)}</time></div></div>`).join(''):`<p class="pb-comment-empty">아직 댓글이 없어요.<br>첫 이야기를 남겨보세요.</p>`}</section><form data-pb-comment="${p.id}" class="pb-comment-compose pb-comment-compact"><label class="pb-sr-only" for="pb-comment-text">댓글 입력</label><input id="pb-comment-text" name="body" maxlength="300" placeholder="댓글을 남겨주세요" autocomplete="off" required><button class="primary" type="submit">등록</button></form></article>`;
   }
+  function paintDetail() {
+    if(!detailContext)return;
+    const {id,root}=detailContext;
+    const post=data.find(p=>p.id===id);
+    if(!post || !allowed(post.kind)){restoreDetail();window.parkToast('게시글이 삭제되었거나 접근할 수 없어요.');return;}
+    const input=root.querySelector('#pb-comment-text');
+    const draft=input?.value||'';
+    const focusLike=Boolean(document.activeElement?.dataset.pbLike);
+    const y=window.scrollY;
+    root.innerHTML=detailMarkup(post);
+    root.querySelector('#pb-comment-text').value=draft;
+    if(focusLike)root.querySelector('[data-pb-like]').focus({preventScroll:true});
+    window.scrollTo(0,y);
+  }
+  function detail(id, push=true) {
+    const post=data.find(p=>p.id===id);
+    if(!post || !allowed(post.kind))return window.parkToast('게시글이 없거나 접근할 수 없어요.');
+    if(detailContext){paintDetail();return;}
+    const mode=window.ParkAuth.role();
+    const root=document.querySelector(mode==='cast'?'#view':'#visitorApp .pv-main-content');
+    if(!root)return;
+    const sourceUrl=location.hash.startsWith('#post/')?(mode==='cast'?'#home':'#visitor'):location.hash;
+    const saved=document.createDocumentFragment();
+    const y=window.scrollY;
+    while(root.firstChild)saved.appendChild(root.firstChild);
+    detailContext={id,mode,root,saved,y,title:document.title,url:sourceUrl};
+    saveDetailRoute({parkPost:id,mode,accountId:window.ParkAuth.id(),sourceUrl,sourceKind:selected});
+    root.innerHTML=detailMarkup(post);
+    if(push)history.pushState({parkPost:id,mode,hasBack:true,sourceUrl,sourceKind:selected},'',`#post/${id}`);
+    document.title=`${post.title} | ParkTalk`;
+    window.scrollTo(0,0);
+    root.querySelector('h1').focus({preventScroll:true});
+  }
+  function restoreDetail(replace=false) {
+    if(!detailContext)return;
+    const context=detailContext;
+    detailContext=null;
+    saveDetailRoute(null);
+    context.root.replaceChildren(context.saved);
+    document.title=context.title;
+    if(replace)history.replaceState(null,'',context.url||location.pathname);
+    refresh();
+    window.scrollTo(0,context.y);
+  }
+  function backFromDetail() {
+    if(history.state?.parkPost && history.state.hasBack)history.back();
+    else restoreDetail(true);
+  }
+  function leaveDetail() {
+    if(!detailContext)return;
+    history.replaceState(null,'',detailContext.url||location.pathname);
+    saveDetailRoute(null);
+    detailContext=null;
+  }
+  window.addEventListener('popstate',()=>{
+    const route=history.state;
+    if(route?.parkPost){
+      if(detailContext)restoreDetail();
+      if(route.mode!==window.ParkAuth?.role()){history.replaceState(null,'',location.pathname);return;}
+      detail(route.parkPost,false);
+    }else restoreDetail();
+  });
   function fields(kind) {
     return `${kind==='lost'?`<label>글 종류<select name="lostType"><option>분실물</option>${window.ParkAuth?.accountRole()==='cast'?'<option>습득물</option>':''}</select></label>`:''}<label>제목<input name="title" maxlength="80" required></label><label>${kind==='missing'?'인상착의':'내용'}<textarea name="body" maxlength="1000" required></textarea></label>${kind==='missing'?'<label>나이<input name="age" type="number" min="0" max="120" required></label><label>성별<select name="gender"><option>여성</option><option>남성</option><option>확인 불가</option></select></label>':''}${['lost','missing'].includes(kind)?`<label>${kind==='missing'?'마지막으로 본 장소':'분실·발견 장소'}<input name="place" maxlength="80" required></label><label>사진 (1MB 이하)<input name="photo" type="file" accept="image/png,image/jpeg,image/webp"></label>`:''}`;
   }
@@ -92,6 +175,7 @@
   }
   document.addEventListener('click',e=>{
     const b=e.target.closest('button'); if(!b) return;
+    if(b.hasAttribute('data-pb-back')){backFromDetail();return;}
     if(b.hasAttribute('data-pb-write')) write();
     if(b.dataset.pbKind){ selected=b.dataset.pbKind; query=''; const input=document.querySelector('[data-pb-search]'); if(input) input.value=''; refresh(); }
     if(b.dataset.pbHomeKind){homeKind=b.dataset.pbHomeKind;refresh();}
@@ -107,8 +191,8 @@
     }
     if(b.dataset.pbOpen){ selected=b.dataset.pbOpen; query=''; go('board'); }
     if(b.dataset.pbPost) detail(b.dataset.pbPost);
-    if(b.dataset.pbLike){ const p=data.find(p=>p.id===b.dataset.pbLike); if(!p||!allowed(p.kind)) return; const me=actor(); const i=p.likes.findIndex(l=>l.id===me.id); if(i>=0)p.likes.splice(i,1);else p.likes.push({id:me.id,at:Date.now()}); if(persist()){refresh();detail(p.id);} }
-    if(b.dataset.pbDelete){ const p=data.find(p=>p.id===b.dataset.pbDelete); if(!p||!allowed(p.kind)||p.authorId!==actor().id)return; data=data.filter(x=>x.id!==p.id); if(persist()){document.querySelector('#modal').close();refresh();} }
+    if(b.dataset.pbLike){ const p=data.find(p=>p.id===b.dataset.pbLike); if(!p||!allowed(p.kind)) return; const me=actor(); const i=p.likes.findIndex(l=>l.id===me.id); if(i>=0)p.likes.splice(i,1);else p.likes.push({id:me.id,at:Date.now()}); if(persist()){refresh();} }
+    if(b.dataset.pbDelete){ const p=data.find(p=>p.id===b.dataset.pbDelete); if(!p||!allowed(p.kind)||p.authorId!==actor().id)return; data=data.filter(x=>x.id!==p.id); if(persist()){restoreDetail(true);window.parkToast('글을 삭제했어요.');} }
   });
   document.addEventListener('input',e=>{if(e.target.hasAttribute('data-pb-search')){query=e.target.value;document.querySelector('#pb-list').innerHTML=cards(selected);}});
   document.addEventListener('change',e=>{if(e.target.hasAttribute('data-pb-category')) document.querySelector('#pb-fields').innerHTML=fields(e.target.value);});
@@ -117,7 +201,7 @@
     if(form.id!=='pb-compose' && !form.dataset.pbComment)return;
     e.preventDefault(); const f=new FormData(form); const me=actor(); const body=String(f.get('body')||'').trim();
     if(!body)return window.parkToast('내용을 입력해 주세요.');
-    if(form.dataset.pbComment){const p=data.find(p=>p.id===form.dataset.pbComment);if(!p||!allowed(p.kind))return;p.replies.push({author:me.name,authorType:me.type,authorId:me.id,body:body.slice(0,300),createdAt:Date.now()});if(persist()){refresh();detail(p.id);}return;}
+    if(form.dataset.pbComment){const p=data.find(p=>p.id===form.dataset.pbComment);if(!p||!allowed(p.kind))return;p.replies.push({author:me.name,authorType:me.type,authorId:me.id,body:body.slice(0,300),createdAt:Date.now()});if(persist()){form.querySelector('[name=body]').value='';refresh();}return;}
     const kind=f.get('kind'), title=String(f.get('title')||'').trim();if(!title||!allowed(kind)||kind==='popular')return window.parkToast('게시판과 제목을 확인해 주세요.');
     const file=f.get('photo'); let photoUrl='';const submit=form.querySelector('[type=submit]');submit.disabled=true;
     try {
@@ -129,5 +213,16 @@
   });
   window.addEventListener('storage',e=>{if(e.key===KEY){data=read(KEY,[]);refresh();}});
   setInterval(()=>{if(selected==='popular'&&document.querySelector('.pb-page'))refresh();},60000);
-  window.ParkBoards={page,home,write,recent,list,setQuery:value=>{query=value;searchOpen=Boolean(value);},reset:()=>{selected='popular';query='';}};
+  window.ParkBoards={page,home,write,recent,list,leaveDetail,resumeDetail:()=>{
+    if(!initialPostId)return;
+    const id=initialPostId;initialPostId=null;
+    if(initialPostRoute?.accountId && initialPostRoute.accountId!==window.ParkAuth.id()){saveDetailRoute(null);return;}
+    const post=data.find(p=>p.id===id);
+    if(!post||!allowed(post.kind)){window.parkToast('게시글이 없거나 접근할 수 없어요.');return;}
+    selected=initialPostRoute?.sourceKind || post.kind;
+    if(window.ParkAuth.role()==='visitor')window.ParkVisitor.openBoard(selected);
+    else if(initialPostRoute?.sourceUrl!=='#home')go('board');
+    detail(id,false);
+    history.replaceState({parkPost:id,mode:window.ParkAuth.role(),hasBack:false},'',`#post/${id}`);
+  },currentKind:()=>selected,selectKind:kind=>{selected=kind;query='';searchOpen=false;},setQuery:value=>{query=value;searchOpen=Boolean(value);},reset:()=>{selected='popular';query='';}};
 })();
