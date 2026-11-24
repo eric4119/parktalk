@@ -1122,4 +1122,195 @@
 .pv-sim-pin-1 { top: 53%; left: 53%; }
 .pv-sim-pin-2 { top: 34%; left: 72%; }
 .pv-sim-pin-3 { top: 66%; left: 29%; }
+
+/* ===== 네이버 지도 ===== */
+.pv-naver-map-container {
+  width: 100%;
+  height: 350px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #e8eeea;
+}
+.pv-user-pin {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  cursor: default;
+}
+.pv-candidate-pin {
+  background: #f59e0b;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0,0,0,.2);
+  cursor: default;
+}
+.pv-closest-pin {
+  font-size: 26px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.35));
+  cursor: default;
+}
 .pv-midpoint-pin { position: absolute; z-index: 3; top: 47%; left: 37%; padding: 5px 8px; border-radius: 8px; background: #fff; color: #7755d5; box-shadow: 0 3px 10px #292b4929; font-size: 10px; font-weight: 800; }
+
+/* ===== 경로 안내 패널 ===== */
+.pv-route-panel { padding: 14px 0 4px; }
+.pv-route-dest { display: flex; align-items: center; gap: 10px; background: #eff6ff; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+.pv-route-icon { font-size: 22px; flex-shrink: 0; }
+.pv-route-dest > div { flex: 1; }
+.pv-route-dest strong { display: block; font-size: 15px; }
+.pv-route-dest small { color: #2563eb; font-size: 12px; font-weight: 600; }
+.pv-route-close { background: none; border: none; font-size: 16px; color: #94a3b8; cursor: pointer; padding: 4px; flex-shrink: 0; }
+.pv-route-steps { list-style: none; padding: 0; margin: 0 0 8px; display: flex; flex-direction: column; gap: 2px; }
+.pv-route-step { font-size: 13px; color: #64748b; padding: 8px 12px; border-left: 2px solid #e2e8f0; position: relative; }
+.pv-route-step::before { content: ''; position: absolute; left: -5px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; }
+.pv-step-active { color: #1e40af; font-weight: 600; border-left-color: #2563eb; }
+.pv-step-active::before { background: #2563eb; }
+.pv-step-dest { color: #15803d; font-weight: 600; border-left-color: #16a34a; }
+.pv-step-dest::before { background: #16a34a; }
+.pv-route-note { font-size: 11px; color: #94a3b8; display: block; text-align: center; padding-bottom: 4px; }
+
+/* ===== 시연 일행 마커 ===== */
+.pv-member-pin {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  cursor: default;
+}
+.pv-member-pin.pv-member-0 { background: #2563eb; }
+.pv-member-pin.pv-member-1 { background: #16a34a; }
+.pv-member-pin.pv-member-2 { background: #d97706; }
+.pv-member-pin.pv-member-3 { background: #9333ea; }
+
+/* ===== 지도 전체화면 + 바텀시트 ===== */
+/* 지도 뷰에서 pv-main / pv-main-content를 flex로 늘려 지도가 꽉 채우도록 */
+.pv-shell[data-view="map"] .pv-main {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  height: auto;
+  min-height: 100vh;
+}
+.pv-shell[data-view="map"] .pv-main-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+.pv-map-fullpage {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.pv-naver-map-full {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+.pv-bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 24px rgba(0,0,0,.13);
+  transform: translateY(calc(100% - 72px - 60px));
+  transition: transform .32s cubic-bezier(.4,0,.2,1);
+  z-index: 60;
+  max-height: 70vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 60px;
+}
+.pv-bottom-sheet.pv-sheet-open {
+  transform: translateY(0);
+}
+.pv-bs-handle-wrap {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+.pv-bs-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: #d1d5db;
+  flex-shrink: 0;
+  align-self: center;
+}
+.pv-bs-peek {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.pv-bs-peek strong { font-size: 15px; color: #111; }
+.pv-bs-peek small { font-size: 12px; color: #64748b; }
+.pv-bs-body {
+  overflow-y: auto;
+  padding: 0 16px 24px;
+  flex: 1;
+  min-height: 0;
+}
+.pv-sheet-members { display: flex; flex-direction: column; gap: 2px; margin-bottom: 14px; }
+.pv-sheet-actions { display: flex; flex-direction: column; gap: 8px; }
+.pv-midpoint-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #f0fdf4; border-radius: 10px; }
+.pv-midpoint-row strong { font-size: 14px; color: #15803d; }
+.pv-midpoint-row span { font-size: 12px; color: #16a34a; }
+.pv-sheet-small-actions { display: flex; gap: 8px; margin-top: 2px; }
+.pv-mini-button {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.pv-mini-button:active { background: #f1f5f9; }
+.pv-mini-button.pv-mini-muted { color: #94a3b8; border-color: #f1f5f9; }

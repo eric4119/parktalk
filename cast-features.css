@@ -92,3 +92,31 @@
   .cast-wardrobe-summary > div { flex-basis: calc(100% - 71px); }
   .cast-wardrobe-summary button { margin-left: auto; }
 }
+
+/* 가게 예약: 주변 가게 목록 */
+.store-list { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); margin-top: 12px; }
+.store-card h3 { margin: 10px 0 4px; font-size: 16px; }
+.store-card__top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.store-badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: #eef0f5; color: #5b6275; white-space: nowrap; }
+.store-badge--on { background: #fff1c2; color: #8a5a00; }
+.store-note { font-size: 13px; margin: 6px 0 0; }
+.store-benefit { font-size: 13px; font-weight: 700; color: #8a5a00; margin: 6px 0 0; }
+.store-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.store-actions a { text-decoration: none; display: inline-flex; align-items: center; }
+
+/* AI 생활 도우미 */
+.chat-prompts { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+.chat-prompts button { font-size: 12px; padding: 6px 10px; }
+.chat-source { display: block; margin-top: 4px; font-size: 10px; opacity: .6; }
+.chat-bubble--pending { opacity: .6; }
+.chat-source-list { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 6px; }
+.chat-source-link { border: 0; background: rgba(0,0,0,.05); border-radius: 8px; padding: 4px 8px; font-size: 11px; text-align: left; cursor: pointer; color: inherit; }
+.chat-source-link:hover { background: rgba(0,0,0,.1); }
+
+/* 식당 메뉴 */
+.menu-date-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.menu-date-nav button { min-width: 40px; }
+.menu-day-card { margin-bottom: 12px; }
+.menu-meal { display: flex; gap: 10px; align-items: flex-start; margin-top: 10px; }
+.menu-meal .pill { white-space: nowrap; flex-shrink: 0; }
+.menu-meal p { margin: 2px 0 0; line-height: 1.6; }

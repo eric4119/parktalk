@@ -8,9 +8,9 @@
   const zones = { global: "정문 · 글로벌페어", zootopia: "주토피아", american: "아메리칸 어드벤처", magic: "매직랜드" };
   const places = [
     { id: "capybara", name: "카피바라 · 뿌빠타운", zone: "zootopia", number: "206", kind: "동물", detail: "카피바라를 만날 수 있는 뿌빠타운", terms: "카피바라 capybara 뿌빠타운 동물원 동물" },
-    { id: "amazon", name: "아마존 스낵", zone: "zootopia", number: "228", kind: "간식", detail: "핫도그 · 츄러스", terms: "핫도그 츄러스 간식 아마존 스낵" },
-    { id: "newdel", name: "뉴델 스낵", zone: "american", number: "67", kind: "간식", detail: "핫도그 · 츄러스", terms: "핫도그 츄러스 간식 뉴델 스낵" },
-    { id: "merlin", name: "멀린스 스낵", zone: "magic", number: "139", kind: "간식", detail: "핫도그 · 츄러스", terms: "핫도그 츄러스 간식 멀린스 스낵" },
+    { id: "amazon", name: "아마존 스냅", zone: "zootopia", number: "228", kind: "간식", detail: "핫도그 · 츄러스", terms: "핫도그 츄러스 간식 아마존 스냅" },
+    { id: "newdel", name: "뉴델 스냅", zone: "american", number: "67", kind: "간식", detail: "핫도그 · 츄러스", terms: "핫도그 츄러스 간식 뉴델 스냅" },
+    { id: "merlin", name: "멀린스 스냅", zone: "magic", number: "139", kind: "간식", detail: "핫도그 · 츄러스", terms: "핫도그 츄러스 간식 멀린스 스냅" },
   ];
   const root = () => document.getElementById("visitorApp");
   const escapeHtml = (value) =>
@@ -66,10 +66,29 @@
   let view = "home";
   let group = null;
   let gps = null; // Memory only. Never written to localStorage or shown as coordinates.
+  let naverMap = null;
+  let userMarker = null;
+  let closestMarker = null;
+  let closestPoint = null;
+  let routeMode = false;
+  let routePolyline = null;
+  let memberMarkers = [];
+  let memberMoveTimer = null;
+  let mapSheetOpen = false;
+
+  // ===== 에버랜드 집합장소 후보 =====
+  // fallback 좌표 보유 → geocoder 성공 시 실제 좌표로 교체됨
+  let MEETING_POINTS = [
+    { id: 'gate',     name: '정문 광장',            query: '경기도 용인시 처인구 포곡읍 에버랜드로 199', lat: 37.2933, lng: 127.2013 },
+    { id: 'global',   name: '글로벌페어 광장',       query: null,  lat: 37.2940, lng: 127.2022 },
+    { id: 'american', name: '아메리칸어드벤처 광장',  query: null,  lat: 37.2950, lng: 127.1995 },
+    { id: 'magic',    name: '매직랜드 광장',          query: null,  lat: 37.2965, lng: 127.2010 },
+    { id: 'zootopia', name: '주토피아 사파리',         query: null,  lat: 37.2978, lng: 127.2050 },
+  ];
+  let visitorPosts = [];
   let midpointSuggestion = false;
   let notice = "";
   let boardKind = "praise";
-  let visitorPosts = [];
   let searchTerm = "";
   let destinationId = "capybara";
   let startZone = "global";
@@ -121,6 +140,15 @@
       ${title("방문객 모드", `${escapeHtml(userName)}님, 반가워요`, "일행과 연결하고 필요한 정보를 찾아보세요.")}
       <section class="pv-missing-banner"><span>미아·보호자 찾기</span><strong>아이와 떨어졌다면<br>즉시 근처 캐스트에게 알려주세요.</strong><a href="tel:0313205050">손님상담실 ${HELP_PHONE} 전화하기</a></section>
       <div class="pv-section-heading">
+<h2>소통 · 신고 양식</h2>
+<span>BOARD</span>
+</div>
+      <div class="pv-board-grid">
+        <button type="button" data-pv-board="praise">${icon("heart")}<strong>칭찬하기</strong></button>
+        <button type="button" data-pv-board="lost">${icon("found")}<strong>분실물·습득물</strong></button>
+        <button type="button" data-pv-board="missing">${icon("child")}<strong>미아 찾기</strong></button>
+      </div>
+      <div class="pv-section-heading">
 <h2>일행과 연결하기</h2>
 <span>STEP 01</span>
 </div>
@@ -148,7 +176,6 @@
 <strong>내 위치는 내가 결정해요.</strong>
 <br>위치 확인은 직접 버튼을 누른 뒤에만 시작됩니다.</p>
 </div>
-
     </div>`;
   }
   function create() {
@@ -279,47 +306,46 @@
     if (!group)
       return `<div class="pv-content">${title("일행 지도", "먼저 그룹에 참여해 주세요", "그룹을 만든 뒤 지도를 이용할 수 있어요.")}<button type="button" class="pv-button" data-pv-view="group">일행으로 이동 ${icon("arrow")}</button>
 </div>`;
-    return `<div class="pv-map-page">
-<div class="pv-map-heading">
-<div>
-<span class="pv-eyebrow">${escapeHtml(group.name)}</span>
-<h1>일행 찾기</h1>
+
+    const members = group.members || [userName];
+    const sheetContent = (() => {
+      if (routeMode && closestPoint && gps?.lat) {
+        const dist = calcDistM(gps.lat, gps.lng, closestPoint.lat, closestPoint.lng);
+        const mins = Math.max(1, Math.round(dist / 67));
+        return `<div class="pv-route-panel">
+<div class="pv-route-dest"><span class="pv-route-icon">📍</span><div><strong>${escapeHtml(closestPoint.name)}</strong><small>도보 약 ${mins}분 · ${dist}m</small></div><button type="button" class="pv-route-close" data-pv-action="route-cancel">✕</button></div>
+<ol class="pv-route-steps">
+<li class="pv-route-step pv-step-active">${icon("pin")} 현재 위치에서 출발</li>
+<li class="pv-route-step">직진 약 ${Math.round(dist * 0.4)}m</li>
+<li class="pv-route-step">오른쪽으로 이동 약 ${Math.round(dist * 0.6)}m</li>
+<li class="pv-route-step pv-step-dest">📍 ${escapeHtml(closestPoint.name)} 도착</li>
+</ol>
+<small class="pv-route-note">시연용 경로입니다. 실제 경로와 다를 수 있습니다.</small>
+</div>`;
+      }
+      return `
+<div class="pv-sheet-members">
+${members.map((member, i) => `<div class="pv-member-row"><span class="pv-member-avatar pv-member-${i % 4}">${escapeHtml(member.slice(0, 1))}</span><div><strong>${escapeHtml(member)}${i === 0 ? " (나)" : ""}</strong><small>${i === 0 ? gps ? "위치 확인됨" : group.consent ? "동의됨 · 확인 전" : "꺼짐" : "시연"}</small></div></div>`).join("")}
 </div>
-<span class="pv-map-demo">시연 지도</span>
+<div class="pv-sheet-actions">
+${closestPoint ? `<div class="pv-midpoint-row"><strong>📍 ${escapeHtml(closestPoint.name)}</strong><span>가장 가까운 집합장소</span></div>` : ""}
+${closestPoint && gps?.lat ? `<button type="button" class="pv-button pv-wide" data-pv-action="route-start">${icon("pin")} 경로 안내 시작</button>` : `<button type="button" class="pv-secondary-button pv-wide" data-pv-action="midpoint">집합장소 추천 보기</button>`}
+${group.consent
+  ? `<div class="pv-sheet-small-actions"><button type="button" class="pv-mini-button" data-pv-action="locate">${icon("pin")} 내 위치 확인하기</button><button type="button" class="pv-mini-button pv-mini-muted" data-pv-action="revoke">동의 취소</button></div>`
+  : `<button type="button" class="pv-button pv-wide" data-pv-view="consent">위치 표시 동의하기 ${icon("arrow")}</button>`}
+</div>`;
+    })();
+
+    return `<div class="pv-map-fullpage">
+<div id="pv-naver-map" class="pv-naver-map-full" aria-label="에버랜드 네이버 지도"></div>
+<div class="pv-bottom-sheet${mapSheetOpen ? " pv-sheet-open" : ""}" id="pv-map-bs">
+  <button type="button" class="pv-bs-handle-wrap" data-pv-action="sheet-toggle" aria-label="정보 패널 열기/닫기">
+    <div class="pv-bs-handle"></div>
+    <span class="pv-bs-peek"><strong>${escapeHtml(group.name)}</strong><small>${members.length}명 · ${gps ? "위치 확인됨" : "위치 대기"}</small></span>
+  </button>
+  <div class="pv-bs-body">${sheetContent}</div>
 </div>
-      <div class="pv-schematic-map" role="img" aria-label="에버랜드 일행 지도 자리 표시자. 실제 위치와 연결되지 않은 시연 지도">
-<div class="pv-map-green pv-map-green-a">
-</div>
-<div class="pv-map-green pv-map-green-b">
-</div>
-<div class="pv-map-green pv-map-green-c">
-</div>
-<div class="pv-map-walk pv-map-walk-a">
-</div>
-<div class="pv-map-walk pv-map-walk-b">
-</div>
-<span class="pv-map-poi pv-map-poi-a">모임 장소</span>
-<span class="pv-map-poi pv-map-poi-b">중앙광장</span>${(group.members || [userName]).map((member, index) => `<span class="pv-sim-pin pv-sim-pin-${index % 4} pv-member-${index % 4}" aria-label="${escapeHtml(member)} 시연 표시">${escapeHtml(member.slice(0, 1))}</span>`).join("")}${midpointSuggestion ? `<span class="pv-midpoint-pin">${icon("pin")} 집합장소 예시</span>` : ""}<div class="pv-map-watermark">실제 공원 지도가 아닌 시연 배경</div>
-</div>
-      <div class="pv-map-sheet">
-<div class="pv-sheet-handle">
-</div>
-<div class="pv-map-sheet-head">
-<div>
-<strong>일행 위치</strong>
-<p>그룹 코드 ${group.code}</p>
-</div>
-<span>${(group.members || [userName]).length}명 · 시연</span>
-</div>
-${(group.members || [userName]).map((member, index) => `<div class="pv-member-row"><span class="pv-member-avatar pv-member-${index % 4}">${escapeHtml(member.slice(0, 1))}</span><div><strong>${escapeHtml(member)}${index === 0 ? " (나)" : ""}</strong><small>${index === 0 ? gps ? "기기 위치 권한 확인됨 · 좌표 저장 안 함" : group.consent ? "동의됨 · 위치 확인 전" : "위치 표시 꺼짐" : "시연 인원 · 실제 위치 연결 전"}</small></div></div>`).join("")}
-<div class="pv-midpoint"><strong>집합장소 예시 · 시연</strong><p>${midpointSuggestion ? "중앙광장 — 모두가 알기 쉬운 만남 장소 예시입니다." : "버튼을 눌러 집합장소 예시를 확인하세요."}</p><button type="button" class="pv-secondary-button" data-pv-action="midpoint">집합장소 추천 보기</button><small>현재는 일행 좌표로 중간 지점을 계산하지 않습니다.</small></div>
-<p class="pv-map-limitation">다른 일행의 실시간 위치는 서버·지도 연동 후 표시됩니다.</p>${
-      group.consent
-        ? `<button type="button" class="pv-button" data-pv-action="locate">${icon("pin")} 내 기기 위치 확인하기</button>
-<button type="button" class="pv-secondary-button" data-pv-action="revoke">위치 표시 동의 취소</button>`
-        : `<button type="button" class="pv-button" data-pv-view="consent">위치 표시 동의하기 ${icon("arrow")}</button>`
-    }</div>
-    </div>`;
+</div>`;
   }
   function profilePage() {
     return `<div class="pv-content">${title("앱 설정", `${escapeHtml(userName)}님`, "일반 사용자 모드로 이용 중입니다.")}
@@ -328,8 +354,8 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
 <div>
 <strong>${escapeHtml(userName)}</strong>
 <small>${window.ParkAuth?.accountRole?.() === "cast" ? "캐스트 계정 · 일반 사용자 모드" : "방문객 계정 · 시연 로그인"}</small>
-</div><span class="profile-edit-hint">수정 ›</span>
-</button>
+</div>
+<span class="profile-edit-hint">수정 ›</span></button>
       <div class="pv-card pv-profile-links">
 <div>
 <span>내 이용 모드</span>
@@ -344,11 +370,204 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
 <strong>${group?.consent ? "동의함" : "꺼짐"}</strong>
 </div>
 </div>
-      ${window.ParkAuth?.accountRole?.() === "cast" ? '<button type="button" class="pv-secondary-button pv-wide" data-auth-action="switch">캐스트 모드로 전환</button>' : ""}
+      <button type="button" class="pv-secondary-button pv-wide" data-auth-action="switch">캐스트 모드로 전환</button>
+      ${window.ParkAuth?.accountRole?.() === "cast" ? "" : '<p class="pv-profile-note">캐스트 모드는 캐스트 인증을 마친 계정만 이용할 수 있어요.</p>'}
       <button type="button" class="pv-secondary-button pv-wide" data-pv-action="logout">로그아웃</button>
 <p class="pv-profile-note">현재 계정과 그룹은 이 브라우저에서만 체험할 수 있습니다.</p>
     </div>`;
   }
+  function geocodeMeetingPoints() {
+    if (!naver?.maps?.Service?.geocode) return;
+    MEETING_POINTS.forEach((pt, i) => {
+      if (!pt.query) return;
+      naver.maps.Service.geocode({ query: pt.query }, function(status, response) {
+        if (status === naver.maps.Service.Status.ERROR) return;
+        const addrs = response.v2?.addresses;
+        if (!addrs || !addrs.length) return;
+        const item = addrs[0];
+        const lat = parseFloat(item.y);
+        const lng = parseFloat(item.x);
+        if (!lat || !lng) return;
+        MEETING_POINTS[i] = { ...pt, lat, lng, geocoded: true };
+        if (gps?.lat) {
+          closestPoint = findClosest(gps.lat, gps.lng);
+          if (naverMap && closestPoint) placeClosestMarker(closestPoint.lat, closestPoint.lng);
+          render();
+        }
+      });
+    });
+  }
+
+  function initNaverMap() {
+    const el = document.getElementById('pv-naver-map');
+    if (!el) return;
+    if (typeof naver === 'undefined' || !naver.maps) { setTimeout(initNaverMap, 200); return; }
+    naverMap = new naver.maps.Map(el, {
+      center: new naver.maps.LatLng(37.2941, 127.2027),
+      zoom: 17,
+    });
+    if (gps?.lat) placeUserMarker(gps.lat, gps.lng);
+    if (closestPoint) placeClosestMarker(closestPoint.lat, closestPoint.lng);
+    initSimMemberMarkers();
+    geocodeMeetingPoints();
+  }
+
+  function placeUserMarker(lat, lng) {
+    if (!naverMap) return;
+    if (userMarker) userMarker.setMap(null);
+    userMarker = new naver.maps.Marker({
+      position: new naver.maps.LatLng(lat, lng),
+      map: naverMap,
+      title: '내 위치',
+      icon: { content: `<div class="pv-user-pin">${escapeHtml(userName.slice(0, 1))}</div>`, anchor: new naver.maps.Point(16, 16) },
+    });
+    naverMap.setCenter(new naver.maps.LatLng(lat, lng));
+  }
+
+  function placeClosestMarker(lat, lng) {
+    if (!naverMap) return;
+    if (closestMarker) closestMarker.setMap(null);
+    closestMarker = new naver.maps.Marker({
+      position: new naver.maps.LatLng(lat, lng),
+      map: naverMap,
+      title: '추천 집합장소',
+      icon: { content: `<div class="pv-closest-pin">📍</div>`, anchor: new naver.maps.Point(12, 36) },
+      zIndex: 10,
+    });
+  }
+
+  function findClosest(lat, lng) {
+    if (!MEETING_POINTS.length) return null;
+    let best = null, bestDist = Infinity;
+    MEETING_POINTS.forEach(p => {
+      const d = (p.lat - lat) ** 2 + (p.lng - lng) ** 2;
+      if (d < bestDist) { bestDist = d; best = p; }
+    });
+    return best;
+  }
+
+  function calcDistM(lat1, lng1, lat2, lng2) {
+    const dLat = (lat2 - lat1) * 111000;
+    const dLng = (lng2 - lng1) * 88000;
+    return Math.round(Math.sqrt(dLat * dLat + dLng * dLng));
+  }
+
+  // Cloudflare Worker URL — 배포 후 채워넣기
+  const DIRECTION_WORKER_URL = 'https://51ddc8cc.parktalk.pages.dev/directions';
+
+  function drawRouteSimulated(fromLat, fromLng, toLat, toLng) {
+    if (routePolyline) routePolyline.setMap(null);
+    routePolyline = new naver.maps.Polyline({
+      map: naverMap,
+      path: [
+        new naver.maps.LatLng(fromLat, fromLng),
+        new naver.maps.LatLng(fromLat, toLng),
+        new naver.maps.LatLng(toLat, toLng),
+      ],
+      strokeColor: '#2563eb',
+      strokeOpacity: 0.85,
+      strokeWeight: 5,
+      strokeStyle: 'solid',
+    });
+    const bounds = new naver.maps.LatLngBounds(
+      new naver.maps.LatLng(Math.min(fromLat, toLat) - 0.0003, Math.min(fromLng, toLng) - 0.0003),
+      new naver.maps.LatLng(Math.max(fromLat, toLat) + 0.0003, Math.max(fromLng, toLng) + 0.0003),
+    );
+    naverMap.fitBounds(bounds);
+  }
+
+  function drawRoute(fromLat, fromLng, toLat, toLng) {
+    if (!naverMap) return;
+    if (routePolyline) { routePolyline.setMap(null); routePolyline = null; }
+    if (!DIRECTION_WORKER_URL) { drawRouteSimulated(fromLat, fromLng, toLat, toLng); return; }
+
+    const start = `${fromLng},${fromLat}`;
+    const goal  = `${toLng},${toLat}`;
+    fetch(`${DIRECTION_WORKER_URL}?start=${start}&goal=${goal}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.code !== 0) throw new Error(data.message);
+        const rawPath = data.route.traoptimal[0].path;
+        const path = rawPath.map(([lng, lat]) => new naver.maps.LatLng(lat, lng));
+        routePolyline = new naver.maps.Polyline({
+          map: naverMap,
+          path,
+          strokeColor: '#2563eb',
+          strokeOpacity: 0.9,
+          strokeWeight: 5,
+        });
+        const bounds = new naver.maps.LatLngBounds();
+        path.forEach(p => bounds.extend(p));
+        naverMap.fitBounds(bounds, { top: 60, right: 20, bottom: 160, left: 20 });
+        render();
+      })
+      .catch(() => drawRouteSimulated(fromLat, fromLng, toLat, toLng));
+  }
+
+  function clearMemberMarkers() {
+    clearInterval(memberMoveTimer);
+    memberMoveTimer = null;
+    memberMarkers.forEach(m => m.setMap(null));
+    memberMarkers = [];
+  }
+
+  function initSimMemberMarkers() {
+    if (!naverMap || !group) return;
+    clearMemberMarkers();
+    const others = (group.members || []).slice(1); // 본인 제외
+    if (!others.length) return;
+
+    // 각 멤버를 에버랜드 내 고정 시작 좌표에 배치
+    const BASE = [
+      { lat: 37.2955, lng: 127.2010 },
+      { lat: 37.2948, lng: 127.2040 },
+      { lat: 37.2920, lng: 127.2035 },
+      { lat: 37.2965, lng: 127.2025 },
+      { lat: 37.2938, lng: 127.1998 },
+      { lat: 37.2972, lng: 127.2050 },
+      { lat: 37.2928, lng: 127.2008 },
+    ];
+
+    others.forEach((name, i) => {
+      const base = BASE[i % BASE.length];
+      const pos = new naver.maps.LatLng(base.lat, base.lng);
+      const marker = new naver.maps.Marker({
+        position: pos,
+        map: naverMap,
+        title: name,
+        icon: {
+          content: `<div class="pv-member-pin pv-member-${(i + 1) % 4}">${escapeHtml(name.slice(0, 1))}</div>`,
+          anchor: new naver.maps.Point(16, 16),
+        },
+        zIndex: 5,
+      });
+      marker._base = base;
+      memberMarkers.push(marker);
+    });
+
+    // 2초마다 각 마커를 ±0.0001도 범위에서 미세하게 이동
+    memberMoveTimer = setInterval(() => {
+      if (!naverMap) { clearMemberMarkers(); return; }
+      memberMarkers.forEach(m => {
+        const b = m._base;
+        const jitter = 0.00008;
+        const lat = b.lat + (Math.random() - 0.5) * jitter;
+        const lng = b.lng + (Math.random() - 0.5) * jitter;
+        m.setPosition(new naver.maps.LatLng(lat, lng));
+      });
+    }, 2000);
+  }
+
+  function clearMapState() {
+    if (userMarker) { userMarker.setMap(null); userMarker = null; }
+    if (closestMarker) { closestMarker.setMap(null); closestMarker = null; }
+    if (routePolyline) { routePolyline.setMap(null); routePolyline = null; }
+    clearMemberMarkers();
+    naverMap = null;
+    closestPoint = null;
+    routeMode = false;
+  }
+
   function render() {
     const target = root();
     if (!target) return;
@@ -379,7 +598,7 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
         map: mapPage,
         profile: profilePage,
       }[view]?.() || home();
-    target.innerHTML = `<div class="pv-shell">
+    target.innerHTML = `<div class="pv-shell" data-view="${view}">
 <aside class="pv-sidebar">
 <div class="pv-sidebar-brand"><button type="button" class="pv-logo-home" data-pv-view="home" aria-label="파크톡 홈으로 이동"><img class="pv-logo" src="assets/parktalk-logo-transparent.png" alt="ParkTalk 파크톡 로고"></button>
 <small>방문객 모드</small>
@@ -398,12 +617,17 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
 <nav class="pv-bottom-nav" aria-label="일반 사용자 메뉴">${navigation()}</nav>
 </div>
 </div>${notice ? `<div class="pv-toast" role="status">${escapeHtml(notice)}</div>` : ""}`;
+    if (view === 'map' && group) requestAnimationFrame(initNaverMap);
   }
+  // 새로고침해도 다시 열 수 있는 화면(다른 화면은 직전 선택 상태가 필요해서 홈으로 돌아간다)
+  const RESTORABLE = ["home", "board", "group", "map", "profile", "explore", "create", "join"];
   function setView(next) {
     window.ParkBoards.leaveDetail();
+    if (next !== 'map') mapSheetOpen = false;
     view = next;
     render();
     window.scrollTo?.(0, 0);
+    history.replaceState(null, "", `#visitor/${RESTORABLE.includes(view) ? view : "home"}`);
   }
   async function copy(value) {
     try {
@@ -429,7 +653,10 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
     const button = event.target.closest("button");
     if (!button || !root()?.contains(button)) return;
     if (button.dataset.pvView) return setView(button.dataset.pvView);
-    if (button.dataset.pvBoard) { boardKind = button.dataset.pvBoard; return setView("board"); }
+    if (button.dataset.pvBoard) {
+      boardKind = button.dataset.pvBoard;
+      return setView("board");
+    }
     if (button.dataset.pvQuery) {
       searchTerm = button.dataset.pvQuery;
       return setView("explore");
@@ -452,6 +679,8 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
         if (group.consent) {
           group.consent = false;
           gps = null;
+          closestPoint = null;
+          clearMapState();
           saveGroup(group);
           toast("위치 표시 동의를 취소했어요.");
         } else setView("consent");
@@ -470,22 +699,32 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
           return toast("이 브라우저에서는 위치 확인을 지원하지 않아요.");
         navigator.geolocation.getCurrentPosition(
           (position) => {
-            gps = { accuracy: position.coords.accuracy };
-            toast(
-              "기기 위치 권한을 확인했어요. 좌표는 저장하거나 전송하지 않습니다.",
-            );
+            gps = { lat: position.coords.latitude, lng: position.coords.longitude, accuracy: position.coords.accuracy };
+            placeUserMarker(gps.lat, gps.lng);
+            closestPoint = findClosest(gps.lat, gps.lng);
+            if (closestPoint) {
+              placeClosestMarker(closestPoint.lat, closestPoint.lng);
+              midpointSuggestion = true;
+              toast(`위치 확인됨 · 가장 가까운 집합장소: ${closestPoint.name}`);
+            } else {
+              toast("기기 위치 권한을 확인했어요. 좌표는 저장하거나 전송하지 않습니다.");
+            }
+            render();
           },
-          () =>
-            toast(
-              "기기 위치를 확인하지 못했어요. 브라우저 권한을 확인해 주세요.",
-            ),
-          { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 },
+          () => toast("기기 위치를 확인하지 못했어요. 브라우저 권한을 확인해 주세요."),
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
         );
+        break;
+      case "sheet-toggle":
+        mapSheetOpen = !mapSheetOpen;
+        render();
         break;
       case "revoke":
         if (!group) return;
         group.consent = false;
         gps = null;
+        closestPoint = null;
+        clearMapState();
         saveGroup(group);
         toast("위치 표시 동의를 취소했어요.");
         break;
@@ -498,11 +737,29 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
         saveGroup(null);
         group = null;
         gps = null;
+        closestPoint = null;
+        clearMapState();
         setView("group");
         toast("그룹을 종료했어요.");
         break;
       case "midpoint":
+        if (gps?.lat) {
+          closestPoint = findClosest(gps.lat, gps.lng);
+          if (closestPoint) placeClosestMarker(closestPoint.lat, closestPoint.lng);
+        }
         midpointSuggestion = true;
+        render();
+        break;
+      case "route-start":
+        if (!closestPoint || !gps?.lat) return;
+        routeMode = true;
+        render();
+        requestAnimationFrame(() => drawRoute(gps.lat, gps.lng, closestPoint.lat, closestPoint.lng));
+        break;
+      case "route-cancel":
+        routeMode = false;
+        if (routePolyline) { routePolyline.setMap(null); routePolyline = null; }
+        if (naverMap && gps?.lat) naverMap.setCenter(new naver.maps.LatLng(gps.lat, gps.lng));
         render();
         break;
       case "logout":
@@ -523,15 +780,6 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
       const groups = demoGroups();
       if (groups[group.code]) { groups[group.code].members = group.members; saveDemoGroups(groups); }
       render();
-    } else if (event.target.id === "pv-board-form") {
-      event.preventDefault();
-      const data = new FormData(event.target);
-      const photo = data.get("photo");
-      if (photo instanceof File && photo.size > 3_000_000) return toast("사진은 3MB 이하로 선택해 주세요.");
-      const post = { kind: boardKind, title: String(data.get("title") || ""), body: String(data.get("body") || ""), age: String(data.get("age") || ""), gender: String(data.get("gender") || ""), clothes: String(data.get("clothes") || ""), place: String(data.get("place") || ""), photoUrl: photo instanceof File && photo.size ? URL.createObjectURL(photo) : "" };
-      visitorPosts.unshift(post);
-      render();
-      toast("게시글 화면에 표시했어요. 실제 접수나 공유는 되지 않습니다.");
     } else if (event.target.id === "pv-search-form") {
       event.preventDefault();
       searchTerm = String(new FormData(event.target).get("query") || "").trim().slice(0, 60);
@@ -592,13 +840,12 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
     }
   }
   window.ParkVisitor = {
-    openBoard(kind) { boardKind=kind; setView("board"); },
-    updateProfile(name) { userName=name; render(); },
     mount(user = {}) {
       this.unmount();
       userName = String(user.name || user.nickname || "방문객").slice(0, 30);
       group = readGroup();
-      view = "home";
+      view = RESTORABLE.includes(user.view) ? user.view : "home";
+      history.replaceState(null, "", `#visitor/${view}`);
       const code = new URLSearchParams(location.search).get("invite");
       if (code && /^[A-Z0-9]{6}$/i.test(code)) {
         sessionStorage.setItem(INVITE, code.toUpperCase());
@@ -616,16 +863,21 @@ ${(group.members || [userName]).map((member, index) => `<div class="pv-member-ro
       listener = submitListener = null;
       clearTimeout(toast.timer);
       gps = null;
+      closestPoint = null;
+      clearMapState();
       visitorPosts.forEach((post) => { if (post.photoUrl) URL.revokeObjectURL(post.photoUrl); });
       visitorPosts = [];
       const target = root();
       if (target) target.innerHTML = "";
     },
+    updateProfile(name) { userName = String(name).slice(0, 30); render(); },
     clearLocalSession() {
       localStorage.removeItem(STORAGE);
       sessionStorage.removeItem(INVITE);
       group = null;
       gps = null;
+      closestPoint = null;
+      clearMapState();
     },
   };
 })();
