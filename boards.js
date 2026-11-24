@@ -72,6 +72,8 @@
   let searchOpen = false;
   let lostFilter = 'all';
   let quickLinkTargetId = null;
+  let detailContext = null;
+  const authorName = (post) => window.ParkProfiles?.name(post.authorId, post.author) || post.author;
 
   let data = read(KEY, null);
   if (!Array.isArray(data)) {
@@ -283,7 +285,7 @@
                 ${extraMeta}
                 <span class="cast-post-summary">${escape(p.body || p.clothes)}</span>
                 <span class="cast-post-meta">
-                  <span>${escape(p.author)} · ${time(p.createdAt)}</span>
+                  <span>${escape(authorName(p))} · ${time(p.createdAt)}</span>
                   <span>♡ ${total(p)} · 댓글 ${comments(p)}</span>
                 </span>
                 ${kind === 'popular' ? `<small class="pb-hint">최근 5시간 좋아요 ${recent(p)}</small>` : ''}
@@ -354,7 +356,7 @@
             (p) =>
               `<button type="button" class="pb-home-post" data-pb-post="${p.id}"><strong>${escape(
                 p.title,
-              )}</strong><span class="pb-home-meta"><span>${escape(p.author)} · ${escape(
+              )}</strong><span class="pb-home-meta"><span>${escape(authorName(p))} · ${escape(
                 p.authorType || '캐스트',
               )}</span><span>♡ ${total(p)} · 댓글 ${comments(p)}</span></span></button>`,
           )
@@ -591,6 +593,28 @@
     return '';
   }
 
+  function showDetailPage(id, markup) {
+    const target = document.querySelector(isCastMode() ? '#view' : '.pv-main-content');
+    if (!target) { window.parkModal?.(markup); return; }
+    if (!detailContext || detailContext.target !== target) {
+      detailContext = { target, html: target.innerHTML, url: location.href, scrollY: window.scrollY };
+      history.pushState({ parkPost: id }, '', `#post/${id}`);
+    } else {
+      history.replaceState({ parkPost: id }, '', `#post/${id}`);
+    }
+    target.innerHTML = `<article class="pb-detail-page"><header class="pb-detail-toolbar"><button type="button" class="pb-detail-back" data-pb-back aria-label="게시글 목록으로 돌아가기">‹</button><strong class="pb-detail-board-name">게시글</strong><span></span></header>${markup}</article>`;
+    window.scrollTo(0, 0);
+  }
+  function backFromDetail(useHistory = true) {
+    if (!detailContext) return;
+    const { target, html, url, scrollY } = detailContext;
+    detailContext = null;
+    target.innerHTML = html;
+    refresh();
+    if (useHistory) history.replaceState(null, '', url);
+    window.scrollTo(0, scrollY);
+  }
+  function leaveDetail() { detailContext = null; }
   function detail(id) {
     const p = data.find((x) => x.id === id);
     if (!p || !allowed(p.kind)) {
@@ -612,13 +636,13 @@
         ? ` <button type="button" class="primary" data-pb-resolve="${p.id}">찾음 · 인계 완료</button>`
         : '';
 
-    window.parkModal?.(`
+    showDetailPage(p.id, `
       <div class="pb-detail-top">
         <span class="tag free">${labels[p.kind]}${p.lostType ? ' · ' + escape(p.lostType) : ''}</span>
         ${statusBadge(p)}
       </div>
       <h2>${escape(p.title)}</h2>
-      <p class="pb-hint">${escape(p.author)} · ${escape(p.authorType)} · ${time(p.createdAt)}</p>
+      <p class="pb-hint">${escape(authorName(p))} · ${escape(p.authorType)} · ${time(p.createdAt)}</p>
       ${renderStructuredMeta(p)}
       ${renderLostLinkSection(p, me)}
       ${photoHtml}
@@ -778,6 +802,7 @@
   document.addEventListener('click', (e) => {
     const b = e.target.closest('button');
     if (!b) return;
+    if (b.hasAttribute('data-pb-back')) { backFromDetail(); return; }
     if (b.hasAttribute('data-pb-write')) {
       quickLinkTargetId = null;
       write();
@@ -848,6 +873,7 @@
       data = data.filter((x) => x.id !== p.id);
       if (persist()) {
         document.querySelector('#modal')?.close();
+        backFromDetail();
         refresh();
         window.parkToast?.('내 글을 삭제했어요.');
       }
@@ -1067,6 +1093,7 @@
     }
   });
 
+  window.addEventListener('popstate', () => { if (detailContext) backFromDetail(false); });
   window.addEventListener('storage', (e) => {
     if (e.key === KEY) {
       data = read(KEY, []);
@@ -1118,6 +1145,9 @@
     home,
     write,
     detail,
+    leaveDetail,
+    currentKind: () => selected,
+    selectKind: (kind) => { if (castTabs.includes(kind)) { selected = kind; query = ""; lostFilter = "all"; } },
     recent,
     list,
     linkPosts,
