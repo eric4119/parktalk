@@ -486,7 +486,8 @@ button.settings-profile { border: 0; background: transparent; }
 
 /* Keep the article close to its author and remove the extra detail-page branding. */
 body:has(.pb-detail-page) .cast-mobile-brand,
-body:has(.pb-detail-page) .pv-header .pv-logo-home { display: none; }
+body:has(.pb-detail-page) .pv-header .pv-logo-home,
+body:has(.pb-detail-page) .pv-header .pv-header-brand { display: none; }
 .pb-detail-toolbar { display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; align-items: center; gap: 8px; margin: 0 -8px 22px; min-height: 44px; }
 .pb-detail-board-name { text-align: center; font-size: 14px; font-weight: 700; color: #394650; line-height: 1.5; }
 .pb-detail-back:hover { background: #fff6d9; color: #91691d; }

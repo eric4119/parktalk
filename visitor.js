@@ -121,11 +121,14 @@
   }
   function header() {
     return `<header class="pv-header">
-<div>
-<button type="button" class="pv-logo-home" data-pv-view="home" aria-label="파크톡 홈으로 이동"><img class="pv-logo" src="assets/parktalk-logo-transparent.png" alt="ParkTalk 파크톡 로고"></button>
+<button type="button" class="pv-header-brand" data-pv-view="home" aria-label="파크톡 홈으로 이동">
+<svg class="pv-header-brand-icon ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2.3"/></svg>
+<span class="pv-header-brand-name">파크톡</span>
+</button>
+<div class="pv-header-right">
 <span class="pv-role">VISITOR</span>
-</div>
 <button type="button" class="pv-profile-shortcut" data-pv-view="profile" aria-label="앱 설정 열기">${window.ParkProfiles.avatar(window.ParkAuth.id(),userName)}</button>
+</div>
 </header>`;
   }
   function title(eyebrow, heading, description) {

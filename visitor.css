@@ -130,7 +130,7 @@
   flex: 1;
 }
 .pv-header {
-  height: 70px;
+  height: 66px;
   padding: 0 38px;
   border-bottom: 1px solid #ebeef4;
   background: #fff;
@@ -138,10 +138,22 @@
   align-items: center;
   justify-content: space-between;
 }
-.pv-header > div {
+.pv-header-brand {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 7px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  flex: 1;
+}
+.pv-header-brand-icon { width: 22px; height: 22px; color: #c89010; }
+.pv-header-brand-name { font-size: 17px; font-weight: 900; letter-spacing: -0.04em; color: #1a1a1a; }
+.pv-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .pv-wordmark {
   font-weight: 800;
@@ -942,8 +954,13 @@
     display: none;
   }
   .pv-header {
-    height: 61px;
-    padding: 0 19px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: 54px;
+    padding: 0 15px;
+    border-bottom: none;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.07);
   }
   .pv-main-content {
     padding: 24px 17px 100px;
