@@ -28,7 +28,7 @@ export async function onRequest(context) {
     });
   }
 
-  const url = `https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving`
+  const url = `https://maps.apigw.ntruss.com/map-direction/v1/driving`
     + `?start=${start}&goal=${goal}&option=${option}`;
 
   const res = await fetch(url, {
