@@ -559,7 +559,6 @@ ${group.consent
         if (name !== userName) memberLocations[name] = loc;
       }
       refreshMemberMarkers();
-      render();
     });
   }
 
