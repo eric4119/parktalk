@@ -9,10 +9,3 @@ compatibility_date = "2024-11-01"
 
 # 로컬 개발: npx wrangler pages dev . --compatibility-date=2024-11-01
 
-[[durable_objects.bindings]]
-name = "LOCATION_HUB"
-class_name = "LocationHub"
-
-[[migrations]]
-tag = "v1"
-new_sqlite_classes = ["LocationHub"]
