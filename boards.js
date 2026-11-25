@@ -11,9 +11,9 @@
     lost: '분실물',
     department: '부서별',
   };
-  const shared = ['praise', 'missing', 'lost'];
-  const castTabs = ['popular', 'free', 'trade', 'question', ...shared, 'department'];
-  const castWriteTabs = ['free', 'trade', 'question', 'lost', 'department'];
+  const shared = ['missing', 'lost'];
+  const castTabs = ['popular', 'free', 'department', 'trade', 'missing', 'lost'];
+  const castWriteTabs = ['free', 'trade', 'lost', 'department'];
   const visitorWriteTabs = ['praise', 'missing', 'lost'];
   const ZONES = [
     '정문 · 글로벌페어',
@@ -72,6 +72,8 @@
   let searchOpen = false;
   let lostFilter = 'all';
   let quickLinkTargetId = null;
+  let detailContext = null;
+  const authorName = (post) => window.ParkProfiles?.name(post.authorId, post.author) || post.author;
 
   let data = read(KEY, null);
   if (!Array.isArray(data)) {
@@ -283,20 +285,20 @@
                 ${extraMeta}
                 <span class="cast-post-summary">${escape(p.body || p.clothes)}</span>
                 <span class="cast-post-meta">
-                  <span>${escape(p.author)} · ${time(p.createdAt)}</span>
+                  <span>${escape(authorName(p))} · ${time(p.createdAt)}</span>
                   <span>♡ ${total(p)} · 댓글 ${comments(p)}</span>
                 </span>
                 ${kind === 'popular' ? `<small class="pb-hint">최근 5시간 좋아요 ${recent(p)}</small>` : ''}
               </button>`;
             })
             .join('')
-        : `<div class="cast-empty">${
+        : `<div class="cast-empty"><svg class="cast-empty-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M24 38s-14-9.5-14-19a10 10 0 0 1 14-9.17A10 10 0 0 1 38 19c0 9.5-14 19-14 19Z" stroke="#f2be37" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M34 8l1.5-2M38 10l2-1.5M36.5 12.5l2.5.5" stroke="#f2be37" stroke-width="2" stroke-linecap="round"/></svg><span>${
             query
               ? '검색 결과가 없어요.'
               : kind === 'popular'
                 ? '최근 5시간 동안 좋아요를 받은 글이 없어요.'
                 : '아직 글이 없어요. 첫 글을 남겨주세요.'
-          }</div>`
+          }</span></div>`
     }`;
   }
 
@@ -305,20 +307,6 @@
     if (kind) selected = kind;
     if (!tabs.includes(selected)) selected = tabs[0];
     return `<section class="pb-page" data-pb-mode="${mode}">
-      <div class="page-head">
-        <div>
-          <h1>${mode === 'cast' ? '캐스트들의 이야기' : '함께 나누는 이야기'}</h1>
-          <p>${mode === 'cast' ? '동료의 일상과 파크의 소식을 나눠요.' : '캐스트와 방문객이 함께 보는 게시판이에요.'}</p>
-        </div>
-        <div class="pb-actions">
-          <button type="button" class="pb-search-toggle" data-pb-search-toggle aria-label="${
-            searchOpen ? '게시글 검색 닫기' : '게시글 검색 열기'
-          }" aria-expanded="${searchOpen}" aria-controls="pb-search-panel">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
-          </button>
-          <button type="button" class="primary" data-pb-write>＋ 글쓰기</button>
-        </div>
-      </div>
       <nav class="cast-board-chips" aria-label="게시판 종류">${tabs
         .map(
           (k) =>
@@ -354,7 +342,7 @@
             (p) =>
               `<button type="button" class="pb-home-post" data-pb-post="${p.id}"><strong>${escape(
                 p.title,
-              )}</strong><span class="pb-home-meta"><span>${escape(p.author)} · ${escape(
+              )}</strong><span class="pb-home-meta"><span>${escape(authorName(p))} · ${escape(
                 p.authorType || '캐스트',
               )}</span><span>♡ ${total(p)} · 댓글 ${comments(p)}</span></span></button>`,
           )
@@ -591,6 +579,33 @@
     return '';
   }
 
+  function showDetailPage(id, markup, boardLabel) {
+    const target = document.querySelector(isCastMode() ? '#view' : '.pv-main-content');
+    if (!target) { window.parkModal?.(markup); return; }
+    if (!detailContext || detailContext.target !== target) {
+      detailContext = { target, html: target.innerHTML, url: location.href, scrollY: window.scrollY };
+      history.pushState({ parkPost: id }, '', `#post/${id}`);
+    } else {
+      history.replaceState({ parkPost: id }, '', `#post/${id}`);
+    }
+    target.innerHTML = `<article class="pb-detail-page">${markup}</article>`;
+    if (isCastMode()) {
+      const backBtn = `<button type="button" class="icon-btn" data-pb-back aria-label="뒤로가기"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m6 6-6-6 6-6"/></svg></button>`;
+      window.ParkTopbar?.set(boardLabel || '', '', '', backBtn);
+    }
+    window.scrollTo(0, 0);
+  }
+  function backFromDetail(useHistory = true) {
+    if (!detailContext) return;
+    const { target, html, url, scrollY } = detailContext;
+    detailContext = null;
+    target.innerHTML = html;
+    refresh();
+    if (isCastMode()) window.ParkTopbar?.board?.();
+    if (useHistory) history.replaceState(null, '', url);
+    window.scrollTo(0, scrollY);
+  }
+  function leaveDetail() { detailContext = null; }
   function detail(id) {
     const p = data.find((x) => x.id === id);
     if (!p || !allowed(p.kind)) {
@@ -612,13 +627,13 @@
         ? ` <button type="button" class="primary" data-pb-resolve="${p.id}">찾음 · 인계 완료</button>`
         : '';
 
-    window.parkModal?.(`
+    showDetailPage(p.id, `
       <div class="pb-detail-top">
-        <span class="tag free">${labels[p.kind]}${p.lostType ? ' · ' + escape(p.lostType) : ''}</span>
+        <span class="pb-detail-breadcrumb">게시판<span class="pb-detail-sep">|</span>${labels[p.kind]}${p.lostType ? ' · ' + escape(p.lostType) : ''}</span>
         ${statusBadge(p)}
       </div>
       <h2>${escape(p.title)}</h2>
-      <p class="pb-hint">${escape(p.author)} · ${escape(p.authorType)} · ${time(p.createdAt)}</p>
+      <p class="pb-hint">${escape(authorName(p))} · ${escape(p.authorType)} · ${time(p.createdAt)}</p>
       ${renderStructuredMeta(p)}
       ${renderLostLinkSection(p, me)}
       ${photoHtml}
@@ -653,7 +668,7 @@
         <input name="body" maxlength="300" aria-label="댓글 입력" placeholder="댓글을 입력해 주세요" required>
         <button class="primary" type="submit">등록</button>
       </form>
-    `);
+    `, labels[p.kind] || '게시판');
   }
 
   function zoneOptions(selectedZone = '') {
@@ -778,6 +793,7 @@
   document.addEventListener('click', (e) => {
     const b = e.target.closest('button');
     if (!b) return;
+    if (b.hasAttribute('data-pb-back')) { backFromDetail(); return; }
     if (b.hasAttribute('data-pb-write')) {
       quickLinkTargetId = null;
       write();
@@ -848,6 +864,7 @@
       data = data.filter((x) => x.id !== p.id);
       if (persist()) {
         document.querySelector('#modal')?.close();
+        backFromDetail();
         refresh();
         window.parkToast?.('내 글을 삭제했어요.');
       }
@@ -1067,6 +1084,7 @@
     }
   });
 
+  window.addEventListener('popstate', () => { if (detailContext) backFromDetail(false); });
   window.addEventListener('storage', (e) => {
     if (e.key === KEY) {
       data = read(KEY, []);
@@ -1077,15 +1095,55 @@
     if (selected === 'popular' && document.querySelector('.pb-page')) refresh();
   }, 60000);
 
+  // AI 도우미용 게시판 검색. 현재 모드에서 볼 수 있는 글만, 제목·본문·댓글을 함께 본다.
+  const PARTICLES = /(으로|에서|에게|까지|부터|이랑|하고|이에요|예요|은|는|이|가|을|를|에|의|도|로|와|과|요|야|나|좀)$/;
+  const GENERIC = new Set(['어떻게','어디','어디서','뭐야','무엇','알려줘','알려주세요','궁금','궁금해','있어','있나','있나요','있어요','하나요','해요','되나요','어떤','누가','언제','왜']);
+  function stems(text) {
+    return [...new Set(String(text || '').toLowerCase().split(/[^0-9a-z가-힣]+/).map(w => {
+      let s = w;
+      for (let i = 0; i < 2; i++) s = s.replace(PARTICLES, '');
+      return s;
+    }).filter(s => s.length >= 2 && !GENERIC.has(s)))];
+  }
+  function search(question, limit = 3) {
+    const words = stems(question);
+    if (!words.length) return [];
+    return data.filter(p => allowed(p.kind)).map(p => {
+      const title = String(p.title || '').toLowerCase(), body = String(p.body || p.clothes || '').toLowerCase();
+      const replies = (p.replies || []).map(r => String(r.body || ''));
+      let score = 0, hits = 0;
+      for (const w of words) {
+        let hit = false;
+        if (title.includes(w)) { score += 3; hit = true; }
+        if (body.includes(w)) { score += 2; hit = true; }
+        if (replies.some(r => r.toLowerCase().includes(w))) { score += 2; hit = true; }
+        if (hit) hits++;
+      }
+      return { p, score, hits };
+    }).filter(x => x.score >= 3 && x.hits >= (words.length >= 4 ? 2 : 1))
+      .sort((a, b) => b.score - a.score || (b.p.createdAt || 0) - (a.p.createdAt || 0))
+      .slice(0, limit)
+      .map(({ p }) => ({
+        id: p.id, kind: p.kind, board: `${labels[p.kind]} 게시판`,
+        title: String(p.title || '').slice(0, 80), body: String(p.body || p.clothes || '').slice(0, 400),
+        author: p.author, authorType: p.authorType || '캐스트', createdAt: p.createdAt || null,
+        replies: (p.replies || []).slice(-5).map(r => ({ author: r.author, authorType: r.authorType || '', body: String(r.body || '').slice(0, 200) })),
+      }));
+  }
+
   window.ParkBoards = {
     page,
     home,
     write,
     detail,
+    leaveDetail,
+    currentKind: () => selected,
+    selectKind: (kind) => { if (castTabs.includes(kind)) { selected = kind; query = ""; lostFilter = "all"; } },
     recent,
     list,
     linkPosts,
     resolvePost,
+    search,
     setQuery: (value) => {
       query = value;
       searchOpen = Boolean(value);

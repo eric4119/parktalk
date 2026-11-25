@@ -1,0 +1,11 @@
+name = "parktalk"
+pages_build_output_dir = "."
+compatibility_date = "2024-11-01"
+
+# Cloudflare Pages 환경변수는 대시보드에서 설정:
+# NCP_KEY_ID      — 네이버 클라우드 API Key ID (Directions 프록시용)
+# NCP_KEY_SECRET  — 네이버 클라우드 API Key Secret
+# GEMINI_API_KEY  — Gemini AI 키 (AI 도우미용, ANTHROPIC_API_KEY도 가능)
+
+# 로컬 개발: npx wrangler pages dev . --compatibility-date=2024-11-01
+

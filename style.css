@@ -144,12 +144,13 @@ a {
 .topbar {
   height: 66px;
   background: #fff;
-  border-bottom: 1px solid #eceef4;
+  border-bottom: none;
   padding: 0 30px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
+  position: relative;
 }
 .search-wrap {
   width: min(460px, 46vw);
@@ -207,6 +208,22 @@ a {
   background: none;
   font-size: 22px;
 }
+.topbar-brand {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  text-decoration: none;
+  color: inherit;
+  flex-shrink: 0;
+}
+.topbar-brand-icon { width: 22px; height: 22px; color: #c89010; }
+.topbar-brand-name { font-size: 17px; font-weight: 900; letter-spacing: -0.04em; color: #1a1a1a; }
+.mobile-search-btn { display: none; }
+.mobile-search-bar {
+  padding: 8px 15px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #fff;
+}
 .cast-bottom-nav {
   display: none;
 }
@@ -243,12 +260,12 @@ main {
   margin-bottom: 20px;
 }
 .page-head h1 {
-  font-size: 25px;
+  font-size: 30px;
   letter-spacing: -1.1px;
   margin: 0 0 5px;
 }
 .page-head p {
-  font-size: 12px;
+  font-size: 15px;
   color: #9299ab;
   margin: 0;
 }
@@ -306,7 +323,7 @@ main {
   font-size: 28px;
 }
 .eyebrow {
-  font-size: 10px;
+  font-size: 13px;
   color: #7450e9;
   font-weight: 800;
 }
@@ -323,7 +340,7 @@ main {
 }
 .quick {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
   gap: 9px;
 }
 .quick button {
@@ -334,17 +351,17 @@ main {
   background: #fff;
   border: 1px solid #eceef5;
   border-radius: 7px;
-  padding: 13px 4px;
+  padding: 14px 4px;
   color: #4e5270;
   font-weight: 700;
-  font-size: 11px;
+  font-size: 14px;
 }
 .quick button span {
   color: #7553e8;
   font-size: 17px;
 }
 .section-title {
-  font-size: 14px;
+  font-size: 17px;
   font-weight: 800;
   margin: 0 0 13px;
 }
@@ -802,24 +819,39 @@ dialog h2 {
     left: 0;
   }
   .mobile-menu {
-    display: block;
+    display: flex;
+    align-items: center;
   }
   .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
     padding: 0 15px;
-    height: 59px;
+    height: 54px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.07);
   }
-  .search-wrap {
-    width: 100%;
+  .topbar-brand {
+    display: flex;
     flex: 1;
   }
+  .search-wrap {
+    display: none;
+  }
+  .mobile-search-btn {
+    display: inline-grid;
+  }
   .top-actions {
-    gap: 5px;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .top-avatar, .top-name {
+    display: none;
   }
   .demo-chip {
     display: none;
   }
   main {
-    padding: 23px 15px;
+    padding: 52px 15px 23px;
   }
   .page-head h1 {
     font-size: 21px;
@@ -869,3 +901,7 @@ dialog h2 {
 .room-form label { display: grid; flex: 1; min-width: 110px; gap: 6px; font-size: 12px; font-weight: 700; }
 .room-form input, .room-form select { width: 100%; border: 1px solid #dedfeb; border-radius: 8px; padding: 10px; background: white; }
 @media (max-width: 700px) { .map-attendance { align-items: flex-start; flex-direction: column; } .room-preview { min-height: 145px; font-size: 32px; } }
+
+/* Keep touch and wheel scrolling without the visible document scrollbar. */
+html, body { scrollbar-width: none; }
+html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; height: 0; }
