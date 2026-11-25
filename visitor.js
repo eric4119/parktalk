@@ -416,6 +416,11 @@ ${group.consent
     const el = document.getElementById('pv-naver-map');
     if (!el) return;
     if (typeof naver === 'undefined' || !naver.maps) { setTimeout(initNaverMap, 200); return; }
+    if (naverMap) {
+      // 이미 초기화된 경우 Firebase 연결만 확인
+      if (group?.consent && !fbGroupRef) connectFirebase();
+      return;
+    }
     naverMap = new naver.maps.Map(el, {
       center: new naver.maps.LatLng(37.2941, 127.2027),
       zoom: 17,
@@ -799,6 +804,7 @@ ${group.consent
         group.consent = true;
         saveGroup(group);
         setView("map");
+        connectFirebase();
         break;
       case "locate":
         if (!group?.consent) return setView("consent");
