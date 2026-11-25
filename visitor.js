@@ -75,10 +75,10 @@
   let memberMarkers = [];
   let memberMoveTimer = null;
   let mapSheetOpen = false;
-  let ws = null;
-  let wsReconnectTimer = null;
   let memberLocations = {}; // name → {lat, lng, ts}
   let memberMarkerMap = {}; // name → naver.maps.Marker (실제 위치 마커)
+  let fbDb = null;
+  let fbGroupRef = null;
 
   // ===== 에버랜드 집합장소 후보 =====
   // fallback 좌표 보유 → geocoder 성공 시 실제 좌표로 교체됨
@@ -424,7 +424,7 @@ ${group.consent
     if (closestPoint) placeClosestMarker(closestPoint.lat, closestPoint.lng);
     initSimMemberMarkers();
     geocodeMeetingPoints();
-    connectWS();
+    connectFirebase();
   }
 
   function placeUserMarker(lat, lng) {
@@ -528,59 +528,58 @@ ${group.consent
     memberMarkerMap = {};
   }
 
-  // ── WebSocket 위치 공유 ───────────────────────────────────────
-  function connectWS() {
-    if (!group?.code || !group?.consent) return;
-    if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
-    clearTimeout(wsReconnectTimer);
+  // ── Firebase 실시간 위치 공유 ─────────────────────────────────
+  const FB_CONFIG = {
+    apiKey: "AIzaSyBY_vmvAWoycxBQlzWQO2FeidnzzO0GU_Q",
+    databaseURL: "https://parktalk-23324-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "parktalk-23324",
+    appId: "1:622889513:web:797dfec786a5da84eeaa38"
+  };
 
-    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const name = encodeURIComponent(userName);
-    ws = new WebSocket(`${proto}//${location.host}/ws?group=${group.code}&name=${name}`);
-
-    ws.onopen = () => {
-      if (gps?.lat) ws.send(JSON.stringify({ type: 'location', lat: gps.lat, lng: gps.lng }));
-    };
-
-    ws.onmessage = (e) => {
-      try {
-        const data = JSON.parse(e.data);
-        if (data.type === 'snapshot') {
-          memberLocations = {};
-          for (const m of (data.members || [])) memberLocations[m.name] = m;
-          refreshMemberMarkers();
-        } else if (data.type === 'location') {
-          memberLocations[data.name] = { lat: data.lat, lng: data.lng, ts: data.ts };
-          upsertMemberMarker(data.name, data.lat, data.lng);
-          render();
-        } else if (data.type === 'leave') {
-          delete memberLocations[data.name];
-          removeMemberMarker(data.name);
-          render();
-        }
-      } catch {}
-    };
-
-    ws.onclose = () => {
-      ws = null;
-      if (group?.consent) wsReconnectTimer = setTimeout(connectWS, 5000);
-    };
-
-    ws.onerror = () => ws?.close();
+  function initFb() {
+    if (fbDb) return true;
+    if (typeof firebase === 'undefined') return false;
+    try {
+      const app = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(FB_CONFIG);
+      fbDb = firebase.database(app);
+      return true;
+    } catch { return false; }
   }
 
-  function disconnectWS() {
-    clearTimeout(wsReconnectTimer);
-    if (ws) { ws.close(); ws = null; }
+  function connectFirebase() {
+    if (!group?.code || !group?.consent) return;
+    if (!initFb()) return;
+    disconnectFirebase();
+
+    fbGroupRef = fbDb.ref(`groups/${group.code}/members`);
+    fbGroupRef.on('value', (snap) => {
+      const data = snap.val() || {};
+      memberLocations = {};
+      for (const [name, loc] of Object.entries(data)) {
+        if (name !== userName) memberLocations[name] = loc;
+      }
+      refreshMemberMarkers();
+      render();
+    });
+  }
+
+  function disconnectFirebase() {
+    if (fbGroupRef) { fbGroupRef.off(); fbGroupRef = null; }
     memberLocations = {};
   }
 
-  function sendLocation(lat, lng) {
-    if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'location', lat, lng }));
+  function sendLocationFb(lat, lng) {
+    if (!initFb() || !group?.code) return;
+    const ref = fbDb.ref(`groups/${group.code}/members/${userName}`);
+    ref.set({ lat, lng, ts: Date.now() });
+    ref.onDisconnect().remove();
+  }
+
+  function removeLocationFb() {
+    if (fbDb && group?.code) fbDb.ref(`groups/${group.code}/members/${userName}`).remove();
   }
 
   function refreshMemberMarkers() {
-    // 실제 WebSocket 위치가 있으면 시뮬레이션 중단
     if (Object.keys(memberLocations).length > 0) {
       clearInterval(memberMoveTimer);
       memberMoveTimer = null;
@@ -666,7 +665,7 @@ ${group.consent
   }
 
   function clearMapState() {
-    disconnectWS();
+    disconnectFirebase();
     if (userMarker) { userMarker.setMap(null); userMarker = null; }
     if (closestMarker) { closestMarker.setMap(null); closestMarker = null; }
     if (routePolyline) { routePolyline.setMap(null); routePolyline = null; }
@@ -785,6 +784,7 @@ ${group.consent
       case "consent":
         if (!group) return;
         if (group.consent) {
+          removeLocationFb();
           group.consent = false;
           gps = null;
           closestPoint = null;
@@ -809,7 +809,7 @@ ${group.consent
           (position) => {
             gps = { lat: position.coords.latitude, lng: position.coords.longitude, accuracy: position.coords.accuracy };
             placeUserMarker(gps.lat, gps.lng);
-            sendLocation(gps.lat, gps.lng);
+            sendLocationFb(gps.lat, gps.lng);
             closestPoint = findClosest(gps.lat, gps.lng);
             if (closestPoint) {
               placeClosestMarker(closestPoint.lat, closestPoint.lng);
@@ -830,6 +830,7 @@ ${group.consent
         break;
       case "revoke":
         if (!group) return;
+        removeLocationFb();
         group.consent = false;
         gps = null;
         closestPoint = null;
@@ -838,6 +839,7 @@ ${group.consent
         toast("위치 표시 동의를 취소했어요.");
         break;
       case "end":
+        removeLocationFb();
         if (group?.source === "created") {
           const groups = demoGroups();
           delete groups[group.code];
