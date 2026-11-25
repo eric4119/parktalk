@@ -36,9 +36,10 @@
       </aside>
       <div class="main-wrap">
         <header class="topbar">
-          <button class="mobile-menu" id="menuBtn" aria-label="메뉴 열기">
-            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-          </button>
+          <a class="topbar-brand" href="#home" data-nav="home" aria-label="파크톡 홈">
+            <svg class="topbar-brand-icon ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2.3"/></svg>
+            <span class="topbar-brand-name">파크톡</span>
+          </a>
           <div class="search-wrap">
             <span><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg></span
             ><input
@@ -48,6 +49,9 @@
             />
           </div>
           <div class="top-actions">
+            <button class="icon-btn mobile-search-btn" id="searchToggleBtn" title="검색" aria-label="검색 열기">
+              <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+            </button>
             <button
               class="icon-btn"
               id="messagesBtn"
@@ -91,16 +95,19 @@
             <span class="top-avatar">캐</span
             ><span class="top-name">신입 캐스트</span
             ><span class="demo-chip">체험 모드</span>
+            <button class="mobile-menu" id="menuBtn" aria-label="메뉴 열기">
+              <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+            </button>
           </div>
         </header>
-        <a class="cast-mobile-brand" href="#home" data-nav="home" aria-label="파크톡 홈으로 이동">
-          <img src="assets/parktalk-logo-transparent.png" alt="ParkTalk 파크톡 로고" />
-        </a>
         <main id="view"></main>
         <nav id="castBottomNav" class="cast-bottom-nav" aria-label="캐스트 하단 메뉴"></nav>
       </div>
     </div>
     <div id="visitorApp" hidden></div>
+    <button class="cast-mode-switch" data-auth-action="switch" id="castModeSwitch" aria-label="모드 전환" hidden>
+      <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8A6.5 6.5 0 0 0 7 8"/><path d="M5 6l2 2-2 2"/><path d="M7 16A6.5 6.5 0 0 0 17 16"/><path d="M19 14l-2 2 2 2"/></svg>
+    </button>
     <div id="toast" role="status" aria-live="polite"></div>
     <dialog id="modal">
       <button class="close" type="button" aria-label="닫기">×</button>

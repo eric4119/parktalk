@@ -34,6 +34,8 @@
     menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
     close: '<path d="M5 5 19 19M19 5 5 19"/>',
     plus: '<path d="M12 4v16M4 12h16"/>',
+    compose: '<path d="M11 4H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/><path d="m17.5 2.5 2 2L11 13l-3 1 1-3z"/>',
+    swap: '<path d="M17 8A6.5 6.5 0 0 0 7 8"/><path d="M5 6l2 2-2 2"/><path d="M7 16A6.5 6.5 0 0 0 17 16"/><path d="M19 14l-2 2 2 2"/>',
   };
   window.ParkIcons = (name, className = "ui-icon") => {
     if (name === "meal") {

@@ -34,6 +34,8 @@
     authRoot.hidden = view !== "auth";
     castRoot.hidden = view !== "cast";
     visitorRoot.hidden = view !== "visitor";
+    const switchBtn = document.getElementById("castModeSwitch");
+    if (switchBtn) switchBtn.hidden = view === "auth" || !session || session.accountRole !== "cast";
   }
   function hero() {
     return `

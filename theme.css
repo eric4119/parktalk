@@ -87,7 +87,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .quick-icon, .promo-icon { display: inline-flex; align-items: center; justify-content: center; color: #a36b18; }
 .quick-icon .ui-icon { width: 21px; height: 21px; }
 .promo-icon .ui-icon { width: 28px; height: 28px; }
-.menu-food { display: grid; place-items: center; width: 52px; height: 52px; margin: 14px 0 9px; border-radius: 15px; background: #fff1c5; }
+.menu-food { display: grid; place-items: center; width: 52px; height: 52px; margin: 14px 0 9px; }
 .menu-food .ui-icon { width: 39px; height: 25px; color: #9c681d; }
 .match-emoji .ui-icon { width: 24px; height: 24px; color: #a36b18; }
 .match-card-icon { display: grid; place-items: center; width: 45px; height: 45px; border-radius: 13px; background: #fff0c2; color: #9c681d; }

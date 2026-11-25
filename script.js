@@ -26,7 +26,7 @@ const navGroups = [
     "grid|부서별 게시판|department",
     "personAdd|신규 캐스트 Q&A|new",
   ],
-  ["소통", "messages|채팅·쪽지|messages", "people|랜덤매칭|matching"],
+  ["소통", "messages|채팅·쪽지|messages"],
   ["생활", "food|식당 메뉴|menu", "calendar|가게 예약|booking"],
   ["동물 친구", "sparkles|동물 키우기|map"],
   ["도움", "sparkles|AI 생활 도우미|ai", "search|분실물·습득물|lost"],
@@ -103,6 +103,29 @@ function head(title, sub, action = "") {
 </div>${action}</div>`;
 }
 
+// ── 페이지별 상단 헤더 ──
+let _defaultTopbarHTML = null;
+function setPageTopbar(title, subtitle, rightHtml = '', leftHtml = '') {
+  const t = document.querySelector('.topbar');
+  if (!t) return;
+  if (!_defaultTopbarHTML) _defaultTopbarHTML = t.innerHTML;
+  const sub = subtitle ? `<small class="page-topbar-sub">${esc(subtitle)}</small>` : '';
+  t.innerHTML = `<div class="top-actions page-topbar-left">${leftHtml}</div><span class="page-topbar-title">${esc(title)}${sub}</span><div class="top-actions page-topbar-actions">${rightHtml}</div>`;
+}
+function restoreTopbar() {
+  const t = document.querySelector('.topbar');
+  if (t && _defaultTopbarHTML) { t.innerHTML = _defaultTopbarHTML; refreshProfile(); }
+}
+const BOARD_LABELS = { board: "게시판", free: "자유게시판", trade: "중고 거래", department: "부서별 게시판", new: "신규 Q&A", qa: "Q&A", praise: "칭찬 게시판", missing: "미아 게시판", lost: "분실물 게시판" };
+const _homeBtn = () => `<button class="icon-btn" data-nav="home" aria-label="홈으로">${iosIcon("home")}</button>`;
+function boardTopbar() {
+  const title = BOARD_LABELS[state.page] || "게시판";
+  setPageTopbar(title, '',
+    `<button class="icon-btn" id="searchToggleBtn" aria-label="검색">${iosIcon("search")}</button><button class="icon-btn" data-pb-write aria-label="글쓰기">${iosIcon("compose")}</button>`,
+    _homeBtn());
+}
+window.ParkTopbar = { set: setPageTopbar, board: boardTopbar };
+
 // ---------- 페이지 ----------
 function sideCards() {
   return `<div class="stack right-col">
@@ -111,25 +134,6 @@ function sideCards() {
 <div class="menu-food">${iosIcon("meal")}</div>
 ${todayMenuPreview()}
 <button class="outline" style="margin-top:12px" data-nav="menu">자세히 보기</button>
-</section>
-<section class="card padded">
-<h2 class="section-title">랜덤매칭 대기방</h2>
-<div class="match-row">
-<span class="match-emoji">${iosIcon("dice")}</span>
-<div>
-<strong>퇴근 후 보드게임</strong>
-<small>20:30 · ${2 + Number(isJoined("퇴근 후 보드게임"))} / 4명</small>
-</div>
-<button class="outline" data-join="퇴근 후 보드게임">${isJoined("퇴근 후 보드게임") ? "참여 취소" : "참여"}</button>
-</div>
-<div class="match-row">
-<span class="match-emoji">${iosIcon("food")}</span>
-<div>
-<strong>같이 저녁 먹어요</strong>
-<small>21:00 · ${3 + Number(isJoined("같이 저녁 먹어요"))} / 4명</small>
-</div>
-<button class="outline" data-join="같이 저녁 먹어요">${isJoined("같이 저녁 먹어요") ? "참여 취소" : "참여"}</button>
-</div>
 </section>
 <section class="card avatar-card">
 <span class="eyebrow">새로운 공간을 준비 중이에요</span>
@@ -140,46 +144,50 @@ ${todayMenuPreview()}
 </div>`;
 }
 function home() {
-  return (
-    head("오늘도 함께, 파크톡", "캐스트의 하루를 더 즐겁게 이어가요.", `<button class="primary" id="writeBtn">＋ 글쓰기</button>`) +
-    `<div class="grid">
+  return `<div class="grid">
 <div class="stack">
+${window.ParkBoards.home()}
+<button class="pb-benefit" data-nav="booking"><span class="promo-icon">${iosIcon("store")}</span><span><strong>근처 가게 단체 혜택</strong><small>제휴 혜택과 예약 문의</small></span><span>›</span></button>
 <div class="quick">
 <button data-nav="new">
 <span class="quick-icon">${iosIcon("board")}</span>신규 캐스트 Q&A</button>
-<button data-nav="matching">
-<span class="quick-icon">${iosIcon("people")}</span>랜덤매칭 참여</button>
-<button data-nav="messages">
-<span class="quick-icon">${iosIcon("messages")}</span>채팅·쪽지</button>
 </div>
-${window.ParkBoards.home()}
-<button class="pb-benefit" data-nav="booking"><span class="promo-icon">${iosIcon("store")}</span><span><strong>근처 가게 단체 혜택</strong><small>제휴 혜택과 예약 문의</small></span><span>›</span></button>
-</div>${sideCards()}</div>`
-  );
+</div>${sideCards()}</div>`;
+}
+
+const POPULAR_SEARCHES = ["연장근무", "복지카드", "유니폼", "운동화", "식단", "교육일정", "콘서트", "당직", "파크행사", "파크패스"];
+function getRecentSearches() { try { return JSON.parse(localStorage.getItem("pk_recent") || "[]"); } catch(e) { return []; } }
+function saveRecentSearch(q) {
+  const list = [q, ...getRecentSearches().filter(x => x !== q)].slice(0, 10);
+  try { localStorage.setItem("pk_recent", JSON.stringify(list)); } catch(e) {}
+}
+function removeRecentSearch(q) {
+  try { localStorage.setItem("pk_recent", JSON.stringify(getRecentSearches().filter(x => x !== q))); } catch(e) {}
+}
+function searchPage() {
+  const recent = getRecentSearches();
+  return `<div class="srch-wrap">
+    <div class="srch-bar">
+      <button class="srch-back" data-nav="home" aria-label="뒤로">${iosIcon("back")}</button>
+      <div class="search-wrap srch-input-wrap">
+        <span>${iosIcon("search")}</span>
+        <input id="srchInput" placeholder="글 제목, 내용, 해시태그" autocomplete="off" />
+      </div>
+    </div>
+    ${recent.length ? `<section class="srch-section">
+      <div class="srch-head"><span class="eyebrow">최근 검색어</span><button class="srch-clear-all" id="srchClearAll">전체삭제</button></div>
+      <div class="srch-chips">${recent.map(q => `<span class="srch-chip" data-q="${esc(q)}">${esc(q)}<button class="srch-remove" data-remove="${esc(q)}" aria-label="삭제">×</button></span>`).join("")}</div>
+    </section>` : ""}
+    <section class="srch-section">
+      <div class="srch-head"><span class="eyebrow">인기 검색어</span></div>
+      <div class="srch-chips">${POPULAR_SEARCHES.map(q => `<button class="srch-chip srch-chip--hot" data-q="${esc(q)}">${esc(q)}</button>`).join("")}</div>
+    </section>
+  </div>`;
 }
 // 게시판 페이지id → boards.js의 게시판 종류. board는 마지막으로 보던 게시판을 그대로 연다.
 const BOARD_KINDS = { board: null, free: "free", trade: "trade", department: "department", new: "question", qa: "question", praise: "praise", missing: "missing", lost: "lost" };
 function board() {
   return window.ParkBoards.page("cast", BOARD_KINDS[state.page] || undefined);
-}
-function matching() {
-  return (
-    head("랜덤매칭", "시간과 관심사가 맞는 동료를 만나보세요.") +
-    `<div class="two-cards">${[
-      ["dice", "퇴근 후 보드게임", "20:30", "2 / 4명"],
-      ["food", "같이 저녁 먹어요", "21:00", "3 / 4명"],
-      ["coffee", "쉬는 날 카페 투어", "토요일 14:00", "1 / 4명"],
-      ["car", "주말 카풀", "일요일 18:00", "2 / 3명"],
-    ]
-      .map((x) => `<section class="card padded info-card">
-<div class="match-card-icon">${iosIcon(x[0])}</div>
-<h3>${x[1]}</h3>
-<p>${x[2]} · ${Number(x[3].split("/")[0].trim()) + Number(isJoined(x[1]))} / ${x[3].split("/")[1].trim()} 참여 중</p>
-<button class="outline" data-join="${x[1]}">${isJoined(x[1]) ? "참여 취소" : "시연 참여"}</button>
-</section>`)
-      .join("")}</div>
-<p class="note" style="margin-top:14px">시연용 대기방입니다. 실제 무작위 연결과 채팅은 서버 기능을 연결한 뒤 제공됩니다.</p>`
-  );
 }
 function map() {
   return window.ParkPets.render();
@@ -286,8 +294,7 @@ async function askAssistant(question) {
   }
 }
 function messages() {
-  return head("채팅", "시연 대화로 화면을 체험해 보세요.") +
-    `<section class="card padded chat-card">
+  return `<section class="card padded chat-card">
       <div class="chat-heading"><span class="chat-avatar">${iosIcon("messages")}</span><div><strong>파크톡 시연 대화</strong><small>이 브라우저에만 표시됩니다</small></div></div>
       <div class="chat-messages" aria-label="시연 대화 내용"><p class="chat-bubble chat-bubble--other">안녕하세요! 여기서 채팅 화면을 체험할 수 있어요.</p>${demoChat.map((message) => `<p class="chat-bubble chat-bubble--me">${esc(message)}</p>`).join("")}</div>
       <form id="demoChatForm" class="chat-compose"><input name="message" maxlength="200" aria-label="시연 메시지" placeholder="메시지를 입력해 보세요" required><button class="primary" type="submit">보내기</button></form>
@@ -310,14 +317,19 @@ function settings() {
 // 페이지id → { render, title, nav?, mount?, unmount? }. 팀원 페이지는 registerPage로 추가한다.
 const pages = {
   home: { render: home, title: "오늘도 함께" },
-  matching: { render: matching, title: "랜덤매칭" },
   map: { render: map, title: "동물 키우기" },
   menu: { render: menu, title: "식당 메뉴" },
   booking: { render: booking, title: "가게 예약" },
   ai: { render: ai, title: "AI 생활 도우미" },
-  messages: { render: messages, title: "채팅" },
+  messages: { render: messages, title: "채팅", mount() { setPageTopbar("채팅", '', '', _homeBtn()); }, unmount: restoreTopbar },
   settings: { render: settings, title: "앱 설정" },
-  ...Object.fromEntries(Object.keys(BOARD_KINDS).map((id) => [id, { render: board, title: "캐스트 게시판" }])),
+  search: {
+    render: searchPage,
+    title: "검색",
+    mount() { document.body.classList.add("search-open"); $("#srchInput")?.focus(); },
+    unmount() { document.body.classList.remove("search-open"); },
+  },
+  ...Object.fromEntries(Object.keys(BOARD_KINDS).map((id) => [id, { render: board, title: BOARD_LABELS[id] || "게시판", mount: boardTopbar, unmount: restoreTopbar }])),
 };
 let mountedPage = null;
 function render() {
@@ -389,6 +401,19 @@ document.addEventListener("click", (e) => {
   else if (b.id === "messagesBtn") go("messages");
   else if (b.id === "noticesBtn") toast("새 알림이 없어요.");
   else if (b.id === "menuBtn") $(".sidebar").classList.toggle("open");
+  else if (b.id === "searchToggleBtn") go("search");
+  else if (b.id === "srchClearAll") {
+    try { localStorage.removeItem("pk_recent"); } catch(err) {}
+    render();
+  }
+  else if (b.dataset.remove) {
+    removeRecentSearch(b.dataset.remove);
+    render();
+  }
+  else if (b.dataset.q) {
+    saveRecentSearch(b.dataset.q);
+    toast(`"${b.dataset.q}" 검색`);
+  }
 });
 document.addEventListener("submit", (event) => {
   if (event.target.id === "assistantForm") {

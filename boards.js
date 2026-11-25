@@ -11,9 +11,9 @@
     lost: '분실물',
     department: '부서별',
   };
-  const shared = ['praise', 'missing', 'lost'];
-  const castTabs = ['popular', 'free', 'trade', 'question', ...shared, 'department'];
-  const castWriteTabs = ['free', 'trade', 'question', 'lost', 'department'];
+  const shared = ['missing', 'lost'];
+  const castTabs = ['popular', 'free', 'department', 'trade', 'missing', 'lost'];
+  const castWriteTabs = ['free', 'trade', 'lost', 'department'];
   const visitorWriteTabs = ['praise', 'missing', 'lost'];
   const ZONES = [
     '정문 · 글로벌페어',
@@ -292,13 +292,13 @@
               </button>`;
             })
             .join('')
-        : `<div class="cast-empty">${
+        : `<div class="cast-empty"><svg class="cast-empty-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M24 38s-14-9.5-14-19a10 10 0 0 1 14-9.17A10 10 0 0 1 38 19c0 9.5-14 19-14 19Z" stroke="#f2be37" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M34 8l1.5-2M38 10l2-1.5M36.5 12.5l2.5.5" stroke="#f2be37" stroke-width="2" stroke-linecap="round"/></svg><span>${
             query
               ? '검색 결과가 없어요.'
               : kind === 'popular'
                 ? '최근 5시간 동안 좋아요를 받은 글이 없어요.'
                 : '아직 글이 없어요. 첫 글을 남겨주세요.'
-          }</div>`
+          }</span></div>`
     }`;
   }
 
@@ -307,20 +307,6 @@
     if (kind) selected = kind;
     if (!tabs.includes(selected)) selected = tabs[0];
     return `<section class="pb-page" data-pb-mode="${mode}">
-      <div class="page-head">
-        <div>
-          <h1>${mode === 'cast' ? '캐스트들의 이야기' : '함께 나누는 이야기'}</h1>
-          <p>${mode === 'cast' ? '동료의 일상과 파크의 소식을 나눠요.' : '캐스트와 방문객이 함께 보는 게시판이에요.'}</p>
-        </div>
-        <div class="pb-actions">
-          <button type="button" class="pb-search-toggle" data-pb-search-toggle aria-label="${
-            searchOpen ? '게시글 검색 닫기' : '게시글 검색 열기'
-          }" aria-expanded="${searchOpen}" aria-controls="pb-search-panel">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
-          </button>
-          <button type="button" class="primary" data-pb-write>＋ 글쓰기</button>
-        </div>
-      </div>
       <nav class="cast-board-chips" aria-label="게시판 종류">${tabs
         .map(
           (k) =>
@@ -593,7 +579,7 @@
     return '';
   }
 
-  function showDetailPage(id, markup) {
+  function showDetailPage(id, markup, boardLabel) {
     const target = document.querySelector(isCastMode() ? '#view' : '.pv-main-content');
     if (!target) { window.parkModal?.(markup); return; }
     if (!detailContext || detailContext.target !== target) {
@@ -602,7 +588,11 @@
     } else {
       history.replaceState({ parkPost: id }, '', `#post/${id}`);
     }
-    target.innerHTML = `<article class="pb-detail-page"><header class="pb-detail-toolbar"><button type="button" class="pb-detail-back" data-pb-back aria-label="게시글 목록으로 돌아가기">‹</button><strong class="pb-detail-board-name">게시글</strong><span></span></header>${markup}</article>`;
+    target.innerHTML = `<article class="pb-detail-page">${markup}</article>`;
+    if (isCastMode()) {
+      const backBtn = `<button type="button" class="icon-btn" data-pb-back aria-label="뒤로가기"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m6 6-6-6 6-6"/></svg></button>`;
+      window.ParkTopbar?.set(boardLabel || '', '', '', backBtn);
+    }
     window.scrollTo(0, 0);
   }
   function backFromDetail(useHistory = true) {
@@ -611,6 +601,7 @@
     detailContext = null;
     target.innerHTML = html;
     refresh();
+    if (isCastMode()) window.ParkTopbar?.board?.();
     if (useHistory) history.replaceState(null, '', url);
     window.scrollTo(0, scrollY);
   }
@@ -638,7 +629,7 @@
 
     showDetailPage(p.id, `
       <div class="pb-detail-top">
-        <span class="tag free">${labels[p.kind]}${p.lostType ? ' · ' + escape(p.lostType) : ''}</span>
+        <span class="pb-detail-breadcrumb">게시판<span class="pb-detail-sep">|</span>${labels[p.kind]}${p.lostType ? ' · ' + escape(p.lostType) : ''}</span>
         ${statusBadge(p)}
       </div>
       <h2>${escape(p.title)}</h2>
@@ -677,7 +668,7 @@
         <input name="body" maxlength="300" aria-label="댓글 입력" placeholder="댓글을 입력해 주세요" required>
         <button class="primary" type="submit">등록</button>
       </form>
-    `);
+    `, labels[p.kind] || '게시판');
   }
 
   function zoneOptions(selectedZone = '') {
