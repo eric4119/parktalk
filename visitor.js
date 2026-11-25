@@ -126,8 +126,15 @@
 <span class="pv-header-brand-name">파크톡</span>
 </button>
 <div class="pv-header-right">
-<span class="pv-role">VISITOR</span>
-<button type="button" class="pv-profile-shortcut" data-pv-view="profile" aria-label="앱 설정 열기">${window.ParkProfiles.avatar(window.ParkAuth.id(),userName)}</button>
+<button type="button" class="icon-btn" data-pv-view="explore" title="검색" aria-label="검색">
+<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+</button>
+<button type="button" class="icon-btn" data-pv-action="notices" title="알림" aria-label="알림 보기">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"/><path d="M10 21h4"/></svg>
+</button>
+<button type="button" class="icon-btn pv-menu-btn" data-pv-action="sidebar-toggle" aria-label="메뉴 열기">
+<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+</button>
 </div>
 </header>`;
   }
@@ -765,6 +772,14 @@ ${group.consent
         if (naverMap && gps?.lat) naverMap.setCenter(new naver.maps.LatLng(gps.lat, gps.lng));
         render();
         break;
+      case "notices":
+        toast("새 알림이 없어요.");
+        break;
+      case "sidebar-toggle": {
+        const sidebar = root()?.querySelector(".pv-sidebar");
+        if (sidebar) sidebar.classList.toggle("is-open");
+        break;
+      }
       case "logout":
         window.ParkAuth?.logout?.();
         break;

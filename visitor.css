@@ -949,7 +949,21 @@
     padding: 0 25px;
   }
 }
+/* 사이드바 모바일 토글 */
+.pv-sidebar.is-open {
+  display: flex;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 100;
+  width: 260px;
+  box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+}
+/* 메뉴 버튼: 데스크톱에서는 숨김 */
+.pv-menu-btn { display: none; }
 @media (max-width: 700px) {
+  .pv-menu-btn { display: inline-flex; }
   .pv-sidebar {
     display: none;
   }
