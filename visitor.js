@@ -453,7 +453,7 @@ ${group.consent
   }
 
   // Cloudflare Worker URL — 배포 후 채워넣기
-  const DIRECTION_WORKER_URL = 'https://51ddc8cc.parktalk.pages.dev/directions';
+  const DIRECTION_WORKER_URL = 'https://parktalk.pages.dev/directions';
 
   function drawRouteSimulated(fromLat, fromLng, toLat, toLng) {
     if (routePolyline) routePolyline.setMap(null);
