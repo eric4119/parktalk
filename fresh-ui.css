@@ -523,78 +523,31 @@ body:has(.pb-detail-page) .pv-header .pv-logo-home { display: none; }
 .pb-detail-page .cast-comment-form input { min-width:0; flex:1; height:40px; padding:0 12px; border:1px solid #e4e8e0; border-radius:12px; }
 .pb-detail-page .cast-comment-form button { height:40px; flex:none; }
 
-/* ── 무채색 오버라이드 ── */
-button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible { outline-color: #888; }
-.nav-item:hover, .nav-item.active, .pv-nav-item:hover, .pv-nav-item.is-active { background: #f0f0f0; color: #333; }
-.mini-avatar, .top-avatar, .pv-profile-shortcut, .pv-profile-avatar { background: #e5e5e5; color: #333; }
-.demo-chip, .pv-role { background: #f0f0f0; color: #555; }
-.icon-btn:hover { color: #555; }
-.eyebrow, .pv-eyebrow, .cast-feature-kicker, .auth-panel__eyebrow { color: #666; }
-.section-title, .pv-section-heading h2 { color: #1a1a1a; }
-.quick-icon, .promo-icon, .match-emoji .ui-icon { color: #a67920; }
-.pv-board-grid button { color: #555; }
-.tab.active { color: #333; border-color: #888; }
-.pill, .pv-eyebrow { color: #555; }
-.praise, .note, .pill, .room-preview { background: #f5f5f5; }
-.note { color: #555; }
-.tag.free, .tag.new, .tag.trade, .tag.carpool { background: #f0f0f0; color: #555; }
-.filter.active, .cast-board-chips button.active { background: var(--park-yellow); border-color: var(--park-yellow-deep); color: #3b310f; }
-.promo { background: #f5f5f5; border-color: #e0e0e0; }
-.promo button { background: #f4cb55; color: #4a390f; }
-.chat-avatar { background: #e5e5e5; color: #333; }
-.chat-bubble--me { background: #555; color: #fff; }
-.chat-clear { color: #777; }
-.cast-board-hero, .cast-map-intro { background: #f5f5f5; border-color: #e0e0e0; }
-.cast-board-hero-art { background: #e8e8e8; color: #555; }
-.cast-post-card:hover, .pv-action-card:hover, .pv-board-grid button:hover { border-color: #bbb; background: #fafafa; }
-.cast-map-shortcuts button, .cast-wardrobe-summary { background: #f5f5f5; border-color: #e0e0e0; }
-.animal-coming-soon__mark { background: #e8e8e8; }
-.animal-coming-soon__mark .ui-icon, .avatar-scene .ui-icon, .menu-food .ui-icon { color: #a67920; }
-.pv-board-grid button .ui-icon { color: #555; }
-.match-card-icon { background: #e8e8e8; }
-.pv-purple, .pv-mint, .pv-action-icon.pv-purple, .pv-action-icon.pv-mint, .pv-place-emoji { background: #f0f0f0; color: #555; }
-.pv-discover-card { background: #f5f5f5; border-color: #e0e0e0; color: #333; }
-.pv-discover-card strong { color: #1a1a1a; }
-.pv-discover-card small { color: #777; }
-.pv-info-strip, .pv-privacy-callout, .pv-route-alert, .pv-midpoint { background: #f5f5f5; color: #555; border-color: #e0e0e0; }
-.pv-info-strip strong { color: #333; }
-.pv-badge, .pv-member-chip { background: #f0f0f0; color: #555; }
-.pv-board-tabs button.active { background: var(--park-yellow); border-color: var(--park-yellow-deep); color: #3b310f; }
-.pv-route-dot, .pv-own-pin, .pv-sim-pin { background: #666; color: #fff; }
-.pv-route-track:not(:last-child)::after { border-color: #ccc; }
-.pv-place-card > svg, .pv-guide-link, .pv-route-alert svg, .pv-text-button, .pv-midpoint-pin { color: #666; }
-.pv-missing-banner { background: #f5f5f5; border-color: #e0e0e0; color: #333; }
-.pv-missing-banner > span, .pv-missing-banner a, .pv-missing-banner button { color: #555; }
-.pv-missing-help { background: #f5f5f5; color: #555; }
-.pv-section-heading span { color: #777; }
-.pv-current-group p strong { color: #333; }
-.pv-board-grid button { color: #555; }
-.pv-board-grid strong { color: #1a1a1a; }
-.pv-action-card > svg { color: #666; }
-.pv-bottom-nav .pv-nav-item.is-active, .cast-bottom-tab.active { background: #f0f0f0; color: #333; }
-.search-wrap { background: #f5f5f5; border-color: #e0e0e0; }
-.outline, .pv-secondary-button { border-color: #ccc; color: #555; }
-.pb-benefit { background: #f5f5f5; border-color: #e0e0e0; }
-.pb-benefit small { color: #777; }
-.pb-role { background: #f0f0f0; color: #555; }
-.pb-search-toggle[aria-expanded=true] { background: #f0f0f0; color: #555; }
-.board-subnav button:hover, .board-subnav button.active { border-color: #888; color: #333; background: #f5f5f5; }
-.pb-link-box, .pb-link-panel { background: #f5f5f5; border-color: #e0e0e0; }
-.pb-link-eyebrow { color: #666; }
-.pb-storage-highlight { border-color: #ccc; color: #333 !important; }
-.pb-link-panel select { border-color: #ddd; }
-.pb-status--open { background: #f0f0f0; color: #555; }
-.pb-card-tag { color: #555; }
-.pb-like[aria-pressed=true] { color: #333; background: #f0f0f0; border-color: #ccc; }
-.pb-like[aria-pressed=true] svg { fill: #bbb; }
-.pb-comments h3 span { color: #777; }
-.pb-author-avatar { background: #e5e5e5; color: #555; }
-.pb-detail-back:hover { background: #f0f0f0; color: #555; }
-.profile-preview { background: #e5e5e5; color: #555; }
-.profile-photo-label { color: #555; }
-.profile-edit-hint { color: #777; }
-.pb-reply-del { color: #888; }
-.pv-route-alert svg { color: #666; }
+/* ── warm golden style (cast & visitor 공통) ── */
+.pv-current-group p strong { color: #2f3c45; }
+.pv-action-card > svg { color: #a67920; }
+.pv-board-grid button .ui-icon { color: #a67920; }
+.pv-text-button, .pv-midpoint-pin { color: #9b6c19; }
+.pb-benefit { background: #fff5d9; border-color: #f0dfa0; border-radius: 16px; }
+.pb-benefit small { color: #8c7050; }
+.pb-role { background: #fff3c9; color: #8c641b; }
+.pb-search-toggle[aria-expanded=true] { background: #fff4ce; color: #694d15; }
+.board-subnav button:hover, .board-subnav button.active { border-color: #e2b332; color: #9b6c19; background: #fff5d9; }
+.pb-link-box, .pb-link-panel { background: #fffaf0; border-color: #f0dfa0; }
+.pb-link-eyebrow { color: #a37017; }
+.pb-storage-highlight { border-color: #e2d08a; color: #353d44 !important; }
+.pb-link-panel select { border-color: #e8d8a0; }
+.pb-status--open { background: #fff3c9; color: #8c641b; }
+.pb-card-tag { color: #8c7050; }
+.pb-like[aria-pressed=true] { color: #9b6c19; background: #fff4ce; border-color: #e2d08a; }
+.pb-like[aria-pressed=true] svg { fill: #e2b332; }
+.pb-comments h3 span { color: #8c7050; }
+.pb-author-avatar { background: #fff2c9; color: #9c711f; }
+.pb-detail-back:hover { background: #fff4ce; color: #694d15; }
+.profile-preview { background: #fff2c9; color: #9c711f; }
+.profile-photo-label { color: #8c7050; }
+.profile-edit-hint { color: #a07d38; }
+.pb-reply-del { color: #a07d38; }
 
 /* ── 하단 바 모드 전환 아이콘 버튼 ── */
 .cast-mode-switch {
