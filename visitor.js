@@ -79,6 +79,7 @@
   let memberMarkerMap = {}; // name → naver.maps.Marker (실제 위치 마커)
   let fbDb = null;
   let fbGroupRef = null;
+  let naverMapEl = null; // DOM element that naverMap is attached to
 
   // ===== 에버랜드 집합장소 후보 =====
   // fallback 좌표 보유 → geocoder 성공 시 실제 좌표로 교체됨
@@ -416,8 +417,8 @@ ${group.consent
     const el = document.getElementById('pv-naver-map');
     if (!el) return;
     if (typeof naver === 'undefined' || !naver.maps) { setTimeout(initNaverMap, 200); return; }
-    if (naverMap) {
-      // 이미 초기화된 경우 Firebase 연결만 확인
+    if (naverMap && naverMapEl === el) {
+      // 같은 DOM 엘리먼트 — 재초기화 불필요, Firebase만 확인
       if (group?.consent && !fbGroupRef) connectFirebase();
       return;
     }
@@ -425,6 +426,7 @@ ${group.consent
       center: new naver.maps.LatLng(37.2941, 127.2027),
       zoom: 17,
     });
+    naverMapEl = el;
     if (gps?.lat) placeUserMarker(gps.lat, gps.lng);
     if (closestPoint) placeClosestMarker(closestPoint.lat, closestPoint.lng);
     initSimMemberMarkers();
@@ -675,6 +677,7 @@ ${group.consent
     if (routePolyline) { routePolyline.setMap(null); routePolyline = null; }
     clearMemberMarkers();
     naverMap = null;
+    naverMapEl = null;
     closestPoint = null;
     routeMode = false;
   }
