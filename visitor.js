@@ -849,6 +849,7 @@ ${group.consent
           const groups = demoGroups();
           delete groups[group.code];
           saveDemoGroups(groups);
+          if (fbDb && group?.code) fbDb.ref(`groups/${group.code}`).remove();
         }
         saveGroup(null);
         group = null;
@@ -931,10 +932,9 @@ ${group.consent
       gps = null;
       saveGroup(group);
       saveDemoGroups({ ...demoGroups(), [group.code]: { name, code: group.code, members: [userName], expiresAt: group.expiresAt } });
+      if (initFb()) fbDb.ref(`groups/${group.code}/info`).set({ name, members: [userName], expiresAt: group.expiresAt });
       setView("group");
-      toast(
-        "시연 그룹을 만들었어요. 실제 일행 연결은 서버 구현 후 가능합니다.",
-      );
+      toast("그룹을 만들었어요. 코드를 일행과 공유하세요.");
     } else if (event.target.id === "pv-join-form") {
       event.preventDefault();
       const code = String(new FormData(event.target).get("inviteCode") || "")
@@ -942,25 +942,26 @@ ${group.consent
         .replace(/[^A-Z0-9]/g, "");
       if (!/^[A-Z0-9]{6}$/.test(code))
         return toast("영문과 숫자 6자리 코드를 입력해 주세요.");
-      const matchingGroup = demoGroups()[code];
-      if (!matchingGroup)
-        return toast("이 브라우저에서 만든 시연 그룹을 찾지 못했어요. 다른 기기의 코드는 서버 연결 후 사용할 수 있습니다.");
-      group = {
-        name: matchingGroup.name,
-        code,
-        source: "joined",
-        consent: false,
-        members: [...new Set([...(matchingGroup.members || []), userName])],
-        expiresAt: matchingGroup.expiresAt,
-      };
-      saveDemoGroups({ ...demoGroups(), [code]: { ...matchingGroup, members: group.members } });
-      gps = null;
-      saveGroup(group);
-      sessionStorage.removeItem(INVITE);
-      setView("group");
-      toast(
-        "코드 화면을 체험 중입니다. 다른 사용자와 실제 연결되지는 않았어요.",
-      );
+      const local = demoGroups()[code];
+      if (local) {
+        group = { name: local.name, code, source: "joined", consent: false, members: [...new Set([...(local.members || []), userName])], expiresAt: local.expiresAt };
+        saveDemoGroups({ ...demoGroups(), [code]: { ...local, members: group.members } });
+        gps = null; saveGroup(group); sessionStorage.removeItem(INVITE);
+        setView("group");
+        toast("그룹에 참여했어요!");
+      } else if (initFb()) {
+        toast("그룹을 찾는 중...");
+        fbDb.ref(`groups/${code}/info`).get().then(snap => {
+          const fb = snap.val();
+          if (!fb) return toast("그룹을 찾을 수 없어요. 코드를 확인해 주세요.");
+          group = { name: fb.name, code, source: "joined", consent: false, members: [...new Set([...(fb.members || []), userName])], expiresAt: fb.expiresAt };
+          gps = null; saveGroup(group); sessionStorage.removeItem(INVITE);
+          setView("group");
+          toast("그룹에 참여했어요!");
+        }).catch(() => toast("그룹 조회 중 오류가 발생했어요."));
+      } else {
+        toast("그룹을 찾을 수 없어요. 코드를 확인해 주세요.");
+      }
     }
   }
   window.ParkVisitor = {
