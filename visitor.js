@@ -75,6 +75,10 @@
   let memberMarkers = [];
   let memberMoveTimer = null;
   let mapSheetOpen = false;
+  let ws = null;
+  let wsReconnectTimer = null;
+  let memberLocations = {}; // name → {lat, lng, ts}
+  let memberMarkerMap = {}; // name → naver.maps.Marker (실제 위치 마커)
 
   // ===== 에버랜드 집합장소 후보 =====
   // fallback 좌표 보유 → geocoder 성공 시 실제 좌표로 교체됨
@@ -420,6 +424,7 @@ ${group.consent
     if (closestPoint) placeClosestMarker(closestPoint.lat, closestPoint.lng);
     initSimMemberMarkers();
     geocodeMeetingPoints();
+    connectWS();
   }
 
   function placeUserMarker(lat, lng) {
@@ -519,6 +524,98 @@ ${group.consent
     memberMoveTimer = null;
     memberMarkers.forEach(m => m.setMap(null));
     memberMarkers = [];
+    Object.values(memberMarkerMap).forEach(m => m.setMap(null));
+    memberMarkerMap = {};
+  }
+
+  // ── WebSocket 위치 공유 ───────────────────────────────────────
+  function connectWS() {
+    if (!group?.code || !group?.consent) return;
+    if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+    clearTimeout(wsReconnectTimer);
+
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const name = encodeURIComponent(userName);
+    ws = new WebSocket(`${proto}//${location.host}/ws?group=${group.code}&name=${name}`);
+
+    ws.onopen = () => {
+      if (gps?.lat) ws.send(JSON.stringify({ type: 'location', lat: gps.lat, lng: gps.lng }));
+    };
+
+    ws.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        if (data.type === 'snapshot') {
+          memberLocations = {};
+          for (const m of (data.members || [])) memberLocations[m.name] = m;
+          refreshMemberMarkers();
+        } else if (data.type === 'location') {
+          memberLocations[data.name] = { lat: data.lat, lng: data.lng, ts: data.ts };
+          upsertMemberMarker(data.name, data.lat, data.lng);
+          render();
+        } else if (data.type === 'leave') {
+          delete memberLocations[data.name];
+          removeMemberMarker(data.name);
+          render();
+        }
+      } catch {}
+    };
+
+    ws.onclose = () => {
+      ws = null;
+      if (group?.consent) wsReconnectTimer = setTimeout(connectWS, 5000);
+    };
+
+    ws.onerror = () => ws?.close();
+  }
+
+  function disconnectWS() {
+    clearTimeout(wsReconnectTimer);
+    if (ws) { ws.close(); ws = null; }
+    memberLocations = {};
+  }
+
+  function sendLocation(lat, lng) {
+    if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'location', lat, lng }));
+  }
+
+  function refreshMemberMarkers() {
+    // 실제 WebSocket 위치가 있으면 시뮬레이션 중단
+    if (Object.keys(memberLocations).length > 0) {
+      clearInterval(memberMoveTimer);
+      memberMoveTimer = null;
+      memberMarkers.forEach(m => m.setMap(null));
+      memberMarkers = [];
+    }
+    Object.values(memberMarkerMap).forEach(m => m.setMap(null));
+    memberMarkerMap = {};
+    for (const [name, loc] of Object.entries(memberLocations)) {
+      upsertMemberMarker(name, loc.lat, loc.lng);
+    }
+  }
+
+  function upsertMemberMarker(name, lat, lng) {
+    if (!naverMap) return;
+    if (memberMarkerMap[name]) {
+      memberMarkerMap[name].setPosition(new naver.maps.LatLng(lat, lng));
+    } else {
+      const idx = Object.keys(memberMarkerMap).length;
+      const marker = new naver.maps.Marker({
+        position: new naver.maps.LatLng(lat, lng),
+        map: naverMap,
+        title: name,
+        icon: {
+          content: `<div class="pv-member-pin pv-member-${(idx + 1) % 4}">${escapeHtml(name.slice(0, 1))}</div>`,
+          anchor: new naver.maps.Point(16, 16),
+        },
+        zIndex: 5,
+      });
+      memberMarkerMap[name] = marker;
+    }
+  }
+
+  function removeMemberMarker(name) {
+    if (memberMarkerMap[name]) { memberMarkerMap[name].setMap(null); delete memberMarkerMap[name]; }
   }
 
   function initSimMemberMarkers() {
@@ -569,6 +666,7 @@ ${group.consent
   }
 
   function clearMapState() {
+    disconnectWS();
     if (userMarker) { userMarker.setMap(null); userMarker = null; }
     if (closestMarker) { closestMarker.setMap(null); closestMarker = null; }
     if (routePolyline) { routePolyline.setMap(null); routePolyline = null; }
@@ -711,13 +809,14 @@ ${group.consent
           (position) => {
             gps = { lat: position.coords.latitude, lng: position.coords.longitude, accuracy: position.coords.accuracy };
             placeUserMarker(gps.lat, gps.lng);
+            sendLocation(gps.lat, gps.lng);
             closestPoint = findClosest(gps.lat, gps.lng);
             if (closestPoint) {
               placeClosestMarker(closestPoint.lat, closestPoint.lng);
               midpointSuggestion = true;
               toast(`위치 확인됨 · 가장 가까운 집합장소: ${closestPoint.name}`);
             } else {
-              toast("기기 위치 권한을 확인했어요. 좌표는 저장하거나 전송하지 않습니다.");
+              toast("위치 확인됨 · 그룹원과 위치를 공유해요.");
             }
             render();
           },
