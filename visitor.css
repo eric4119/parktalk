@@ -1308,15 +1308,16 @@
   overflow: hidden;
 }
 
-.pv-naver-map-solo {
-  width: 100%;
-  height: 340px;
-  border-radius: 18px;
-  overflow: hidden;
-  margin: 16px 0 0;
+.pv-solo-map-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
-.pv-solo-map-actions {
-  margin-top: 16px;
+.pv-naver-map-solo {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
 }
 .pv-map-fullpage {
   position: relative;

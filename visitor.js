@@ -364,13 +364,8 @@ ${rightIcons}
   }
   function mapPage() {
     if (mapMode === "solo") {
-      return `<div class="pv-content pv-solo-map-page">
-${title("내 위치", gps ? "위치 확인됨" : "내 위치를 지도에서 확인해요", "")}
+      return `<div class="pv-solo-map-page">
 <div id="pv-naver-map" class="pv-naver-map-solo" aria-label="내 위치 지도"></div>
-<div class="pv-solo-map-actions">
-<button type="button" class="pv-button" data-pv-action="locate">${icon("pin")} 내 위치 확인하기</button>
-${gps ? `<p class="pv-field-hint" style="text-align:center;margin-top:8px">위치가 지도에 표시되었어요.</p>` : ""}
-</div>
 </div>`;
     }
     if (!group)
