@@ -387,10 +387,10 @@ ${members.map((member, i) => `<div class="pv-member-row"><span class="pv-member-
 </div>
 <div class="pv-sheet-actions">
 ${closestPoint ? `<div class="pv-midpoint-row"><strong>📍 ${escapeHtml(closestPoint.name)}</strong><span>가장 가까운 집합장소</span></div>` : ""}
-${closestPoint && gps?.lat ? `<button type="button" class="pv-button pv-wide" data-pv-action="route-start">${icon("pin")} 경로 안내 시작</button>` : `<button type="button" class="pv-secondary-button pv-wide" data-pv-action="midpoint">집합장소 추천 보기</button>`}
+${closestPoint && gps?.lat ? `<button type="button" class="pv-button pv-wide" data-pv-action="route-start">${icon("pin")} 경로 안내 시작</button>` : `<button type="button" class="pv-secondary-button pv-wide" data-pv-action="midpoint">AI 집합장소 추천</button>`}
 ${group.consent
   ? `<div class="pv-sheet-small-actions"><button type="button" class="pv-mini-button" data-pv-action="locate">${icon("pin")} 내 위치 확인하기</button><button type="button" class="pv-mini-button pv-mini-muted" data-pv-action="revoke">동의 취소</button></div>`
-  : `<button type="button" class="pv-button pv-wide" data-pv-view="consent">위치 표시 동의하기 ${icon("arrow")}</button>`}
+  : ""}
 </div>`;
     })();
 
