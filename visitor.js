@@ -478,6 +478,20 @@ ${group.consent
     initSimMemberMarkers();
     geocodeMeetingPoints();
     connectFirebase();
+    if (group?.consent && !gps && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          gps = { lat: position.coords.latitude, lng: position.coords.longitude, accuracy: position.coords.accuracy };
+          placeUserMarker(gps.lat, gps.lng);
+          sendLocationFb(gps.lat, gps.lng);
+          closestPoint = findClosest(gps.lat, gps.lng);
+          if (closestPoint) placeClosestMarker(closestPoint.lat, closestPoint.lng);
+          render();
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+      );
+    }
   }
 
   function placeUserMarker(lat, lng) {
