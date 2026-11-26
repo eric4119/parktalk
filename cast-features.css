@@ -121,3 +121,85 @@
 .menu-meal { display: flex; gap: 10px; align-items: flex-start; margin-top: 10px; }
 .menu-meal .pill { white-space: nowrap; flex-shrink: 0; }
 .menu-meal p { margin: 2px 0 0; line-height: 1.6; }
+
+/* 사원식당 식단 */
+.menu-date-chips { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0 10px; }
+.menu-date-chips button { flex: 0 0 auto; padding: 6px 10px; font-size: 12px; }
+.menu-hours { font-size: 12px; margin: 4px 0 6px; }
+.menu-meal-title { font-size: 14px; margin: 12px 0 6px; color: #b5651d; }
+.menu-course { border-top: 1px solid #eee; padding: 8px 0; }
+.menu-course__head { display: flex; justify-content: space-between; align-items: center; }
+.menu-course p { margin: 6px 0 0; font-size: 13px; line-height: 1.55; }
+.menu-plus { color: #8a5a00; font-size: 12px !important; }
+.menu-notes { margin-top: 10px; font-size: 12px; color: #5b6275; }
+.menu-notes p { margin: 6px 0 0; line-height: 1.5; }
+
+/* 통합 검색 결과(캐스트·일반 사용자 공용, park-search.js) — 검색창·최근/인기 검색어는 fresh-ui.css의 .srch-* 를 그대로 쓴다 */
+.ps-body { padding: 0 0 24px; }
+.ps-results { padding: 12px 15px 0; }
+.srch-hint { margin: 18px 15px 0; font-size: 12px; color: #8a8f9c; line-height: 1.5; }
+.ps-summary { margin: 0 0 4px; font-size: 13px; color: #6b7080; }
+.ps-section { margin-top: 16px; }
+.ps-section__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.ps-section__head h2 { margin: 0; font-size: 16px; }
+.ps-section__head span { font-size: 12px; color: #8a6500; font-weight: 700; }
+.ps-list { display: grid; gap: 10px; }
+.ps-card { display: block; width: 100%; box-sizing: border-box; text-align: left; background: #fff; border: 1px solid #ececec; border-radius: 16px; padding: 14px 16px; font: inherit; color: inherit; }
+.ps-card h3 { margin: 8px 0 4px; font-size: 15px; }
+.ps-place__top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.ps-pill { display: inline-block; padding: 3px 8px; border-radius: 999px; background: rgba(246,207,88,0.18); color: #8a6500; font-size: 11px; font-weight: 700; }
+.ps-zone, .ps-meta { font-size: 12px; color: #6b7080; }
+.ps-meta { margin: 0; }
+.ps-tags { margin: 6px 0 0; font-size: 12px; color: #8a6500; }
+.ps-desc { display: block; margin: 6px 0 0; font-size: 13px; color: #5b6275; line-height: 1.5; }
+.ps-menu { list-style: none; margin: 8px 0 0; padding: 8px 10px; background: #fafafa; border-radius: 10px; display: grid; gap: 4px; }
+.ps-menu li { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: #444; }
+.ps-menu li b { font-weight: 700; white-space: nowrap; }
+.ps-menu li.is-hit { color: #1a1a1a; font-weight: 700; }
+.ps-menu li.is-hit b { color: #8a6500; }
+.ps-actions { display: flex; gap: 8px; margin-top: 10px; }
+.ps-card .ps-button, #visitorApp .ps-card .ps-button { display: inline-flex; align-items: center; justify-content: center; min-height: 34px; padding: 7px 12px; border-radius: 10px; background: #f6cf58; color: #2b2b2b; font-size: 13px; font-weight: 700; text-decoration: none; border: 0; }
+.ps-official summary { cursor: pointer; list-style: none; display: grid; gap: 6px; }
+.ps-official summary::-webkit-details-marker { display: none; }
+.ps-official summary strong { font-size: 14px; line-height: 1.45; }
+.ps-official summary::after { content: "펼쳐 보기 ⌄"; font-size: 12px; color: #8a6500; }
+.ps-official[open] summary::after { content: "접기 ⌃"; }
+.ps-official p { margin: 10px 0 8px; font-size: 13px; line-height: 1.6; white-space: pre-line; }
+.ps-link { font-size: 12px; color: #8a6500; font-weight: 700; text-decoration: none; }
+.ps-shortcut { cursor: pointer; display: grid; gap: 2px; border-color: rgba(230,185,0,0.45); background: rgba(246,207,88,0.08); }
+.ps-shortcut strong { font-size: 14px; }
+.ps-post { cursor: pointer; display: grid; gap: 4px; justify-items: start; }
+.ps-post strong { font-size: 14px; }
+.ps-more { margin-top: 10px; }
+.ps-more summary { cursor: pointer; font-size: 13px; font-weight: 700; color: #8a6500; padding: 6px 0; }
+.ps-note { margin: 10px 0 0; font-size: 12px; color: #6b7080; line-height: 1.5; }
+.ps-empty { padding: 16px; border-radius: 16px; background: #fffaf0; border: 1px solid #f3e2b3; }
+.ps-empty p { margin: 0 0 4px; font-size: 14px; }
+.srch-input-wrap input[type="search"]::-webkit-search-cancel-button { display: none; }
+/* 일반 사용자 모드 검색 화면: 캐스트 모드처럼 상단 헤더 대신 검색창이 맨 위에 오게 한다(모바일) */
+@media (max-width: 700px) {
+  .pv-shell[data-view="explore"] .pv-header { display: none; }
+  .pv-shell[data-view="explore"] .pv-main-content { padding: 0; }
+}
+#visitorApp .srch-input-wrap { border: 1.5px solid transparent; background: #f5f5f5; }
+#visitorApp .srch-input-wrap:focus-within { border-color: #aaa; background: #fff; }
+#visitorApp .srch-input-wrap input { border: 0; background: none; padding: 0; box-shadow: none; outline: none; min-height: 0; height: auto; font-size: 14px; }
+
+/* 통합 검색 '지도에서 보기' — 앱 안 네이버 지도 */
+.ps-link--official { align-self: center; margin-left: 4px; }
+.ps-map { position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; background: #fff; }
+.ps-map__bar { display: flex; align-items: center; gap: 8px; padding: 10px 15px; border-bottom: 1px solid #e8e8e8; }
+.ps-map__bar strong { font-size: 16px; }
+.ps-map__canvas { flex: 1; min-height: 240px; position: relative; display: flex; align-items: center; justify-content: center; }
+.ps-map__canvas .ps-note { padding: 0 20px; text-align: center; }
+.ps-map__sheet { padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); border-top: 1px solid #ececec; border-radius: 18px 18px 0 0; box-shadow: 0 -6px 18px rgba(0,0,0,0.06); background: #fff; }
+.ps-map__sheet h3 { margin: 8px 0 4px; font-size: 16px; }
+.ps-map__sheet .ps-link { display: inline-block; margin-top: 10px; }
+.ps-pin { min-width: 32px; height: 32px; padding: 0 6px; box-sizing: border-box; border-radius: 16px 16px 16px 4px; background: #f6cf58; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: #2b2b2b; }
+
+/* 홈 '오늘의 식당 메뉴' 카드 */
+.menu-preview-date { display: block; margin-bottom: 4px; font-size: 12px; }
+.menu-preview { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.menu-preview li { display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.4; }
+.menu-preview li .pill { flex: 0 0 auto; font-size: 11px; }
+.menu-preview li span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -7,7 +7,9 @@
     "start": "node server.js",
     "start:env": "node --env-file=.env server.js",
     "test": "node --test tests/*.cjs",
-    "build:official": "node scripts/build-official.cjs"
+    "build:official": "node scripts/build-official.cjs",
+    "import:menu": "node scripts/import-menu.cjs",
+    "build:facilities": "node scripts/build-facilities.cjs"
   },
   "engines": {
     "node": ">=18"

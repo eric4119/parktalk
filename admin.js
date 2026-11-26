@@ -56,11 +56,14 @@
   }
 
   // 바뀐 부분(section)만 서버에 보낸다. 다른 관리자가 먼저 저장했으면 409로 막힌다.
+  // section 하나만 바꿀 때는 save("menus", [...]), 여러 개를 함께 바꿀 때는 save({ menus, restaurants }, 메시지).
   async function save(section, items, message) {
     if (busy) return;
     busy = true;
+    const changes = typeof section === "string" ? { [section]: items } : section;
+    if (typeof section !== "string") message = items;
     try {
-      data = await api("api/admin/data", { method: "PUT", body: JSON.stringify({ [section]: items, baseUpdatedAt: data.updatedAt }) });
+      data = await api("api/admin/data", { method: "PUT", body: JSON.stringify({ ...changes, baseUpdatedAt: data.updatedAt }) });
       editing = null;
       render();
       toast(message);
@@ -99,7 +102,7 @@
     const day = D.menusFor(menuDate, data.menus);
     const editItem = data.menus.find((m) => m.id === editing);
     const restaurants = [...new Set(data.menus.map((m) => m.restaurant))];
-    const upcoming = [...new Set(data.menus.map((m) => m.date).filter((d) => d >= D.todayKey()))].slice(0, 14);
+    const upcoming = [...new Set(data.menus.map((m) => m.date))].sort().slice(-14);
     return `<section class="ad-section">
       <div class="ad-row">
         <button type="button" data-action="day" data-shift="-1" aria-label="이전 날짜">◀</button>
@@ -113,8 +116,9 @@
       <div class="ad-grid">
         <div class="ad-list">
           ${day.length ? day.map((m) => `<article class="ad-card">
-            <div class="ad-card__head"><strong>${esc(m.restaurant)}</strong><span class="ad-pill">${esc(m.meal)}</span></div>
+            <div class="ad-card__head"><strong>${esc(m.restaurant)}</strong><span class="ad-pill">${esc(m.meal)}${m.course ? ` ${esc(m.course)}` : ""}</span></div>
             <p>${m.items.map(esc).join(" · ")}</p>
+            ${m.kcal || m.plus ? `<p class="ad-muted">${[m.kcal, m.plus && `Plus ${m.plus}`].filter(Boolean).map(esc).join(" · ")}</p>` : ""}
             <div class="ad-actions"><button type="button" data-edit="${m.id}">수정</button><button type="button" class="ad-danger" data-delete-menu="${m.id}">삭제</button></div>
           </article>`).join("") : `<p class="ad-empty">이 날짜에 등록된 식단이 없어요.</p>`}
         </div>
@@ -123,10 +127,19 @@
           <label>식당 이름<input name="restaurant" list="restaurantList" maxlength="40" required value="${esc(editItem?.restaurant || restaurants[0] || "")}" placeholder="예: 캐스트하우스 식당"></label>
           <datalist id="restaurantList">${restaurants.map((r) => `<option value="${esc(r)}">`).join("")}</datalist>
           <label>식사<select name="meal">${D.MEALS.map((meal) => `<option ${(editItem?.meal || "중식") === meal ? "selected" : ""}>${meal}</option>`).join("")}</select></label>
+          <label>코너 <small>선택 · 한식, 누들, 인터, 테이크아웃 등</small><input name="course" maxlength="20" value="${esc(editItem?.course || "")}"></label>
+          <label>칼로리 <small>선택</small><input name="kcal" maxlength="40" value="${esc(editItem?.kcal || "")}" placeholder="예: 842kcal"></label>
+          <label>Plus 메뉴 <small>선택</small><input name="plus" maxlength="100" value="${esc(editItem?.plus || "")}"></label>
           <label>메뉴 <small>한 줄에 하나씩</small><textarea name="items" rows="7" required placeholder="흰쌀밥&#10;김치찌개&#10;계란말이">${esc((editItem?.items || []).join("\n"))}</textarea></label>
           <div class="ad-actions"><button class="ad-primary" type="submit">${editItem ? "수정 저장" : `${menuDate}에 추가`}</button>${editItem ? '<button type="button" data-action="cancel">취소</button>' : ""}</div>
         </form>
       </div>
+      <form id="menuImportForm" class="ad-card ad-form">
+        <h2>주간 식단표 붙여넣기</h2>
+        <p class="ad-muted">사내 식단표(웰스토리) 텍스트를 통째로 붙여넣으면 날짜·코너·칼로리·Plus 메뉴·운영시간을 읽어 등록해요. 같은 식당의 같은 날짜 식단은 새 식단표로 바뀝니다.</p>
+        <textarea name="raw" rows="8" required placeholder="파크1,2 (정*동문) 사원식당 주간 식단표&#10;11/16 (월)&#10;중식 한식 (842kcal)&#10;..."></textarea>
+        <div class="ad-actions"><button class="ad-primary" type="submit">읽어서 등록</button></div>
+      </form>
     </section>`;
   }
 
@@ -273,8 +286,16 @@
       return;
     }
     if (form.id === "officialSearch") { officialQuery = String(f.get("q") || "").trim(); render(); return; }
+    if (form.id === "menuImportForm") {
+      const parsed = D.parseCastMenu(f.get("raw"));
+      if (!parsed.menus.length) return toast("식단을 읽지 못했어요. '11/16 (월)' 날짜 줄과 '중식 한식 (842kcal)' 코너 줄이 있는지 확인해 주세요.");
+      const menus = D.mergeMenus(data.menus, parsed.menus.map((m) => ({ ...m, id: newId("menu") })));
+      const restaurants = D.mergeRestaurants(data.restaurants || [], parsed.restaurant);
+      menuDate = parsed.dates[0];
+      return save({ menus, restaurants }, `${parsed.restaurant.name} ${parsed.dates[0].slice(5)}~${parsed.dates.at(-1).slice(5)} 식단 ${parsed.menus.length}개를 등록했어요.`);
+    }
     if (form.id === "menuForm") {
-      const item = { id: editing || newId("menu"), date: editing ? data.menus.find((m) => m.id === editing)?.date || menuDate : menuDate, restaurant: f.get("restaurant"), meal: f.get("meal"), items: String(f.get("items") || "").split("\n") };
+      const item = { id: editing || newId("menu"), date: editing ? data.menus.find((m) => m.id === editing)?.date || menuDate : menuDate, restaurant: f.get("restaurant"), meal: f.get("meal"), course: f.get("course"), kcal: f.get("kcal"), plus: f.get("plus"), items: String(f.get("items") || "").split("\n") };
       const menus = editing ? data.menus.map((m) => (m.id === editing ? item : m)) : [...data.menus, item];
       return save("menus", menus, editing ? "식단을 수정했어요." : "식단을 추가했어요.");
     }

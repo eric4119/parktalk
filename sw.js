@@ -1,8 +1,8 @@
-const CACHE = "parktalk-v37-20261124";
+const CACHE = "parktalk-v38-20261126";
 const APP_FILES = [
   "./", "./index.html", "./app.html", "./style.css",
   "./auth.css", "./visitor.css", "./theme.css", "./cast-features.css", "./fresh-ui.css",
-  "./ui-icons.js", "./park-data.js", "./official-faq.json", "./boards.js", "./profiles.js", "./pets.js", "./pets.css", "./script.js", "./visitor.js", "./auth.js", "./pwa.js",
+  "./ui-icons.js", "./park-data.js", "./cast-menu.json", "./places.js", "./park-search.js", "./facilities.json", "./official-faq.json", "./boards.js", "./profiles.js", "./pets.js", "./pets.css", "./script.js", "./visitor.js", "./auth.js", "./pwa.js",
   "./assets/pets/panda-worn-base.png", "./assets/pets/panda-worn-feed.png", "./assets/pets/panda-worn-play.png", "./assets/pets/panda-worn-sleep.png", "./assets/pets/panda-worn-pet.png",
   "./assets/pets/panda-reactions.png", "./assets/pets/capybara-reactions.png", "./assets/pets/tiger-reactions.png", "./assets/pets/penguin-reactions.png",
   "./assets/pets/hat-v2.png", "./assets/pets/glasses-v2.png", "./assets/pets/necklace-v2.png",

@@ -69,10 +69,12 @@ function readBody(request, limit = 16_000) {
 function menuText(data) {
   const today = ParkData.todayKey();
   const days = [today, ParkData.shiftDate(today, 1)];
-  const lines = days.flatMap((day) => ParkData.menusFor(day, data.menus).map((m) => `- ${day}${day === today ? "(오늘)" : "(내일)"} ${m.restaurant} ${m.meal}: ${m.items.join(", ")}`));
-  return lines.length
-    ? `관리자가 등록한 식단입니다.\n${lines.join("\n")}`
-    : `오늘과 내일 등록된 식단이 없습니다. ${ParkData.menuSource.reason}`;
+  const line = (day, m) => `- ${day}${day === today ? "(오늘)" : "(내일)"} ${m.restaurant} ${m.meal}${m.course ? ` ${m.course}` : ""}${m.kcal ? `(${m.kcal})` : ""}: ${m.items.join(", ")}${m.plus ? ` / Plus: ${m.plus}` : ""}`;
+  const lines = days.flatMap((day) => ParkData.menusFor(day, data.menus).map((m) => line(day, m)));
+  const hours = (data.restaurants || []).map((r) => `- ${r.name} 운영시간: ${r.hours.join(", ")}`);
+  if (lines.length) return `등록된 사원식당 식단입니다.\n${[...hours, ...lines].join("\n")}`;
+  const dates = [...new Set((data.menus || []).map((m) => m.date))].sort();
+  return `오늘과 내일 등록된 식단이 없습니다.${dates.length ? ` 등록된 식단은 ${dates[0]}~${dates.at(-1)} 기간뿐이니 앱의 '식당 메뉴'에서 날짜를 골라 보라고 안내하세요.` : ""} ${ParkData.menuSource.reason}${hours.length ? `\n${hours.join("\n")}` : ""}`;
 }
 
 function systemPrompt(role, data = currentData()) {
@@ -231,8 +233,12 @@ function readSaved() {
     return {};
   }
 }
+// 저장소에 같이 올라가는 기본 식단(scripts/import-menu.cjs로 만든 cast-menu.json). 관리자가 식단을 저장하면 그쪽이 우선이다.
+let seedMenu = {};
+try { seedMenu = ParkData.sanitizeAdminData(JSON.parse(fs.readFileSync(path.join(root, "cast-menu.json"), "utf8"))); }
+catch { /* 없으면 관리자 입력만 쓴다 */ }
 function currentData() {
-  return ParkData.merge(saved);
+  return ParkData.merge(saved, seedMenu);
 }
 function writeSaved(next) {
   fs.mkdirSync(DATA_DIR, { recursive: true });

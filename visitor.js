@@ -167,7 +167,7 @@
 <h2>일행과 연결하기</h2>
 <span>STEP 01</span>
 </div>
-      <button type="button" class="pv-discover-card" data-pv-view="explore">${icon("search")}<span><strong>카피바라 · 간식 어디 있지?</strong><small>동물과 먹거리를 검색하고 구역 안내 보기</small></span>${icon("arrow")}</button>
+      <button type="button" class="pv-discover-card" data-pv-view="explore">${icon("search")}<span><strong>통합 검색</strong><small>음식·놀이기구·동물·이용 안내를 한 번에 찾기</small></span>${icon("arrow")}</button>
       ${
         group
           ? `<div class="pv-current-group">
@@ -288,22 +288,9 @@
   function boardPage() {
     return `<div class="pv-content">${window.ParkBoards.page('visitor', boardKind)}</div>`;
   }
+  // 상단 검색 = 통합 검색. 캐스트 모드와 같은 화면(park-search.js)을 쓴다.
   function explorePage() {
-    const query = searchTerm.trim().toLowerCase();
-    const wantsAnimal = /카피바라|capybara|뿌빠/.test(query);
-    const wantsSnack = /핫도그|츄러스|간식/.test(query);
-    const matches = !query ? places : wantsAnimal || wantsSnack
-      ? places.filter((place) => (wantsAnimal && place.kind === "동물") || (wantsSnack && place.kind === "간식"))
-      : places.filter((place) => `${place.name} ${zones[place.zone]} ${place.terms}`.toLowerCase().includes(query));
-    return `<div class="pv-content pv-explore">
-      ${title("파크 탐색", "어디로 가고 싶나요?", "동물과 간식 매장을 검색해 목적지 구역을 확인해 보세요.")}
-      <form id="pv-search-form" class="pv-search-form"><label for="pv-place-query">장소 또는 먹거리 검색</label><div><input id="pv-place-query" name="query" value="${escapeHtml(searchTerm)}" placeholder="카피바라, 핫도그, 츄러스" autocomplete="off"><button type="submit">검색</button></div></form>
-      <div class="pv-query-chips"><button type="button" data-pv-query="카피바라">${icon("paw")} 카피바라</button><button type="button" data-pv-query="핫도그">${icon("hotdog")} 핫도그</button><button type="button" data-pv-query="츄러스">${icon("churros")} 츄러스</button></div>
-      <div class="pv-section-heading"><h2>${searchTerm ? "검색 결과" : "추천 장소"}</h2><span>${matches.length}곳</span></div>
-      ${matches.length ? `<div class="pv-place-list">${matches.map((place) => `<button type="button" class="pv-place-card" data-pv-destination="${place.id}"><span class="pv-place-emoji">${icon(place.kind === "동물" ? "paw" : "food")}</span><span><small>${place.kind} · ${zones[place.zone]} · 공식 지도 ${place.number}번</small><strong>${place.name}</strong><em>${place.detail}</em></span>${icon("arrow")}</button>`).join("")}</div>` : '<div class="pv-empty-note">검색 결과가 없어요. 카피바라, 핫도그 또는 츄러스로 다시 검색해 보세요.</div>'}
-      <p class="pv-guide-note">2025년 11월 에버랜드 공식 가이드 기준입니다. 동물 전시와 메뉴·매장 운영은 현장에서 달라질 수 있어요.</p>
-      <a class="pv-guide-link" href="${GUIDE_URL}" target="_blank" rel="noopener noreferrer">에버랜드 공식 가이드 지도 보기 ↗</a>
-    </div>`;
+    return window.ParkSearch.page("visitor", { back: 'data-pv-view="home"' });
   }
   function routePage() {
     const place = places.find((item) => item.id === destinationId) || places[0];
@@ -705,7 +692,7 @@ ${group.consent
       board: "방문객 게시판",
       create: "그룹 만들기",
       join: "그룹 참여",
-      explore: "파크 탐색",
+      explore: "통합 검색",
       route: "목적지 안내",
       consent: "위치 표시 설정",
       map: "일행 지도",
@@ -746,6 +733,7 @@ ${group.consent
 </div>
 </div>${notice ? `<div class="pv-toast" role="status">${escapeHtml(notice)}</div>` : ""}`;
     if (view === 'map' && group) requestAnimationFrame(initNaverMap);
+    if (view === 'explore') window.ParkSearch.focus('visitor');
   }
   // 새로고침해도 다시 열 수 있는 화면(다른 화면은 직전 선택 상태가 필요해서 홈으로 돌아간다)
   const RESTORABLE = ["home", "board", "group", "map", "profile", "explore", "create", "join"];
