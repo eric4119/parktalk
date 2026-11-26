@@ -126,16 +126,9 @@
   }
   function header() {
     const SECTION_TITLES = { board: "게시판", group: "일행", create: "일행", join: "일행", map: "지도", explore: "검색", route: "검색", profile: "앱 설정" };
+    const BACK_TARGETS = { create: "group", join: "group" };
     const sectionTitle = SECTION_TITLES[view];
-    const leftSlot = sectionTitle
-      ? `<span class="pv-header-title">${sectionTitle}</span>`
-      : `<button type="button" class="pv-header-brand" data-pv-view="home" aria-label="파크톡 홈으로 이동">
-<svg class="pv-header-brand-icon ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2.3"/></svg>
-<span class="pv-header-brand-name">파크톡</span>
-</button>`;
-    return `<header class="pv-header">
-${leftSlot}
-<div class="pv-header-right">
+    const rightIcons = `<div class="pv-header-right">
 <button type="button" class="icon-btn" data-pv-view="explore" title="검색" aria-label="검색">
 <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
 </button>
@@ -145,7 +138,23 @@ ${leftSlot}
 <button type="button" class="icon-btn pv-menu-btn" data-pv-action="sidebar-toggle" aria-label="메뉴 열기">
 <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
 </button>
-</div>
+</div>`;
+    if (!sectionTitle) {
+      return `<header class="pv-header">
+<button type="button" class="pv-header-brand" data-pv-view="home" aria-label="파크톡 홈으로 이동">
+<svg class="pv-header-brand-icon ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2.3"/></svg>
+<span class="pv-header-brand-name">파크톡</span>
+</button>
+${rightIcons}
+</header>`;
+    }
+    const backTarget = BACK_TARGETS[view] || "home";
+    return `<header class="pv-header pv-header--section">
+<button type="button" class="icon-btn pv-header-back" data-pv-view="${backTarget}" aria-label="뒤로가기">
+<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+</button>
+<span class="pv-header-title">${sectionTitle}</span>
+${rightIcons}
 </header>`;
   }
   function title(eyebrow, heading, description) {
@@ -286,7 +295,7 @@ ${leftSlot}
     </div>`;
   }
   function boardPage() {
-    return `<div class="pv-content"><button type="button" class="pv-back" data-pv-view="home" style="display:inline-flex;align-items:center;gap:4px;margin-bottom:16px;position:relative;z-index:2">${icon("back")} 홈으로</button><div style="padding-top:4px;clear:both">${window.ParkBoards.page('visitor', boardKind)}</div></div>`;
+    return `<div class="pv-content">${window.ParkBoards.page('visitor', boardKind)}</div>`;
   }
   function explorePage() {
     const query = searchTerm.trim().toLowerCase();

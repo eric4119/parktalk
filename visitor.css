@@ -137,6 +137,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative;
 }
 .pv-header-brand {
   display: flex;
@@ -150,7 +151,7 @@
 }
 .pv-header-brand-icon { width: 22px; height: 22px; color: #c89010; }
 .pv-header-brand-name { font-size: 17px; font-weight: 900; letter-spacing: -0.04em; color: #1a1a1a; }
-.pv-header-title { font-size: 18px; font-weight: 800; letter-spacing: -0.04em; color: #1a1a1a; flex: 1; }
+.pv-header-title { position: absolute; left: 50%; transform: translateX(-50%); font-size: 18px; font-weight: 800; letter-spacing: -0.04em; color: #1a1a1a; white-space: nowrap; pointer-events: none; }
 .pv-header-right {
   display: flex;
   align-items: center;
