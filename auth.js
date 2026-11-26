@@ -1,6 +1,7 @@
 (() => {
   const SESSION_KEY = "parktalk-demo-session";
   const ACCOUNT_KEY = "parktalk-demo-accounts-v2";
+  const LOGO_SRC = "assets/parktalk-logo-transparent.png";
   const SVG_PERSON = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="7" r="4"/><path d="M4 21v-2a7 7 0 0 1 14 0v2"/></svg>`;
   const SVG_AT = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/></svg>`;
   const SVG_LOCK = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
@@ -39,11 +40,9 @@
   }
   function hero() {
     return `
-      <div class="auth-header">
-        <img class="auth-logo" src="assets/parktalk-logo-transparent.png" alt="ParkTalk 파크톡 로고">
-      </div>
+      <div class="auth-header" aria-hidden="true"></div>
       <div class="auth-hero__copy">
-        <h1>파크에서 만나는<br>우리의 하루</h1>
+        <img class="auth-hero__logo" src="${LOGO_SRC}" alt="ParkTalk 파크톡 로고">
         <div class="auth-hero__deco">
           <svg width="88" height="26" viewBox="0 0 88 26" fill="none" aria-hidden="true">
             <path d="M2 22 C 20 22 50 2 85 11" stroke="#c89010" stroke-width="2.5" stroke-linecap="round"/>
@@ -53,7 +52,59 @@
         </div>
       </div>`;
   }
-  function form(mode = "login") {
+  function playParkTalkIntro() {
+    if (document.querySelector(".pt-intro-overlay")) return;
+
+    const overlay = document.createElement("div");
+    overlay.className = "pt-intro-overlay";
+    overlay.innerHTML = `
+      <p class="pt-intro-typing" aria-label="파크에서 만나는 우리의 하루">
+        <span id="pt-intro-text"></span><span class="pt-intro-cursor" id="pt-intro-cursor"></span>
+      </p>
+      <div class="pt-intro-logo-wrap">
+        <img class="pt-intro-logo" src="${LOGO_SRC}" alt="ParkTalk 파크톡 로고">
+      </div>
+      <span class="pt-intro-skip">화면을 터치하면 바로 이동합니다</span>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const textEl = overlay.querySelector("#pt-intro-text");
+    const cursorEl = overlay.querySelector("#pt-intro-cursor");
+    const fullText = "파크에서 만나는\n우리의 하루";
+    let index = 0;
+    let finished = false;
+    let logoTimer = null;
+    let closeTimer = null;
+
+    const closeIntro = () => {
+      if (finished) return;
+      finished = true;
+      clearInterval(typingTimer);
+      clearTimeout(logoTimer);
+      clearTimeout(closeTimer);
+      overlay.classList.add("is-leaving");
+      authRoot.querySelector("input")?.focus();
+      setTimeout(() => overlay.remove(), 560);
+    };
+
+    overlay.addEventListener("click", closeIntro);
+
+    const typingTimer = setInterval(() => {
+      if (index < fullText.length) {
+        const ch = fullText[index++];
+        textEl.innerHTML += ch === "\n" ? "<br>" : ch;
+      } else {
+        clearInterval(typingTimer);
+        cursorEl.classList.add("is-done");
+        logoTimer = setTimeout(() => {
+          overlay.classList.add("show-logo");
+        }, 200);
+        closeTimer = setTimeout(closeIntro, 1550);
+      }
+    }, 75);
+  }
+  function form(mode = "login", options = {}) {
     formMode = mode;
     visible("auth");
     const signup = mode === "signup";
@@ -74,8 +125,12 @@
         ${signup ? "" : '<p class="auth-signup-link">계정이 없으신가요? <button type="button" data-auth-action="mode" data-mode="signup">회원가입</button></p>'}
       </main>
     </div>`;
-    authRoot.querySelector("input")?.focus();
     window.scrollTo(0, 0);
+    if (options.intro && mode === "login") {
+      playParkTalkIntro();
+    } else {
+      authRoot.querySelector("input")?.focus();
+    }
   }
   function enter(next, restore = false) {
     session = { name: (window.ParkProfiles?.name(next.id, next.name) || next.name).slice(0, 20), role: next.role, accountRole: next.accountRole, id: next.id };
@@ -174,5 +229,5 @@
   });
   window.ParkAuth = { updateProfile, role: () => session?.role || null, accountRole: () => session?.accountRole || null, name: () => session?.name || null, id: () => session?.id || null, canSwitch: () => session?.accountRole === "cast", logout, switchRole };
   window.parkToast = window.parkToast || ((message) => alert(escapeText(message)));
-  if (session) enter(session, true); else form("login");
+  if (session) enter(session, true); else form("login", { intro: true });
 })();
