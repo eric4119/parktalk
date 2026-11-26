@@ -1308,6 +1308,16 @@
   overflow: hidden;
 }
 
+.pv-naver-map-solo {
+  width: 100%;
+  height: 340px;
+  border-radius: 18px;
+  overflow: hidden;
+  margin: 16px 0 0;
+}
+.pv-solo-map-actions {
+  margin-top: 16px;
+}
 .pv-map-fullpage {
   position: relative;
   height: 100%;

@@ -77,6 +77,7 @@
   let memberMarkers = [];
   let memberMoveTimer = null;
   let mapSheetOpen = false;
+  let mapMode = "group"; // "group" = 일행 위치보기(풀스크린), "solo" = 지도 탭(내 위치만)
   let memberLocations = {}; // name → {lat, lng, ts}
   let memberMarkerMap = {}; // name → naver.maps.Marker (실제 위치 마커)
   let fbDb = null;
@@ -115,19 +116,19 @@
       ["home", "홈", "home"],
       ["board", "게시판", "board"],
       ["people", "일행", "group"],
-      ["map", "지도", "map"],
+      ["map", "지도", "map", "solo"],
       ["user", "앱 설정", "profile"],
     ];
     return links
       .map(
-        ([glyph, label, target]) =>
-          `<button type="button" class="pv-nav-item ${view === target || (target === "explore" && view === "route") ? "is-active" : ""}" data-pv-view="${target}" ${view === target || (target === "explore" && view === "route") ? 'aria-current="page"' : ""}>${icon(glyph)}<span>${label}</span>
+        ([glyph, label, target, mode]) =>
+          `<button type="button" class="pv-nav-item ${view === target || (target === "explore" && view === "route") ? "is-active" : ""}" data-pv-view="${target}"${mode ? ` data-pv-map-mode="${mode}"` : ""} ${view === target || (target === "explore" && view === "route") ? 'aria-current="page"' : ""}>${icon(glyph)}<span>${label}</span>
 </button>`,
       )
       .join("");
   }
   function header() {
-    const SECTION_TITLES = { board: "게시판", group: "일행", create: "일행", join: "일행", consent: "일행", map: "지도", explore: "검색", route: "검색", profile: "앱 설정" };
+    const SECTION_TITLES = { board: "게시판", group: "일행", create: "일행", join: "일행", consent: "일행", map: mapMode === 'solo' ? null : "지도", explore: "검색", route: "검색", profile: "앱 설정" };
     const BACK_TARGETS = { create: "group", join: "group", consent: "group", map: "group" };
     const sectionTitle = SECTION_TITLES[view];
     const searchIcon = `<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>`;
@@ -296,7 +297,7 @@ ${rightIcons}
 <hr class="pv-divider">
 <h3 class="pv-members-heading">일행</h3>
 <p>${(group.members || [userName]).map((member, index) => `<span class="pv-member-chip pv-member-${index % 4}">${escapeHtml(member.slice(0, 1))} ${escapeHtml(member)}</span>`).join(" ")}</p>
-<button type="button" class="pv-button" data-pv-view="map">일행 위치 보기 ${icon("arrow")}</button>
+<button type="button" class="pv-button" data-pv-view="map" data-pv-map-mode="group">일행 위치 보기 ${icon("arrow")}</button>
 </div>
       <div class="pv-section-heading">
 <h2>위치 표시 설정</h2>
@@ -362,8 +363,18 @@ ${rightIcons}
     </div>`;
   }
   function mapPage() {
+    if (mapMode === "solo") {
+      return `<div class="pv-content pv-solo-map-page">
+${title("내 위치", gps ? "위치 확인됨" : "내 위치를 지도에서 확인해요", "")}
+<div id="pv-naver-map" class="pv-naver-map-solo" aria-label="내 위치 지도"></div>
+<div class="pv-solo-map-actions">
+<button type="button" class="pv-button" data-pv-action="locate">${icon("pin")} 내 위치 확인하기</button>
+${gps ? `<p class="pv-field-hint" style="text-align:center;margin-top:8px">위치가 지도에 표시되었어요.</p>` : ""}
+</div>
+</div>`;
+    }
     if (!group)
-      return `<div class="pv-content"><button type="button" class="pv-back" data-pv-view="home" style="display:inline-flex;align-items:center;gap:4px;margin-bottom:14px">${icon("back")} 홈으로</button>${title("일행 지도", "먼저 그룹에 참여해 주세요", "그룹을 만든 뒤 지도를 이용할 수 있어요.")}<button type="button" class="pv-button" data-pv-view="group">일행으로 이동 ${icon("arrow")}</button>
+      return `<div class="pv-content">${title("일행 지도", "먼저 그룹에 참여해 주세요", "그룹을 만든 뒤 지도를 이용할 수 있어요.")}<button type="button" class="pv-button" data-pv-view="group">일행으로 이동 ${icon("arrow")}</button>
 </div>`;
 
     const members = group.members || [userName];
@@ -472,11 +483,9 @@ ${group.consent
     });
     naverMapEl = el;
     if (gps?.lat) placeUserMarker(gps.lat, gps.lng);
-    if (closestPoint) placeClosestMarker(closestPoint.lat, closestPoint.lng);
-    initSimMemberMarkers();
-    geocodeMeetingPoints();
-    connectFirebase();
-    if (group?.consent && !gps && navigator.geolocation) {
+    if (closestPoint && mapMode !== 'solo') placeClosestMarker(closestPoint.lat, closestPoint.lng);
+    if (mapMode !== 'solo') { initSimMemberMarkers(); geocodeMeetingPoints(); connectFirebase(); }
+    if ((group?.consent || mapMode === 'solo') && !gps && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           gps = { lat: position.coords.latitude, lng: position.coords.longitude, accuracy: position.coords.accuracy };
@@ -789,7 +798,7 @@ ${group.consent
 <nav class="pv-bottom-nav" aria-label="일반 사용자 메뉴">${navigation()}</nav>
 </div>
 </div>${notice ? `<div class="pv-toast" role="status">${escapeHtml(notice)}</div>` : ""}`;
-    if (view === 'map' && group) requestAnimationFrame(initNaverMap);
+    if (view === 'map' && (group || mapMode === 'solo')) requestAnimationFrame(initNaverMap);
   }
   // 새로고침해도 다시 열 수 있는 화면(다른 화면은 직전 선택 상태가 필요해서 홈으로 돌아간다)
   const RESTORABLE = ["home", "board", "group", "map", "profile", "explore", "create", "join"];
@@ -836,7 +845,10 @@ ${group.consent
   function click(event) {
     const button = event.target.closest("button");
     if (!button || !root()?.contains(button)) return;
-    if (button.dataset.pvView) return setView(button.dataset.pvView);
+    if (button.dataset.pvView) {
+      if (button.dataset.pvMapMode) mapMode = button.dataset.pvMapMode;
+      return setView(button.dataset.pvView);
+    }
     if (button.dataset.pvBoard) {
       boardKind = button.dataset.pvBoard;
       return setView("board");
