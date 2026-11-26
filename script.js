@@ -23,8 +23,7 @@ const navGroups = [
     "home|커뮤니티 홈|home",
     "board|캐스트 게시판|board",
     "tag|중고거래|trade",
-    "grid|부서별 게시판|department",
-    "personAdd|신규 캐스트 Q&A|new",
+    "personAdd|신규 게시판|new",
   ],
   ["소통", "messages|채팅·쪽지|messages"],
   ["생활", "food|식당 메뉴|menu", "calendar|가게 예약|booking"],
@@ -82,7 +81,7 @@ function nav() {
       .slice(1)
       .map((i) => {
         const [icon, label, id] = i.split("|");
-        if (id === "board") return `<button class="nav-item ${state.page === "board" ? "active" : ""}" type="button" data-board-toggle aria-expanded="${boardMenuOpen}" aria-controls="boardSubnav"><span class="nav-icon">${iosIcon(icon)}</span>${label}<span class="nav-chevron">${boardMenuOpen ? "⌃" : "⌄"}</span></button><div id="boardSubnav" class="board-subnav" ${boardMenuOpen ? "" : "hidden"}>${[["popular","인기 게시판"],["free","자유게시판"],["trade","중고 거래"],["department","부서별 게시판"],["question","신규 캐스트 Q&A"],["praise","칭찬 게시판"],["missing","미아 게시판"],["lost","분실물 게시판"]].map(([kind,text]) => `<button type="button" data-board-section="${kind}" class="${window.ParkBoards.currentKind() === kind && state.page === "board" ? "active" : ""}">${text}</button>`).join("")}</div>`;
+        if (id === "board") return `<button class="nav-item ${state.page === "board" ? "active" : ""}" type="button" data-board-toggle aria-expanded="${boardMenuOpen}" aria-controls="boardSubnav"><span class="nav-icon">${iosIcon(icon)}</span>${label}<span class="nav-chevron">${boardMenuOpen ? "⌃" : "⌄"}</span></button><div id="boardSubnav" class="board-subnav" ${boardMenuOpen ? "" : "hidden"}>${[["popular","인기 게시판"],["free","자유게시판"],["question","신규 게시판"],["trade","중고 거래"],["praise","칭찬 게시판"],["missing","미아 게시판"],["lost","분실물 게시판"]].map(([kind,text]) => `<button type="button" data-board-section="${kind}" class="${window.ParkBoards.currentKind() === kind && state.page === "board" ? "active" : ""}">${text}</button>`).join("")}</div>`;
         return `<button class="nav-item ${state.page === id ? "active" : ""}" data-nav="${id}">
 <span class="nav-icon">${iosIcon(icon)}</span>${label}</button>`;
       })
@@ -91,12 +90,20 @@ function nav() {
 }
 function bottomNav() {
   const selected = BOARD_KINDS[state.page] !== undefined ? "board" : state.page;
-  $("#castBottomNav").innerHTML = [
-    ["home", "홈"], ["board", "게시판"], ["messages", "채팅"], ["settings", "앱 설정"],
-  ].map(([id, label]) => `<button type="button" data-nav="${id}" class="cast-bottom-tab ${selected === id ? "active" : ""}" ${selected === id ? 'aria-current="page"' : ""}>${iosIcon(id)}<span>${label}</span></button>`).join("");
+  const el = $("#castBottomNav");
+  if (!el) return;
+  el.style.gridTemplateColumns = "repeat(5, 1fr)";
+  el.innerHTML = [
+    ["home", "home", "홈"],
+    ["board", "board", "게시판"],
+    ["messages", "messages", "채팅"],
+    ["ai", "sparkles", "AI 도우미"],
+    ["settings", "settings", "앱 설정"],
+  ].map(([id, icon, label]) => `<button type="button" data-nav="${id}" class="cast-bottom-tab ${selected === id ? "active" : ""}" ${selected === id ? 'aria-current="page"' : ""}>${iosIcon(icon)}<span>${label}</span></button>`).join("");
 }
-function head(title, sub, action = "") {
-  return `<div class="page-head">
+function head(title, sub, action = "", backTo = "") {
+  const back = backTo ? `<button type="button" class="pv-back" data-nav="${backTo}" aria-label="뒤로가기">${iosIcon("back")} 뒤로</button>` : "";
+  return `${back}<div class="page-head">
 <div>
 <h1>${title}</h1>
 <p>${sub}</p>
@@ -116,13 +123,13 @@ function restoreTopbar() {
   const t = document.querySelector('.topbar');
   if (t && _defaultTopbarHTML) { t.innerHTML = _defaultTopbarHTML; refreshProfile(); }
 }
-const BOARD_LABELS = { board: "게시판", free: "자유게시판", trade: "중고 거래", department: "부서별 게시판", new: "신규 Q&A", qa: "Q&A", praise: "칭찬 게시판", missing: "미아 게시판", lost: "분실물 게시판" };
-const _homeBtn = () => `<button class="icon-btn" data-nav="home" aria-label="홈으로">${iosIcon("home")}</button>`;
+const BOARD_LABELS = { board: "게시판", free: "자유게시판", trade: "중고 거래", new: "신규 게시판", qa: "신규 게시판", praise: "칭찬 게시판", missing: "미아 게시판", lost: "분실물 게시판" };
+const _backBtn = () => `<button class="icon-btn" data-nav="home" aria-label="뒤로가기">${iosIcon("back")}</button>`;
 function boardTopbar() {
   const title = BOARD_LABELS[state.page] || "게시판";
   setPageTopbar(title, '',
     `<button class="icon-btn" id="searchToggleBtn" aria-label="검색">${iosIcon("search")}</button><button class="icon-btn" data-pb-write aria-label="글쓰기">${iosIcon("compose")}</button>`,
-    _homeBtn());
+    _backBtn());
 }
 window.ParkTopbar = { set: setPageTopbar, board: boardTopbar };
 
@@ -131,7 +138,6 @@ function sideCards() {
   return `<div class="stack right-col">
 <section class="card padded menu-card">
 <span class="eyebrow">오늘의 식당 메뉴</span>
-<div class="menu-food">${iosIcon("meal")}</div>
 ${todayMenuPreview()}
 <button class="outline" style="margin-top:12px" data-nav="menu">자세히 보기</button>
 </section>
@@ -185,12 +191,12 @@ function searchPage() {
   </div>`;
 }
 // 게시판 페이지id → boards.js의 게시판 종류. board는 마지막으로 보던 게시판을 그대로 연다.
-const BOARD_KINDS = { board: null, free: "free", trade: "trade", department: "department", new: "question", qa: "question", praise: "praise", missing: "missing", lost: "lost" };
+const BOARD_KINDS = { board: null, free: "free", trade: "trade", new: "question", qa: "question", praise: "praise", missing: "missing", lost: "lost" };
 function board() {
   return window.ParkBoards.page("cast", BOARD_KINDS[state.page] || undefined);
 }
 function map() {
-  return window.ParkPets.render();
+  return `<button type="button" class="pv-back" data-nav="home" aria-label="뒤로가기">${iosIcon("back")} 뒤로</button>${window.ParkPets.render()}`;
 }
 function todayMenuPreview() {
   const D = window.ParkData;
@@ -207,11 +213,10 @@ function menu() {
   const label = date === D.todayKey() ? "오늘" : date === D.shiftDate(D.todayKey(), 1) ? "내일" : date === D.shiftDate(D.todayKey(), -1) ? "어제" : "";
   const day = ["일", "월", "화", "수", "목", "금", "토"][new Date(`${date}T00:00:00Z`).getUTCDay()];
   return (
-    head("식당 메뉴", "관리자가 등록한 날짜별 캐스트 식당 메뉴예요.") +
+    head("식당 메뉴", "관리자가 등록한 날짜별 캐스트 식당 메뉴예요.", "", "home") +
     `<div class="menu-date-nav"><button type="button" class="outline" data-menu-shift="-1" aria-label="이전 날짜">‹</button><strong>${date.slice(5).replace("-", "월 ")}일 (${day})${label ? ` · ${label}` : ""}</strong><button type="button" class="outline" data-menu-shift="1" aria-label="다음 날짜">›</button></div>
 ${list.length ? restaurants.map((name) => `<section class="card padded menu-day-card">
-<h2 style="font-size:17px">${esc(name)}</h2>
-${list.filter((m) => m.restaurant === name).map((m) => `<div class="menu-meal"><span class="pill">${esc(m.meal)}</span><p>${m.items.map(esc).join(" · ")}</p></div>`).join("")}
+<h2 style="font-size:17px">${esc(name)}</h2>${list.filter((m) => m.restaurant === name).map((m) => `<div class="menu-meal"><span class="pill">${esc(m.meal)}</span><p>${m.items.map(esc).join(" · ")}</p></div>`).join("")}
 </section>`).join("") : `<section class="card padded">
 <h2 style="font-size:17px">등록된 메뉴가 없어요</h2>
 <p class="muted">관리자가 이 날짜의 식단표를 등록하면 식당별로 표시됩니다. 캐스트 식당 식단은 공개 API가 없어 관리자가 직접 입력해요.</p>
@@ -221,21 +226,20 @@ ${list.filter((m) => m.restaurant === name).map((m) => `<div class="menu-meal"><
 function booking() {
   const stores = window.ParkData?.stores || [];
   return (
-    head("가게 예약", "에버랜드 주변 가게와 캐스트 제휴 혜택") +
+    head("가게 예약", "에버랜드 주변 가게와 캐스트 제휴 혜택", "", "home") +
     `<p class="note">공개 자료로 모은 주변 가게입니다. 캐스트 제휴 여부와 할인 내용은 관리자가 가게와 확인한 뒤 표시돼요.</p>
 <div class="store-list">${stores.map((store) => `<section class="card padded store-card">
 <div class="store-card__top"><span class="pill">${esc(store.category)}</span><span class="store-badge ${store.partner ? "store-badge--on" : ""}">${store.partner ? "캐스트 제휴" : "제휴 확인 전"}</span></div>
 <h3>${esc(store.name)}</h3>
 <p class="muted">${esc(store.address)}</p>
-<p class="store-note">${esc(store.note)}</p>
-${store.partner && store.benefit ? `<p class="store-benefit">${esc(store.benefit)}</p>` : ""}
+<p class="store-note">${esc(store.note)}</p>${store.partner && store.benefit ? `<p class="store-benefit">${esc(store.benefit)}</p>` : ""}
 <div class="store-actions">${store.phone ? `<a class="outline" href="tel:${esc(store.phone.replace(/[^0-9]/g, ""))}">전화 예약</a>` : ""}<a class="outline" href="https://map.naver.com/p/search/${encodeURIComponent(store.name)}" target="_blank" rel="noopener">지도 보기</a></div>
 </section>`).join("")}</div>`
   );
 }
 function ai() {
   const prompts = ["오늘 식당 메뉴 알려줘", "반려동물 데려와도 돼?", "주차장 꽉 차면 어디로 가?", "근처 제휴 가게 있어?"];
-  return head("AI 생활 도우미", "캐스트 생활에 관해 질문해 보세요.") + `<section class="card padded chat-card">
+  return head("AI 생활 도우미", "캐스트 생활에 관해 질문해 보세요.", "", "home") + `<section class="card padded chat-card">
     <p class="note">파크톡 FAQ, 에버랜드 공식 안내(FAQ·이용 안내·교통), 주변 가게, 게시판 글을 바탕으로 AI가 답해요. 가져온 내용은 출처를 함께 보여주고, 누르면 원래 글이나 공식 페이지로 이동해요.</p>
     <div class="chat-messages" aria-label="도우미 대화" aria-live="polite"><p class="chat-bubble chat-bubble--other">안녕하세요! 식단, 캐스트 인증, 주변 가게, 앱 사용법을 물어보세요.</p>${assistantTurns.map((turn) => `<p class="chat-bubble chat-bubble--me">${esc(turn.question)}</p><p class="chat-bubble chat-bubble--other ${turn.pending ? "chat-bubble--pending" : ""}">${esc(turn.answer)}${turn.pending ? "" : sourceLine(turn)}</p>`).join("")}</div>
     <div class="chat-prompts">${prompts.map((prompt) => `<button type="button" class="outline" data-ai-prompt="${esc(prompt)}">${esc(prompt)}</button>`).join("")}</div>
@@ -303,7 +307,7 @@ function messages() {
 }
 function settings() {
   const me = account();
-  return head("앱 설정", "내 이용 정보를 확인하고 모드를 변경해요.") +
+  return head("앱 설정", "내 이용 정보를 확인하고 모드를 변경해요.", "", "home") +
     `<section class="card padded settings-card"><button type="button" class="settings-profile profile-edit-row" data-profile-edit><span class="mini-avatar">${window.ParkProfiles.avatar(window.ParkAuth?.id?.(), me.name)}</span><div><strong>${esc(me.name)}</strong><small>캐스트 모드 · ${me.type}</small></div><span class="profile-edit-hint">수정 ›</span></button>
       <div class="settings-row"><span>이용 모드</span><strong>캐스트</strong></div>
       <div class="settings-row"><span>계정 유형</span><strong>${me.type}</strong></div>
@@ -321,7 +325,7 @@ const pages = {
   menu: { render: menu, title: "식당 메뉴" },
   booking: { render: booking, title: "가게 예약" },
   ai: { render: ai, title: "AI 생활 도우미" },
-  messages: { render: messages, title: "채팅", mount() { setPageTopbar("채팅", '', '', _homeBtn()); }, unmount: restoreTopbar },
+  messages: { render: messages, title: "채팅", mount() { setPageTopbar("채팅", '', '', _backBtn()); }, unmount: restoreTopbar },
   settings: { render: settings, title: "앱 설정" },
   search: {
     render: searchPage,
@@ -346,6 +350,9 @@ function render() {
 function go(page) {
   window.ParkBoards.leaveDetail();
   if (window.ParkAuth && window.ParkAuth.role() !== "cast") return toast("캐스트 모드에서 이용해 주세요.");
+  if (page === "new" || page === "qa") {
+    window.ParkBoards?.selectKind?.("question");
+  }
   state.page = pages[page] ? page : "home";
   if (state.page === "map") window.ParkPets.enter();
   $(".sidebar").classList.remove("open");

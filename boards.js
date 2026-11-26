@@ -5,16 +5,16 @@
     popular: '인기',
     free: '자유',
     trade: '중고 거래',
-    question: '질문',
+    question: '신규',
     praise: '칭찬',
     missing: '미아',
     lost: '분실물',
-    department: '부서별',
   };
   const shared = ['missing', 'lost'];
-  const castTabs = ['popular', 'free', 'department', 'trade', 'missing', 'lost'];
-  const castWriteTabs = ['free', 'trade', 'lost', 'department'];
-  const visitorWriteTabs = ['praise', 'missing', 'lost'];
+  const castTabs = ['popular', 'free', 'question', 'trade', 'missing', 'lost'];
+  const castWriteTabs = ['free', 'trade', 'lost', 'question'];
+  const visitorWriteTabs = ['missing', 'lost'];
+
   const ZONES = [
     '정문 · 글로벌페어',
     '주토피아',
@@ -76,11 +76,14 @@
   const authorName = (post) => window.ParkProfiles?.name(post.authorId, post.author) || post.author;
 
   let data = read(KEY, null);
+  if (Array.isArray(data)) {
+    data = data.map((p) => (p.kind === 'department' ? { ...p, kind: 'question' } : p));
+  }
   if (!Array.isArray(data)) {
     const kinds = {
       자유게시판: 'free',
       중고거래: 'trade',
-      '부서별 게시판': 'department',
+      '부서별 게시판': 'question',
       '신규 캐스트': 'question',
       'Q&A': 'question',
     };
@@ -359,7 +362,6 @@
         <button type="button" class="pb-more" data-pb-more>더보기 ›</button>
       </div>
       <nav class="cast-board-chips pb-home-tabs" aria-label="홈 게시판 종류">${castTabs
-        .filter((k) => k !== 'department')
         .map(
           (k) =>
             `<button type="button" data-pb-home-kind="${k}" class="${k === homeKind ? 'active' : ''}" aria-pressed="${
