@@ -550,6 +550,10 @@
 .pv-form-card input::placeholder {
   color: #abb1bd;
 }
+.pv-size-row { display: flex; align-items: center; gap: 10px; }
+.pv-size-row input { flex: 1; }
+.pv-size-badge { flex: none; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; background: #e9f5ee; color: #2d7a4f; }
+.pv-size-badge.pv-size-paid { background: #fff0f0; color: #c0392b; }
 .pv-field-hint {
   font-size: 10px;
   color: #9da3b1;

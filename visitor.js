@@ -212,15 +212,40 @@ ${rightIcons}
   }
   function create() {
     return `<div class="pv-content pv-form-page">
-      ${title("그룹 만들기 · 01", "그룹 이름<br>설정하기", "초대 코드로 같은 그룹에 참여할 수 있어요.")}
+      ${title("그룹 만들기", "그룹 이름 설정하기", "초대 코드로 같은 그룹에 참여할 수 있어요.")}
       <form id="pv-create-form" class="pv-card pv-form-card">
 <label for="pv-group-name">그룹 이름</label>
 <input id="pv-group-name" name="groupName" type="text" maxlength="24" minlength="2" autocomplete="off" placeholder="예: 우리 가족, 대학 동기" required>
 <p class="pv-field-hint">2~24자로 입력해 주세요.</p>
-<p class="pv-field-hint">그룹은 오늘 밤 12시에 자동 종료됩니다.</p>
+<label for="pv-group-size">인원수</label>
+<div class="pv-size-row">
+<input id="pv-group-size" name="memberCount" type="number" min="1" max="999" value="2" required>
+<span class="pv-size-badge" id="pv-size-badge">무료</span>
+</div>
+<p class="pv-field-hint" id="pv-size-hint">10명까지 무료로 이용할 수 있어요.</p>
 <button class="pv-button" type="submit">그룹 만들기 ${icon("arrow")}</button>
 </form>
-    </div>`;
+    </div>
+    <script>
+    (function(){
+      var input = document.getElementById('pv-group-size');
+      var badge = document.getElementById('pv-size-badge');
+      var hint = document.getElementById('pv-size-hint');
+      if(!input) return;
+      input.addEventListener('input', function(){
+        var n = parseInt(input.value) || 1;
+        if(n > 10){
+          badge.textContent = '유료';
+          badge.className = 'pv-size-badge pv-size-paid';
+          hint.textContent = '11명 이상은 유료 기능입니다. 그룹 만들기 시 구매 화면으로 이동합니다.';
+        } else {
+          badge.textContent = '무료';
+          badge.className = 'pv-size-badge';
+          hint.textContent = '10명까지 무료로 이용할 수 있어요.';
+        }
+      });
+    })();
+    </script>`;
   }
   function join() {
     const code = sessionStorage.getItem(INVITE) || "";
@@ -929,11 +954,15 @@ ${group.consent
       setView("route");
     } else if (event.target.id === "pv-create-form") {
       event.preventDefault();
-      const name = String(
-        new FormData(event.target).get("groupName") || "",
-      ).trim();
+      const fd = new FormData(event.target);
+      const name = String(fd.get("groupName") || "").trim();
+      const memberCount = parseInt(fd.get("memberCount") || "2");
       if (name.length < 2 || name.length > 24)
         return toast("그룹 이름을 2~24자로 입력해 주세요.");
+      if (memberCount > 10) {
+        const ok = window.confirm(`11명 이상 그룹은 유료 기능입니다.\n\n현재 버전에서는 구매 기능이 준비 중이에요.\n무료 범위(10명)로 그룹을 만드시겠어요?`);
+        if (!ok) return;
+      }
       group = {
         name,
         code: makeCode(),
