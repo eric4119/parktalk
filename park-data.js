@@ -97,7 +97,7 @@
   // 현재 앱이 쓰는 데이터. 서버(관리자가 저장한 내용)를 불러오면 apply()로 덮어쓴다.
   const clone = (value) => JSON.parse(JSON.stringify(value));
   const defaults = { faq: clone(faq), stores: clone(stores), menus: [] };
-  const data = { faq, stores, menus: [], officialDisabled: [], menuSource, updatedAt: null };
+  const data = { faq, stores, menus: [], restaurants: [], officialDisabled: [], menuSource, updatedAt: null };
 
   const MEALS = ["조식", "중식", "석식", "간식"];
   const text = (value, max) => String(value ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, max);
@@ -138,24 +138,39 @@
       result.officialDisabled = [...new Set(list(input.officialDisabled, 30, 30))];
     }
     if (Array.isArray(input.menus)) {
-      result.menus = input.menus.slice(0, 400).map((item, i) => ({
+      result.menus = input.menus.slice(0, 600).map((item, i) => ({
         id: safeId(item?.id, "menu", i),
         date: /^\d{4}-\d{2}-\d{2}$/.test(String(item?.date || "")) ? String(item.date) : "",
         restaurant: text(item?.restaurant, 40),
         meal: MEALS.includes(item?.meal) ? item.meal : "중식",
-        items: list(item?.items, 15, 40),
+        course: text(item?.course, 20), // 코너: 한식·누들·인터·테이크아웃 등
+        kcal: text(item?.kcal, 40),
+        plus: text(item?.plus, 100), // 추가 제공(Plus) 메뉴
+        items: list(item?.items, 20, 100),
       })).filter((item) => item.date && item.restaurant && item.items.length)
         .sort((a, b) => a.date.localeCompare(b.date) || MEALS.indexOf(a.meal) - MEALS.indexOf(b.meal) || a.restaurant.localeCompare(b.restaurant));
+    }
+    if (Array.isArray(input.restaurants)) {
+      // 식당별 운영시간·안내 문구(원산지·알레르기 등)
+      result.restaurants = input.restaurants.slice(0, 10).map((item) => ({
+        name: text(item?.name, 40),
+        hours: list(item?.hours, 6, 120),
+        notes: (Array.isArray(item?.notes) ? item.notes : []).map((note) => longText(note, 700)).filter(Boolean).slice(0, 8),
+      })).filter((item) => item.name);
     }
     return result;
   }
 
   // 관리자가 저장한 값이 있으면 그것을, 없으면 기본값을 쓴다.
-  function merge(saved = {}) {
+  // seed: 저장소에 함께 올라가는 기본 식단(cast-menu.json). 관리자가 저장한 식단이 있으면 그걸 쓴다.
+  function merge(saved = {}, seed = {}) {
     return {
       faq: saved.faq || clone(defaults.faq),
       stores: saved.stores || clone(defaults.stores),
-      menus: saved.menus || [],
+      // 기본 식단(cast-menu.json)과 관리자가 저장한 식단을 합친다. 같은 식당·같은 날짜는 관리자가 저장한 쪽을 쓴다.
+      menus: mergeMenus(seed.menus || [], saved.menus || [])
+        .sort((a, b) => a.date.localeCompare(b.date) || MEALS.indexOf(a.meal) - MEALS.indexOf(b.meal) || a.restaurant.localeCompare(b.restaurant)),
+      restaurants: (saved.restaurants || []).reduce((list, item) => mergeRestaurants(list, item), seed.restaurants || []),
       officialDisabled: saved.officialDisabled || [],
       updatedAt: saved.updatedAt || null,
     };
@@ -166,21 +181,93 @@
     data.faq = clean.faq || clone(defaults.faq);
     data.stores = clean.stores || clone(defaults.stores);
     data.menus = clean.menus || [];
+    data.restaurants = clean.restaurants || [];
     data.officialDisabled = clean.officialDisabled || [];
     data.updatedAt = remote.updatedAt || null;
     return data;
   }
 
-  // 브라우저에서 서버 데이터를 불러온다. 실패하면 기본값 그대로 쓴다.
+  // 브라우저에서 서버 데이터를 불러온다.
+  // Cloudflare Pages 배포에서는 /api/park-data가 빈 객체 {}만 돌려주므로, 식단이 없으면 기본 식단 파일(cast-menu.json)을 채운다.
   async function load() {
+    let remote = null;
     try {
       const response = await fetch("api/park-data", { cache: "no-store" });
-      if (!response.ok) return false;
-      apply(await response.json());
-      return true;
-    } catch {
-      return false;
+      if (response.ok && (response.headers.get("content-type") || "").includes("json")) remote = await response.json();
+    } catch { /* 서버 없음 */ }
+    remote = remote && typeof remote === "object" ? remote : {};
+    if (!Array.isArray(remote.menus) || !remote.menus.length) {
+      try {
+        const response = await fetch("cast-menu.json");
+        if (response.ok) {
+          const seed = await response.json();
+          remote = { ...remote, menus: seed.menus, restaurants: remote.restaurants || seed.restaurants };
+        }
+      } catch { /* 기본 식단도 없으면 빈 식단 */ }
     }
+    apply(remote);
+    return true;
+  }
+
+  // ---- 사원식당 식단표(웰스토리 주간 식단표 텍스트) 읽기 ----
+  // 날짜 줄 "11/16 (월)", 코너 줄 "중식 한식 (842kcal)", 그 아래 메뉴 줄, "Plus: ..." 줄, 맨 아래 안내 문구를 읽는다.
+  function guessYear(month, day, today = new Date()) {
+    const base = new Date(`${todayKey(today)}T00:00:00Z`);
+    const year = base.getUTCFullYear();
+    return [year - 1, year, year + 1]
+      .map((y) => ({ y, diff: Math.abs(Date.UTC(y, month - 1, day) - base.getTime()) }))
+      .sort((a, b) => a.diff - b.diff)[0].y;
+  }
+  function parseCastMenu(raw, options = {}) {
+    const lines = String(raw || "").split(/\r?\n/).map((line) => line.trim());
+    const titleLine = lines.find((line) => /식단/.test(line) && /식당/.test(line)) || "";
+    const restaurant = text(options.restaurant || titleLine.replace(/주간\s*식단표.*$/, "").replace(/식단표.*$/, ""), 40) || "사원식당";
+    const hours = lines.filter((line) => /^\[(조식|중식|석식)\]/.test(line)).map((line) => line.replace(/^\[(조식|중식|석식)\]\s*/, "$1 "));
+    const menus = [];
+    const notes = [];
+    let date = "", current = null, inNotes = false;
+    const flush = () => { if (current && current.items.length) menus.push(current); current = null; };
+    for (const line of lines) {
+      if (!line) continue;
+      if (/^안내 문구/.test(line)) { flush(); inNotes = true; continue; }
+      if (inNotes) { notes.push(line); continue; }
+      const day = line.match(/^(\d{1,2})\/(\d{1,2})\s*\(([월화수목금토일])\)/);
+      if (day) {
+        flush();
+        const month = Number(day[1]), dd = Number(day[2]);
+        const year = options.year || guessYear(month, dd, options.today);
+        date = `${year}-${String(month).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
+        continue;
+      }
+      const course = line.match(/^(조식|중식|석식)\s+(.+?)\s*(?:\(([^)]*)\))?\s*$/);
+      if (course && date) {
+        flush();
+        current = { date, restaurant, meal: course[1], course: course[2].trim(), kcal: (course[3] || "").replace(/\/kcal/g, "kcal"), plus: "", items: [] };
+        continue;
+      }
+      if (!current) continue;
+      const plus = line.match(/^plus\s*[:：]\s*(.+)$/i);
+      if (plus) { current.plus = plus[1].trim(); continue; }
+      current.items.push(line);
+    }
+    flush();
+    // 안내 문구는 "제목:" 줄과 그 아래 문단을 한 항목으로 묶는다.
+    const grouped = [];
+    for (const note of notes) {
+      if (grouped.length && /[:：]$/.test(grouped[grouped.length - 1])) grouped[grouped.length - 1] += ` ${note}`;
+      else grouped.push(note);
+    }
+    const clean = sanitizeAdminData({ menus: menus.map((menu, i) => ({ ...menu, id: `menu-${menu.date}-${i}` })), restaurants: [{ name: restaurant, hours, notes: grouped }] });
+    return { restaurant: clean.restaurants[0], menus: clean.menus, dates: [...new Set(clean.menus.map((m) => m.date))] };
+  }
+  // 새 식단표를 기존 식단에 합친다. 같은 식당·같은 날짜는 새 식단으로 바꾼다.
+  function mergeMenus(existing = [], incoming = []) {
+    const replaced = new Set(incoming.map((m) => `${m.restaurant}|${m.date}`));
+    return [...existing.filter((m) => !replaced.has(`${m.restaurant}|${m.date}`)), ...incoming];
+  }
+  function mergeRestaurants(existing = [], incoming) {
+    if (!incoming) return existing;
+    return [...existing.filter((r) => r.name !== incoming.name), incoming];
   }
 
   // 날짜는 한국 시간 기준 YYYY-MM-DD.
@@ -220,11 +307,15 @@
 
   // ---- 에버랜드 공식 안내 검색 ----
   const PARTICLES = /(으로|에서|에게|한테|까지|부터|이랑|하고|이에요|예요|은|는|이|가|을|를|에|의|도|로|와|과|요|야|나|좀|면|해|돼)$/;
-  const GENERIC = new Set(["어떻게", "어디", "어디서", "뭐야", "무엇", "알려줘", "알려주세요", "궁금", "궁금해", "있어", "있나", "있나요", "있어요", "하나요", "해요", "되나요", "어떤", "누가", "언제", "왜", "에버랜드", "가능", "가능한가", "가능한가요", "수", "있는", "하는"]);
+  const GENERIC = new Set(["어떻게", "어디", "어디서", "뭐야", "무엇", "알려줘", "알려주세요", "궁금", "궁금해", "있어", "있나", "있나요", "있어요", "하나요", "해요", "되나요", "어떤", "누가", "언제", "왜", "에버랜드", "가능", "가능한가", "가능한가요", "수", "있는", "하는", "파는", "팔아", "파는곳", "판매", "위치", "보고", "먹고", "가고", "싶어", "싶은데", "싶다", "보고싶어", "먹고싶어", "가고싶어", "찾아", "찾고", "있는지", "있는곳", "근처"]);
   function stems(textValue) {
     return [...new Set(String(textValue || "").toLowerCase().split(/[^0-9a-z가-힣]+/).map((word) => {
       let stem = word;
-      for (let i = 0; i < 2; i++) stem = stem.replace(PARTICLES, "");
+      for (let i = 0; i < 2; i++) {
+        const next = stem.replace(PARTICLES, "");
+        if (next.length < 2) break; // '라면'→'라'처럼 단어가 망가지면 조사를 떼지 않는다
+        stem = next;
+      }
       return stem;
     }).filter((stem) => stem.length >= 2 && !GENERIC.has(stem)))];
   }
@@ -334,5 +425,5 @@
     return { answer: "아직 준비된 답변이 없어요. 관리자에게 문의해 주시면 FAQ에 추가할게요.", source: "faq", faqId: null, sources: [] };
   }
 
-  return Object.assign(data, { defaults, MEALS, sanitizeAdminData, merge, apply, load, todayKey, shiftDate, menusFor, searchFaq, searchOfficial, officialSource, localAnswer });
+  return Object.assign(data, { defaults, MEALS, sanitizeAdminData, merge, apply, load, todayKey, shiftDate, menusFor, parseCastMenu, mergeMenus, mergeRestaurants, searchFaq, searchOfficial, officialSource, localAnswer, text: { stems, expand, compact, bigrams } });
 });
