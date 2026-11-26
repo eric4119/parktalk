@@ -128,13 +128,16 @@
     const SECTION_TITLES = { board: "게시판", group: "일행", create: "일행", join: "일행", map: "지도", explore: "검색", route: "검색", profile: "앱 설정" };
     const BACK_TARGETS = { create: "group", join: "group" };
     const sectionTitle = SECTION_TITLES[view];
-    const writeBtn = view === "board" ? `<button type="button" class="icon-btn" data-pb-write title="글쓰기" aria-label="글쓰기">
+    const searchIcon = `<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>`;
+    const rightIcons = view === "board"
+      ? `<div class="pv-header-right">
+<button type="button" class="icon-btn" data-pv-view="explore" title="검색" aria-label="검색">${searchIcon}</button>
+<button type="button" class="icon-btn" data-pb-write title="글쓰기" aria-label="글쓰기">
 <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-</button>` : '';
-    const rightIcons = `<div class="pv-header-right">
-${writeBtn}<button type="button" class="icon-btn" data-pv-view="explore" title="검색" aria-label="검색">
-<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
 </button>
+</div>`
+      : `<div class="pv-header-right">
+<button type="button" class="icon-btn" data-pv-view="explore" title="검색" aria-label="검색">${searchIcon}</button>
 <button type="button" class="icon-btn" data-pv-action="notices" title="알림" aria-label="알림 보기">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"/><path d="M10 21h4"/></svg>
 </button>
