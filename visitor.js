@@ -212,7 +212,7 @@ ${rightIcons}
   }
   function create() {
     return `<div class="pv-content pv-form-page">
-      ${title("그룹 만들기 · 01", "오늘 함께할<br>일행의 이름을 지어주세요", "초대 코드로 같은 그룹에 참여할 수 있어요.")}
+      ${title("그룹 만들기 · 01", "그룹 이름<br>설정하기", "초대 코드로 같은 그룹에 참여할 수 있어요.")}
       <form id="pv-create-form" class="pv-card pv-form-card">
 <label for="pv-group-name">그룹 이름</label>
 <input id="pv-group-name" name="groupName" type="text" maxlength="24" minlength="2" autocomplete="off" placeholder="예: 우리 가족, 대학 동기" required>
