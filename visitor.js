@@ -390,7 +390,14 @@ ${rightIcons}
       }
       return `
 <div class="pv-sheet-members">
-${members.map((member, i) => `<div class="pv-member-row"><span class="pv-member-avatar pv-member-${i % 4}">${escapeHtml(member.slice(0, 1))}</span><div><strong>${escapeHtml(member)}${i === 0 ? " (나)" : ""}</strong><small>${i === 0 ? gps ? "위치 확인됨" : group.consent ? "동의됨 · 확인 전" : "꺼짐" : "시연"}</small></div></div>`).join("")}
+${members.map((member, i) => {
+  const isMe = member === userName;
+  const hasLoc = memberLocations[member]?.lat;
+  const status = isMe
+    ? (gps ? "위치 확인됨" : group.consent ? "동의됨 · 확인 전" : "꺼짐")
+    : (hasLoc ? "위치 확인됨" : "위치 없음");
+  return `<div class="pv-member-row"><span class="pv-member-avatar pv-member-${i % 4}">${escapeHtml(member.slice(0, 1))}</span><div><strong>${escapeHtml(member)}${isMe ? " (나)" : ""}</strong><small>${status}</small></div></div>`;
+}).join("")}
 </div>
 <div class="pv-sheet-actions">
 ${closestPoint ? `<div class="pv-midpoint-row"><strong>📍 ${escapeHtml(closestPoint.name)}</strong><span>가장 가까운 집합장소</span></div>` : ""}

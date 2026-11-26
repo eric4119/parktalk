@@ -140,6 +140,57 @@ function splitUsed(raw, candidates) {
   return { answer, usedPostIds: [...new Set(usedPostIds)] };
 }
 
+// ---- AI 집합장소 추천 (/api/meeting-point) — Cloudflare Pages Function 로컬 미러 ----
+const MEETING_BOUNDS = { latMin: 37.288, latMax: 37.302, lngMin: 127.195, lngMax: 127.210 };
+const MEETING_FALLBACK = [
+  { name: '정문 광장',           lat: 37.2933, lng: 127.2013 },
+  { name: '글로벌페어 광장',     lat: 37.2940, lng: 127.2022 },
+  { name: '아메리칸어드벤처 광장', lat: 37.2950, lng: 127.1995 },
+  { name: '매직랜드 광장',        lat: 37.2965, lng: 127.2010 },
+  { name: '주토피아 사파리',      lat: 37.2978, lng: 127.2050 },
+];
+function meetingInBounds(lat, lng) {
+  return lat >= MEETING_BOUNDS.latMin && lat <= MEETING_BOUNDS.latMax
+      && lng >= MEETING_BOUNDS.lngMin && lng <= MEETING_BOUNDS.lngMax;
+}
+function meetingFallback(members) {
+  if (!members.length) return MEETING_FALLBACK[0];
+  const cx = members.reduce((s, m) => s + m.lat, 0) / members.length;
+  const cy = members.reduce((s, m) => s + m.lng, 0) / members.length;
+  return MEETING_FALLBACK.reduce((best, p) => {
+    const d = (p.lat - cx) ** 2 + (p.lng - cy) ** 2;
+    const bd = (best.lat - cx) ** 2 + (best.lng - cy) ** 2;
+    return d < bd ? p : best;
+  });
+}
+async function handleMeetingPoint(request, response) {
+  if (request.method !== "POST") return sendJson(response, 405, { error: "POST only" });
+  if (!AI.key) return sendJson(response, 503, { error: "AI 키가 설정되지 않았어요." });
+  if (rateLimited(request.socket.remoteAddress || "local")) return sendJson(response, 429, { error: "잠시 후 다시 시도해 주세요." });
+  let payload;
+  try { payload = JSON.parse(await readBody(request)); }
+  catch { return sendJson(response, 400, { error: "잘못된 요청이에요." }); }
+  const members = (payload.members || []).slice(0, 20);
+  const memberDesc = members.length
+    ? members.map((m) => `- ${m.name}: 위도 ${Number(m.lat).toFixed(5)}, 경도 ${Number(m.lng).toFixed(5)}`).join("\n")
+    : "(위치 정보 없음)";
+  const prompt = `에버랜드(경기도 용인시) 내 일행 집합장소를 AI가 자유롭게 추천해 주세요.\n\n[일행 현재 위치]\n${memberDesc}\n\n에버랜드 주요 구역:\n- 글로벌페어: 위도 37.2940, 경도 127.2022 부근\n- 아메리칸어드벤처: 위도 37.2950, 경도 127.1995 부근\n- 매직랜드: 위도 37.2965, 경도 127.2010 부근\n- 주토피아: 위도 37.2978, 경도 127.2050 부근\n- 정문 광장: 위도 37.2933, 경도 127.2013\n\n위 일행들이 모두 모이기 가장 적합한 에버랜드 내 장소를 추천하세요. 광장, 어트랙션 앞, 푸드코트, 화장실 앞 등 구체적인 장소를 자유롭게 선택해도 됩니다.\n아래 JSON만 출력하고 다른 텍스트는 절대 출력하지 마세요.\n{"name":"<장소 이름, 15자 이내>","lat":<위도, 소수점 4자리>,"lng":<경도, 소수점 4자리>,"reason":"<한 문장 이유, 25자 이내>"}`;
+  try {
+    const raw = await callModel("", [{ role: "user", content: prompt }]);
+    const match = raw.match(/\{[\s\S]*?\}/);
+    if (!match) throw new Error("JSON 없음");
+    const data = JSON.parse(match[0]);
+    const lat = parseFloat(data.lat);
+    const lng = parseFloat(data.lng);
+    if (!meetingInBounds(lat, lng)) throw new Error("경계 밖 좌표");
+    const point = { id: "ai", name: String(data.name || "AI 추천 집합장소").slice(0, 20), lat, lng };
+    return sendJson(response, 200, { point, reason: String(data.reason || "일행 중간 위치예요.").slice(0, 40) });
+  } catch {
+    const point = meetingFallback(members);
+    return sendJson(response, 200, { point, reason: "중간 위치에서 가장 가까운 곳을 추천했어요." });
+  }
+}
+
 async function handleAssistant(request, response) {
   if (request.method !== "POST") return sendJson(response, 405, { error: "POST only" });
   if (!AI.key) return sendJson(response, 503, { error: "AI 키가 설정되지 않았어요.", fallback: true });
@@ -482,6 +533,10 @@ const server = http.createServer((request, response) => {
   const url = new URL(request.url, "http://localhost");
   if (url.pathname === "/api/assistant") {
     handleAssistant(request, response).catch(() => sendJson(response, 500, { error: "서버 오류", fallback: true }));
+    return;
+  }
+  if (url.pathname === "/api/meeting-point") {
+    handleMeetingPoint(request, response).catch(() => sendJson(response, 500, { error: "서버 오류" }));
     return;
   }
   if (url.pathname === "/api/lost-compare") {
