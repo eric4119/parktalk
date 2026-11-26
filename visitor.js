@@ -82,6 +82,7 @@
   let memberMarkerMap = {}; // name → naver.maps.Marker (실제 위치 마커)
   let fbDb = null;
   let fbGroupRef = null;
+  let fbInfoRef = null;
   let naverMapEl = null; // DOM element that naverMap is attached to
 
   // ===== 에버랜드 집합장소 후보 =====
@@ -622,10 +623,28 @@ ${group.consent
     } catch { return false; }
   }
 
+  function listenGroupInfo() {
+    if (!group?.code || !initFb()) return;
+    if (fbInfoRef) return;
+    fbInfoRef = fbDb.ref(`groups/${group.code}/info`);
+    fbInfoRef.on('value', (snap) => {
+      const info = snap.val();
+      if (!info?.members) return;
+      const changed = JSON.stringify(info.members) !== JSON.stringify(group.members || []);
+      if (changed) {
+        group.members = info.members;
+        saveGroup(group);
+        render();
+      }
+    });
+  }
+
   function connectFirebase() {
     if (!group?.code || !group?.consent) return;
     if (!initFb()) return;
     disconnectFirebase();
+
+    listenGroupInfo();
 
     fbGroupRef = fbDb.ref(`groups/${group.code}/members`);
     fbGroupRef.on('value', (snap) => {
@@ -640,6 +659,7 @@ ${group.consent
 
   function disconnectFirebase() {
     if (fbGroupRef) { fbGroupRef.off(); fbGroupRef = null; }
+    if (fbInfoRef) { fbInfoRef.off(); fbInfoRef = null; }
     memberLocations = {};
   }
 
@@ -811,6 +831,7 @@ ${group.consent
     if (enteringMap) mapSheetOpen = false;
     if (next !== view) prevView = view;
     view = next;
+    if (next === 'group' && group?.code) listenGroupInfo();
     render();
     window.scrollTo?.(0, 0);
     history.replaceState(null, "", `#visitor/${RESTORABLE.includes(view) ? view : "home"}`);
