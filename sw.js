@@ -1,4 +1,4 @@
-const CACHE = "parktalk-v48-20261126";
+const CACHE = "parktalk-v49-20261126";
 const APP_FILES = [
   "./", "./index.html", "./app.html", "./style.css",
   "./auth.css", "./visitor.css", "./theme.css", "./cast-features.css", "./fresh-ui.css",

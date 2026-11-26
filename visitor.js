@@ -397,7 +397,6 @@ ${group.consent
     })();
 
     return `<div class="pv-map-fullpage">
-<button type="button" class="pv-map-back" data-pv-view="home" aria-label="뒤로가기">${icon("back")}</button>
 <div id="pv-naver-map" class="pv-naver-map-full" aria-label="에버랜드 네이버 지도"></div>
 <div class="pv-bottom-sheet${mapSheetOpen ? " pv-sheet-open" : ""}" id="pv-map-bs">
   <button type="button" class="pv-bs-handle-wrap" data-pv-action="sheet-toggle" aria-label="정보 패널 열기/닫기">
@@ -797,11 +796,22 @@ ${group.consent
   const RESTORABLE = ["home", "board", "group", "map", "profile", "explore", "create", "join"];
   function setView(next) {
     window.ParkBoards.leaveDetail();
+    const enteringMap = next === 'map' && view !== 'map';
     if (next !== 'map') mapSheetOpen = false;
+    if (enteringMap) mapSheetOpen = false;
     view = next;
     render();
     window.scrollTo?.(0, 0);
     history.replaceState(null, "", `#visitor/${RESTORABLE.includes(view) ? view : "home"}`);
+    if (enteringMap && group) {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          mapSheetOpen = true;
+          const sheet = document.getElementById('pv-map-bs');
+          if (sheet) sheet.classList.add('pv-sheet-open');
+        }, 120);
+      });
+    }
   }
   async function copy(value) {
     try {
