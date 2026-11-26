@@ -212,7 +212,7 @@ ${rightIcons}
   }
   function create() {
     return `<div class="pv-content pv-form-page">
-      ${title("그룹 만들기", "그룹 이름 설정하기", "초대 코드로 같은 그룹에 참여할 수 있어요.")}
+      ${title("그룹 만들기", "그룹 설정하기", "초대 코드로 같은 그룹에 참여할 수 있어요.")}
       <form id="pv-create-form" class="pv-card pv-form-card">
 <label for="pv-group-name">그룹 이름</label>
 <input id="pv-group-name" name="groupName" type="text" maxlength="24" minlength="2" autocomplete="off" placeholder="예: 우리 가족, 대학 동기" required>
@@ -220,9 +220,9 @@ ${rightIcons}
 <label for="pv-group-size">인원수</label>
 <div class="pv-size-row">
 <input id="pv-group-size" name="memberCount" type="number" min="1" max="999" value="2" required>
-<span class="pv-size-badge" id="pv-size-badge">무료</span>
+<span class="pv-size-badge" id="pv-size-badge"></span>
 </div>
-<p class="pv-field-hint" id="pv-size-hint">10명까지 무료로 이용할 수 있어요.</p>
+<p class="pv-field-hint" id="pv-size-hint"></p>
 <button class="pv-button" type="submit">그룹 만들기 ${icon("arrow")}</button>
 </form>
     </div>
@@ -239,7 +239,7 @@ ${rightIcons}
           badge.className = 'pv-size-badge pv-size-paid';
           hint.textContent = '11명 이상은 유료 기능입니다. 그룹 만들기 시 구매 화면으로 이동합니다.';
         } else {
-          badge.textContent = '무료';
+          badge.textContent = '';
           badge.className = 'pv-size-badge';
           hint.textContent = '10명까지 무료로 이용할 수 있어요.';
         }
