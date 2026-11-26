@@ -260,7 +260,7 @@
 
     return `<div class="cast-board-list-head"><strong>${labels[kind]} 게시판</strong>${
       kind === 'lost' ? window.ParkLostAI?.findButton(data, actor(), isCastMode()) || '' : ''
-    }</div>${
+    }</div>${boardNotice()}${
       kind === 'popular'
         ? '<p class="pb-hint">최근 5시간 동안 받은 좋아요 순 · 동률은 최신 글 순</p>'
         : ''
@@ -327,7 +327,6 @@
         <input type="search" data-pb-search value="${escape(query)}" placeholder="제목, 내용, 물품, 구역, 작성자 검색">
       </label>
       ${mode === 'visitor' ? '<div class="pb-write-row"><button type="button" class="primary pb-write-btn" data-pb-write>＋ 글쓰기</button></div>' : ''}
-      <div id="pb-board-notice">${boardNotice()}</div>
       <div class="cast-board-list" id="pb-list">${cards(selected)}</div>
     </section>`;
   }
@@ -393,7 +392,6 @@
         button.setAttribute('aria-pressed', String(active));
       });
       root.querySelector('#pb-list').innerHTML = cards(selected);
-      root.querySelector('#pb-board-notice').innerHTML = boardNotice();
     }
     const homeRoot = visible('.pb-home');
     if (homeRoot) {

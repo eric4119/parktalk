@@ -355,7 +355,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .pb-body { white-space: pre-wrap; font-size: 15.5px; line-height: 1.8; overflow-wrap: anywhere; }
 #pb-fields { display: grid; gap: 14px; }
 #pb-compose { margin: 0; padding: 0; }
-.pb-page .pv-missing-help { margin-bottom: 18px; }
+.pb-page .pv-missing-help { margin: 14px 0 18px; }
 @media (max-width: 380px) { .pb-page .page-head h1 { font-size: 24px; } }
 
 /* Stable, horizontally scrollable board tabs. */
