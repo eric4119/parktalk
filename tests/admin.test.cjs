@@ -51,7 +51,8 @@ test('admin saves menus, partner store and FAQ; app data and AI prompt reflect t
 
   // 공개 API(앱이 읽는 값)
   const pub = await (await fetch(base + '/api/park-data')).json();
-  assert.equal(pub.menus[0].restaurant, '캐스트하우스 식당');
+  // 관리자가 저장한 식단은 기본 식단(cast-menu.json)과 함께 나온다
+  assert.ok(pub.menus.some((m) => m.date === today && m.restaurant === '캐스트하우스 식당'));
   assert.equal(pub.stores[0].partner, true);
   assert.deepEqual(pub.faq.at(-1).keywords, ['셔틀', '버스']);
   // 파일에 저장됨
@@ -68,7 +69,7 @@ test('stale save is refused instead of overwriting another admin', async () => {
   const res = await fetch(base + '/api/admin/data', json('PUT', { baseUpdatedAt: '2000-01-01T00:00:00.000Z', menus: [] }, login.token));
   assert.equal(res.status, 409);
   const pub = await (await fetch(base + '/api/park-data')).json();
-  assert.equal(pub.menus.length, 1);
+  assert.ok(pub.menus.some((m) => m.restaurant === '캐스트하우스 식당')); // 거절된 저장이 관리자 식단을 지우지 않았다
 });
 
 test('login is throttled after repeated wrong passwords', async () => {

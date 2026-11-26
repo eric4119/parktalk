@@ -3,6 +3,7 @@ const fs = require("node:fs");
 const crypto = require("node:crypto");
 const path = require("node:path");
 const ParkData = require("./park-data.js");
+const LostMatch = require("./lost-match.js");
 
 const root = __dirname;
 const port = Number(process.env.PORT || 8788);
@@ -180,6 +181,17 @@ async function handleAssistant(request, response) {
   }
 }
 
+// Gemini가 "요청이 몰려서 바쁨(503)"이라고 하면 잠깐 쉬었다가 다시 보낸다(최대 2번, 1초·2초 간격).
+// makeInit은 매번 새 요청 설정(타임아웃 포함)을 만든다.
+async function fetchWithRetry(url, makeInit, retries = 2) {
+  for (let attempt = 0; ; attempt++) {
+    const response = await fetch(url, makeInit());
+    if (response.status !== 503 || attempt >= retries) return response;
+    await response.text().catch(() => "");
+    await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+  }
+}
+
 // messages: [{ role: "user" | "assistant", content }] 형식을 각 공급자 형식으로 바꿔 호출하고 답변 텍스트만 돌려준다.
 async function callModel(system, messages) {
   return PROVIDER === "anthropic" ? callAnthropic(system, messages) : callGemini(system, messages);
@@ -187,17 +199,18 @@ async function callModel(system, messages) {
 
 async function callGemini(system, messages) {
   const url = `${AI.baseUrl}/models/${encodeURIComponent(AI.model)}:generateContent`;
-  const apiResponse = await fetch(url, {
+  const body = JSON.stringify({
+    systemInstruction: { parts: [{ text: system }] },
+    // Gemini는 assistant 대신 model이라는 역할 이름을 쓴다.
+    contents: messages.map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] })),
+    generationConfig: { maxOutputTokens: 1024, temperature: 0.3 },
+  });
+  const apiResponse = await fetchWithRetry(url, () => ({
     method: "POST",
     headers: { "content-type": "application/json", "x-goog-api-key": AI.key },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: system }] },
-      // Gemini는 assistant 대신 model이라는 역할 이름을 쓴다.
-      contents: messages.map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] })),
-      generationConfig: { maxOutputTokens: 1024, temperature: 0.3 },
-    }),
+    body,
     signal: AbortSignal.timeout(20_000),
-  });
+  }));
   if (!apiResponse.ok) throw new Error(`HTTP ${apiResponse.status} ${(await apiResponse.text()).slice(0, 300)}`);
   const result = await apiResponse.json();
   const candidate = result.candidates?.[0];
@@ -215,6 +228,135 @@ async function callAnthropic(system, messages) {
   if (!apiResponse.ok) throw new Error(`HTTP ${apiResponse.status} ${(await apiResponse.text()).slice(0, 300)}`);
   const result = await apiResponse.json();
   return (result.content || []).filter((block) => block.type === "text").map((block) => block.text).join("\n").trim();
+}
+
+// ---- 분실물 AI: 한 줄 설명·사진 → 글 양식 칸 채우기 ----
+// 미아 게시판에는 쓰지 않는다(아이 사진·개인정보를 외부 AI로 보내지 않기 위해).
+const FACILITIES = (() => {
+  try { return JSON.parse(fs.readFileSync(path.join(root, "facilities.json"), "utf8")).items || []; }
+  catch { return []; }
+})();
+const LOST_ZONE_HINTS = (() => {
+  // 구역별 대표 시설 이름(어트랙션·동물·편의시설)을 AI에 알려 줘서 "사파리 근처" 같은 말을 구역으로 바꾸게 한다.
+  const names = {};
+  for (const f of FACILITIES) {
+    if (!f.cats.some((c) => ["어트랙션", "동물", "공연·퍼레이드", "편의시설"].includes(c))) continue;
+    const zone = { "글로벌페어": "정문 · 글로벌페어" }[f.zone] || f.zone;
+    if (!LostMatch.ZONES.includes(zone)) continue;
+    (names[zone] ||= []).push(f.name);
+  }
+  return Object.entries(names).map(([zone, list]) => `- ${zone}: ${list.slice(0, 25).join(", ")}`).join("\n");
+})();
+const LOST_SYSTEM = `에버랜드 분실물 게시판의 글쓰기 도우미입니다. 사용자의 설명(과 사진)에서 물건 정보를 뽑아 JSON 하나로만 답합니다.
+필드:
+- title: 게시글 제목(30자 이내, 예: "검정 나이키 백팩 분실"). 습득물이면 "[습득] 검정 나이키 백팩"처럼 씁니다.
+- body: 물건 특징을 2~3문장으로 정리(색·브랜드·크기·무늬·들어 있던 것). 설명이나 사진에 없는 내용은 쓰지 않습니다.
+- itemCategory: 다음 중 하나 ${JSON.stringify(LostMatch.CATEGORIES)}
+- item: 물건 이름 한 단어(예: 백팩, 카드지갑, 휴대폰, 인형)
+- colors: 색 목록(예: ["검정"])  - brands: 브랜드 목록(모르면 [])
+- zone: 다음 중 하나, 모르면 "" ${JSON.stringify(LostMatch.ZONES)}
+- place: 잃어버린(주운) 장소를 짧게(예: "사파리월드 근처"). 모르면 ""
+- keywords: 찾는 데 도움이 되는 특징 단어 목록(최대 8개)
+구역 참고(시설 이름 → 구역):
+${LOST_ZONE_HINTS}
+규칙: 사진 속 사람 얼굴·이름·연락처 같은 개인정보는 적지 않습니다. 추측이 필요한 값은 비워 둡니다.
+zone과 place는 사용자가 설명 글에 장소를 적었을 때만 채우고, 사진만 보고는 장소를 짐작하지 않습니다(빈 문자열).`;
+
+async function handleLostExtract(request, response) {
+  if (request.method !== "POST") return sendJson(response, 405, { error: "POST only" });
+  let payload;
+  try { payload = JSON.parse(await readBody(request, 1_600_000)); }
+  catch { return sendJson(response, 400, { error: "사진은 1MB 이하로 올려 주세요." }); }
+  const text = String(payload.text || "").trim().slice(0, 300);
+  const found = payload.lostType === "습득물";
+  const image = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/.exec(String(payload.image || ""));
+  if (!text && !image) return sendJson(response, 400, { error: "설명을 적거나 사진을 올려 주세요." });
+  // AI 없이도 규칙으로 뽑은 값은 항상 돌려준다.
+  const rule = LostMatch.extract(text, FACILITIES);
+  const fallback = (note) => sendJson(response, 200, { source: "rule", note, tags: LostMatch.clean({ ...rule, source: "rule" }), title: "", body: "" });
+  if (!AI.key || PROVIDER !== "gemini") return fallback(image ? "AI 키가 없어 사진은 분석하지 못했어요. 설명 글로만 채웠어요." : "");
+  if (rateLimited(request.socket.remoteAddress || "local")) return fallback("요청이 많아 규칙으로만 채웠어요.");
+  try {
+    const parts = [];
+    if (image) parts.push({ inline_data: { mime_type: image[1], data: image[2] } });
+    parts.push({ text: `${found ? "캐스트가 주운 물건(습득물)" : "방문객이 잃어버린 물건(분실물)"} 설명: ${text || "(사진만 있음)"}` });
+    const body = JSON.stringify({
+      systemInstruction: { parts: [{ text: LOST_SYSTEM }] },
+      contents: [{ role: "user", parts }],
+      generationConfig: { maxOutputTokens: 600, temperature: 0.2, responseMimeType: "application/json" },
+    });
+    const apiResponse = await fetchWithRetry(`${AI.baseUrl}/models/${encodeURIComponent(AI.model)}:generateContent`, () => ({
+      method: "POST",
+      headers: { "content-type": "application/json", "x-goog-api-key": AI.key },
+      body,
+      signal: AbortSignal.timeout(25_000),
+    }));
+    if (!apiResponse.ok) throw new Error(`HTTP ${apiResponse.status} ${(await apiResponse.text()).slice(0, 200)}`);
+    const result = await apiResponse.json();
+    const raw = (result.candidates?.[0]?.content?.parts || []).map((part) => part.text || "").join("");
+    const ai = JSON.parse(raw.replace(/^```(?:json)?|```$/g, "").trim());
+    // 설명 글에 장소가 없으면(사진만 올린 경우) AI가 장소·구역을 짐작해도 버린다.
+    if (!rule.zone && !rule.place && !/근처|앞|옆|입구|출구|에서|쪽/.test(text)) { ai.zone = ""; ai.place = ""; }
+    const tags = LostMatch.clean({
+      ...ai,
+      colors: [...new Set([...(ai.colors || []), ...rule.colors])],
+      brands: [...new Set([...(ai.brands || []), ...rule.brands])],
+      zone: LostMatch.ZONES.includes(ai.zone) ? ai.zone : rule.zone,
+      place: ai.place || rule.place,
+      source: "ai",
+    });
+    return sendJson(response, 200, { source: "ai", tags, title: String(ai.title || "").slice(0, 80), body: String(ai.body || "").slice(0, 600) });
+  } catch (error) {
+    console.error("분실물 AI 실패", error.message);
+    return fallback("AI 응답을 받지 못해 규칙으로만 채웠어요.");
+  }
+}
+
+// 습득물 사진 비교: 방문객 사진 1장 + 후보 습득물 사진(최대 4장)을 함께 보내 같은 물건인지 판단한다.
+const COMPARE_SYSTEM = `에버랜드 분실물 센터 도우미입니다. 첫 번째 사진은 방문객이 잃어버린 물건, 그다음 사진들은 캐스트가 보관 중인 습득물 후보입니다.
+각 후보가 첫 번째 사진과 같은 물건인지 판단해 JSON으로만 답합니다: {"results":[{"id":"후보 id","likelihood":"high|medium|low","reason":"한 문장 근거"}]}
+- high: 색·모양·로고·부착물(키링, 스티커)·손상 같은 세부까지 일치. medium: 종류와 색은 같지만 세부를 확인하기 어려움. low: 다른 물건.
+- 근거는 사진에서 보이는 것만 씁니다. 사람 얼굴·이름·연락처 같은 개인정보는 언급하지 않습니다.`;
+async function handleLostCompare(request, response) {
+  if (request.method !== "POST") return sendJson(response, 405, { error: "POST only" });
+  if (!AI.key || PROVIDER !== "gemini") return sendJson(response, 503, { error: "AI 키가 없어 사진 비교를 할 수 없어요." });
+  if (rateLimited(request.socket.remoteAddress || "local")) return sendJson(response, 429, { error: "잠시 후 다시 시도해 주세요." });
+  let payload;
+  try { payload = JSON.parse(await readBody(request, 3_000_000)); }
+  catch { return sendJson(response, 400, { error: "사진이 너무 커요." }); }
+  const parseImage = (value) => /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/.exec(String(value || ""));
+  const mine = parseImage(payload.image);
+  const candidates = (Array.isArray(payload.candidates) ? payload.candidates : []).slice(0, 4)
+    .map((c) => ({ id: String(c?.id || "").slice(0, 40), title: String(c?.title || "").slice(0, 80), image: parseImage(c?.image) }))
+    .filter((c) => c.id && c.image);
+  if (!mine || !candidates.length) return sendJson(response, 400, { error: "비교할 사진이 없어요." });
+  const parts = [{ text: "방문객이 잃어버린 물건 사진:" }, { inline_data: { mime_type: mine[1], data: mine[2] } }];
+  for (const c of candidates) parts.push({ text: `후보 id=${c.id} (${c.title})` }, { inline_data: { mime_type: c.image[1], data: c.image[2] } });
+  try {
+    const body = JSON.stringify({
+      systemInstruction: { parts: [{ text: COMPARE_SYSTEM }] },
+      contents: [{ role: "user", parts }],
+      generationConfig: { maxOutputTokens: 600, temperature: 0.1, responseMimeType: "application/json" },
+    });
+    const apiResponse = await fetchWithRetry(`${AI.baseUrl}/models/${encodeURIComponent(AI.model)}:generateContent`, () => ({
+      method: "POST",
+      headers: { "content-type": "application/json", "x-goog-api-key": AI.key },
+      body,
+      signal: AbortSignal.timeout(30_000),
+    }));
+    if (!apiResponse.ok) throw new Error(`HTTP ${apiResponse.status} ${(await apiResponse.text()).slice(0, 200)}`);
+    const result = await apiResponse.json();
+    const raw = (result.candidates?.[0]?.content?.parts || []).map((part) => part.text || "").join("");
+    const parsed = JSON.parse(raw.replace(/^```(?:json)?|```$/g, "").trim());
+    const ids = new Set(candidates.map((c) => c.id));
+    const results = (parsed.results || [])
+      .filter((r) => ids.has(String(r.id)) && ["high", "medium", "low"].includes(r.likelihood))
+      .map((r) => ({ id: String(r.id), likelihood: r.likelihood, reason: String(r.reason || "").slice(0, 120) }));
+    return sendJson(response, 200, { results });
+  } catch (error) {
+    console.error("사진 비교 실패", error.message);
+    return sendJson(response, 502, { error: "AI 사진 비교에 실패했어요." });
+  }
 }
 
 // ---- 관리자 데이터 ----
@@ -340,6 +482,14 @@ const server = http.createServer((request, response) => {
   const url = new URL(request.url, "http://localhost");
   if (url.pathname === "/api/assistant") {
     handleAssistant(request, response).catch(() => sendJson(response, 500, { error: "서버 오류", fallback: true }));
+    return;
+  }
+  if (url.pathname === "/api/lost-compare") {
+    handleLostCompare(request, response).catch(() => sendJson(response, 500, { error: "서버 오류" }));
+    return;
+  }
+  if (url.pathname === "/api/lost-extract") {
+    handleLostExtract(request, response).catch(() => sendJson(response, 500, { error: "서버 오류" }));
     return;
   }
   if (url.pathname === "/api/park-data" && request.method === "GET") return sendJson(response, 200, currentData());
