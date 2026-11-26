@@ -905,7 +905,7 @@ ${group.consent
         break;
       case "sheet-toggle":
         mapSheetOpen = !mapSheetOpen;
-        render();
+        document.getElementById('pv-map-bs')?.classList.toggle('pv-sheet-open', mapSheetOpen);
         break;
       case "revoke":
         if (!group) return;
