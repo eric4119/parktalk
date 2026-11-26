@@ -273,7 +273,7 @@ ${rightIcons}
 <strong>초대코드로 그룹 참여</strong>${icon("arrow")}</button>
 </div>
 </div>`;
-    return `<div class="pv-content">${title("나의 일행", escapeHtml(group.name), "파크 안에서 일행을 찾는 시연 그룹이에요.")}
+    return `<div class="pv-content">${title("나의 일행", escapeHtml(group.name), "")}
       <div class="pv-card pv-group-detail">
 <span class="pv-badge">${group.source === "created" ? "내가 만든 그룹" : "코드로 참여한 그룹"}</span>
 <div class="pv-code-line">
@@ -284,10 +284,11 @@ ${rightIcons}
 <button type="button" class="pv-icon-button" data-pv-copy="code" aria-label="초대 코드 복사">${icon("link")}</button>
 </div>
 <p class="pv-group-expiry">오늘 밤 12시에 이 브라우저에서 자동 종료됩니다.</p>
-<button type="button" class="pv-button" data-pv-copy="link">시연 초대 링크 복사 ${icon("arrow")}</button>
-<p class="pv-field-hint">복사한 링크는 같은 기기에서 화면 흐름을 확인하는 용도예요.</p>
+<hr class="pv-divider">
+<h3 class="pv-members-heading">일행</h3>
+<p>${(group.members || [userName]).map((member, index) => `<span class="pv-member-chip pv-member-${index % 4}">${escapeHtml(member.slice(0, 1))} ${escapeHtml(member)}</span>`).join(" ")}</p>
+<button type="button" class="pv-button" data-pv-view="map">일행 위치 보기 ${icon("arrow")}</button>
 </div>
-      <div class="pv-card pv-board-form"><h2>시연 일행</h2><p>${(group.members || [userName]).map((member, index) => `<span class="pv-member-chip pv-member-${index % 4}">${escapeHtml(member.slice(0, 1))} ${escapeHtml(member)}</span>`).join(" ")}</p><form id="pv-member-form"><label>시연 인원 추가<input name="member" maxlength="20" placeholder="일행 닉네임"></label><button class="pv-secondary-button" type="submit">추가</button></form><p>실제 다른 기기의 일행은 서버 연결 후 표시됩니다.</p><button type="button" class="pv-button" data-pv-view="map">일행 지도 보기 ${icon("arrow")}</button></div>
       <div class="pv-section-heading">
 <h2>위치 표시 설정</h2>
 </div>

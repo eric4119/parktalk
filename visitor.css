@@ -611,13 +611,22 @@
 .pv-group-expiry {
   color: #9ca1b0;
   font-size: 10px;
-  margin: 0 0 24px;
+  margin: 0;
+}
+.pv-divider {
+  border: none;
+  border-top: 1px solid #e9eaf3;
+  margin: 20px 0;
+}
+.pv-members-heading {
+  font-size: 13px;
+  font-weight: 700;
+  color: #6b6f83;
+  margin: 0 0 10px;
 }
 .pv-group-detail .pv-button {
   width: 100%;
-}
-.pv-group-detail .pv-field-hint {
-  margin-bottom: 0;
+  margin-top: 16px;
 }
 .pv-setting-card {
   padding: 19px;
