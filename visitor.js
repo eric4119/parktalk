@@ -222,6 +222,7 @@ ${rightIcons}
 <input id="pv-group-size" name="memberCount" type="number" min="1" max="999" value="2" required>
 <span class="pv-size-badge" id="pv-size-badge"></span>
 </div>
+<p class="pv-field-hint">10명까지 무료로 이용할 수 있어요.</p>
 <p class="pv-field-hint" id="pv-size-hint"></p>
 <button class="pv-button" type="submit">그룹 만들기 ${icon("arrow")}</button>
 </form>
@@ -239,9 +240,9 @@ ${rightIcons}
           badge.className = 'pv-size-badge pv-size-paid';
           hint.textContent = '11명 이상은 유료 기능입니다. 그룹 만들기 시 구매 화면으로 이동합니다.';
         } else {
-          badge.textContent = '무료';
+          badge.textContent = '';
           badge.className = 'pv-size-badge';
-          hint.textContent = '10명까지 무료로 이용할 수 있어요.';
+          hint.textContent = '';
         }
       }
       input.addEventListener('input', update);
