@@ -274,6 +274,7 @@ ${rightIcons}
 </div>
 </div>`;
     return `<div class="pv-content">${title("나의 일행", escapeHtml(group.name), "")}
+      <button type="button" class="pv-text-button pv-delete-group" data-pv-action="end">그룹 삭제</button>
       <div class="pv-card pv-group-detail">
 <span class="pv-badge">${group.source === "created" ? "내가 만든 그룹" : "코드로 참여한 그룹"}</span>
 <div class="pv-code-line">
@@ -300,7 +301,6 @@ ${rightIcons}
 <button type="button" class="pv-switch ${group.consent ? "on" : ""}" data-pv-action="consent" role="switch" aria-checked="${group.consent}" aria-label="내 위치 표시 동의">
 </button>
 </div>
-      <button type="button" class="pv-text-button pv-end" data-pv-action="end">그룹 종료하기</button>
     </div>`;
   }
   function consentPage() {

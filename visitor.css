@@ -673,6 +673,11 @@
   color: #9a7986;
   margin-top: 15px;
 }
+.pv-delete-group {
+  color: #c0392b;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
 .pv-consent-card {
   padding: 25px;
 }
