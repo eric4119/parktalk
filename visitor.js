@@ -3,6 +3,7 @@
   const STORAGE = "parktalk-visitor-group-v1";
   const DEMO_GROUPS = "parktalk-visitor-demo-groups-v1";
   const INVITE = "parktalk-visitor-invite-v1";
+  const CONSENT_KEY = "parktalk-visitor-consent-v1";
   const HELP_PHONE = "031-320-5050";
   const GUIDE_URL = "https://grp.everland.com/files/everland.pdf";
   const zones = { global: "정문 · 글로벌페어", zootopia: "주토피아", american: "아메리칸 어드벤처", magic: "매직랜드" };
@@ -850,6 +851,7 @@ ${group.consent
           return toast("안내를 확인하고 선택해 주세요.");
         if (!group) return;
         group.consent = true;
+        localStorage.setItem(CONSENT_KEY, "1");
         saveGroup(group);
         setView("map");
         connectFirebase();
@@ -885,6 +887,7 @@ ${group.consent
         if (!group) return;
         removeLocationFb();
         group.consent = false;
+        localStorage.removeItem(CONSENT_KEY);
         gps = null;
         closestPoint = null;
         clearMapState();
@@ -977,7 +980,7 @@ ${group.consent
         name,
         code: makeCode(),
         source: "created",
-        consent: false,
+        consent: !!localStorage.getItem(CONSENT_KEY),
         members: [userName],
         expiresAt: midnightTonight(),
       };
@@ -996,7 +999,7 @@ ${group.consent
         return toast("영문과 숫자 6자리 코드를 입력해 주세요.");
       const local = demoGroups()[code];
       if (local) {
-        group = { name: local.name, code, source: "joined", consent: false, members: [...new Set([...(local.members || []), userName])], expiresAt: local.expiresAt };
+        group = { name: local.name, code, source: "joined", consent: !!localStorage.getItem(CONSENT_KEY), members: [...new Set([...(local.members || []), userName])], expiresAt: local.expiresAt };
         saveDemoGroups({ ...demoGroups(), [code]: { ...local, members: group.members } });
         gps = null; saveGroup(group); sessionStorage.removeItem(INVITE);
         setView("group");
@@ -1006,7 +1009,7 @@ ${group.consent
         fbDb.ref(`groups/${code}/info`).get().then(snap => {
           const fb = snap.val();
           if (!fb) return toast("그룹을 찾을 수 없어요. 코드를 확인해 주세요.");
-          group = { name: fb.name, code, source: "joined", consent: false, members: [...new Set([...(fb.members || []), userName])], expiresAt: fb.expiresAt };
+          group = { name: fb.name, code, source: "joined", consent: !!localStorage.getItem(CONSENT_KEY), members: [...new Set([...(fb.members || []), userName])], expiresAt: fb.expiresAt };
           gps = null; saveGroup(group); sessionStorage.removeItem(INVITE);
           setView("group");
           toast("그룹에 참여했어요!");
