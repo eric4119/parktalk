@@ -917,6 +917,7 @@ ${group.consent
         toast("위치 표시 동의를 취소했어요.");
         break;
       case "end":
+        if (!window.confirm(`"${group?.name}" 그룹을 삭제할까요?\n삭제하면 복구할 수 없습니다.`)) return;
         removeLocationFb();
         if (group?.source === "created") {
           const groups = demoGroups();
