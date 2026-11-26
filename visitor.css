@@ -325,7 +325,23 @@
 .pv-action-stack {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
+}
+.pv-action-stack .pv-action-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  min-height: 72px;
+}
+.pv-action-stack .pv-action-card > strong {
+  flex: 1;
+  margin: 0;
+  font-size: 15px;
+}
+.pv-action-stack .pv-action-card > svg {
+  position: static;
+  flex: none;
 }
 .pv-action-card {
   position: relative;
