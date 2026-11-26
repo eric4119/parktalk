@@ -12,7 +12,6 @@
   const visitorRoot = document.getElementById("visitorApp");
   let session = readSession();
   let formMode = "login";
-  // 새로고침 전에 보던 화면(#board, #visitor/map 등). 처음 로딩할 때만 복원한다.
   const startHash = decodeURIComponent(location.hash.slice(1));
 
   function readSession() {
@@ -40,16 +39,8 @@
   }
   function hero() {
     return `
-      <div class="auth-header" aria-hidden="true"></div>
       <div class="auth-hero__copy">
         <img class="auth-hero__logo" src="${LOGO_SRC}" alt="ParkTalk 파크톡 로고">
-        <div class="auth-hero__deco">
-          <svg width="88" height="26" viewBox="0 0 88 26" fill="none" aria-hidden="true">
-            <path d="M2 22 C 20 22 50 2 85 11" stroke="#c89010" stroke-width="2.5" stroke-linecap="round"/>
-            <path d="M78 7 L 87 12 L 80 18" stroke="#c89010" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-          </svg>
-          <span class="auth-hero__star">✦</span>
-        </div>
       </div>`;
   }
   function playParkTalkIntro() {
@@ -114,7 +105,7 @@
       <main class="auth-panel">
         <h2>${signup ? "파크톡 회원가입" : "파크톡 로그인"}</h2>
         <p class="auth-lead">${signup ? "회원가입할 때 이용 유형을 선택해 주세요." : "아이디와 비밀번호로 시작해요."}</p>
-<form id="parkAuthForm" class="auth-form" novalidate>
+        <form id="parkAuthForm" class="auth-form" novalidate>
           ${signup ? `<div class="auth-input-wrap"><span class="auth-input-icon">${SVG_AT}</span><input name="nickname" type="text" minlength="2" maxlength="20" placeholder="사용할 닉네임" required></div>` : ""}
           <div class="auth-input-wrap"><span class="auth-input-icon">${SVG_PERSON}</span><input name="userId" type="text" minlength="3" maxlength="30" autocomplete="username" placeholder="아이디 입력" required></div>
           <div class="auth-input-wrap has-toggle"><span class="auth-input-icon">${SVG_LOCK}</span><input name="password" type="password" minlength="4" autocomplete="${signup ? "new-password" : "current-password"}" placeholder="비밀번호 입력" required><button class="auth-pw-toggle" type="button" data-auth-action="toggle-pw" aria-label="비밀번호 보기">${SVG_EYE}</button></div>
@@ -145,7 +136,6 @@
     } else {
       window.ParkVisitor?.unmount();
       visible("cast");
-      // 이름·아바타 표시는 script.js의 render()가 계정 정보로 갱신한다.
       window.ParkCast.go(restore && window.ParkCast.hasPage(startHash) ? startHash : "home");
     }
     window.scrollTo(0, 0);
@@ -181,7 +171,6 @@
   }
   function switchRole() {
     if (!session) return;
-    // 캐스트 계정만 두 모드를 오갈 수 있다. 일반 회원은 캐스트 인증 안내만 보여준다.
     if (session.accountRole !== "cast") return castVerificationNotice();
     enter({ ...session, role: session.role === "cast" ? "visitor" : "cast" });
   }

@@ -93,7 +93,7 @@
   let visitorPosts = [];
   let midpointSuggestion = false;
   let notice = "";
-  let boardKind = "praise";
+  let boardKind = "lost";
   let searchTerm = "";
   let destinationId = "capybara";
   let startZone = "global";
@@ -132,13 +132,13 @@
 </button>
 <div class="pv-header-right">
 <button type="button" class="icon-btn" data-pv-view="explore" title="검색" aria-label="검색">
-<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
 </button>
 <button type="button" class="icon-btn" data-pv-action="notices" title="알림" aria-label="알림 보기">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"/><path d="M10 21h4"/></svg>
 </button>
 <button type="button" class="icon-btn pv-menu-btn" data-pv-action="sidebar-toggle" aria-label="메뉴 열기">
-<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
 </button>
 </div>
 </header>`;
@@ -158,8 +158,7 @@
 <h2>소통 · 신고 양식</h2>
 <span>BOARD</span>
 </div>
-      <div class="pv-board-grid">
-        <button type="button" data-pv-board="praise">${icon("heart")}<strong>칭찬하기</strong></button>
+      <div class="pv-board-grid" style="grid-template-columns:repeat(2,1fr)">
         <button type="button" data-pv-board="lost">${icon("found")}<strong>분실물·습득물</strong></button>
         <button type="button" data-pv-board="missing">${icon("child")}<strong>미아 찾기</strong></button>
       </div>
@@ -167,7 +166,7 @@
 <h2>일행과 연결하기</h2>
 <span>STEP 01</span>
 </div>
-      <button type="button" class="pv-discover-card" data-pv-view="explore">${icon("search")}<span><strong>통합 검색</strong><small>음식·놀이기구·동물·이용 안내를 한 번에 찾기</small></span>${icon("arrow")}</button>
+      <button type="button" class="pv-discover-card" data-pv-view="explore">${icon("search")}<span><strong>카피바라 · 간식 어디 있지?</strong><small>동물과 먹거리를 검색하고 구역 안내 보기</small></span>${icon("arrow")}</button>
       ${
         group
           ? `<div class="pv-current-group">
@@ -179,12 +178,10 @@
           : `<div class="pv-action-grid">
 <button type="button" class="pv-action-card" data-pv-view="create">
 <span class="pv-action-icon pv-purple">${icon("people")}</span>
-<strong>새 그룹 만들기</strong>
-<small>일행을 초대하고 시작하기</small>${icon("arrow")}</button>
+<strong style="word-break:keep-all">새 그룹 만들기</strong>${icon("arrow")}</button>
 <button type="button" class="pv-action-card" data-pv-view="join">
 <span class="pv-action-icon pv-mint">${icon("link")}</span>
-<strong>초대 코드로 참여</strong>
-<small>일행이 보낸 코드 입력하기</small>${icon("arrow")}</button>
+<strong style="word-break:keep-all;white-space:nowrap">그룹 참여</strong>${icon("arrow")}</button>
 </div>`
       }
       <div class="pv-info-strip">${icon("shield")}<p>
@@ -225,19 +222,17 @@
   }
   function groupPage() {
     if (!group)
-      return `<div class="pv-content">${title("일행 찾기", "일행과 연결해 보세요", "그룹을 만들거나 받은 코드로 참여할 수 있어요.")}<div class="pv-action-grid pv-group-actions">
+      return `<div class="pv-content"><button type="button" class="pv-back" data-pv-view="home" style="display:inline-flex;align-items:center;gap:4px;margin-bottom:14px">${icon("back")} 홈으로</button>${title("일행 찾기", "일행과 연결해 보세요", "그룹을 만들거나 받은 코드로 참여할 수 있어요.")}<div class="pv-action-grid pv-group-actions">
 <button type="button" class="pv-action-card" data-pv-view="create">
 <span class="pv-action-icon pv-purple">${icon("people")}</span>
-<strong>새 그룹 만들기</strong>
-<small>시연 그룹 시작하기</small>${icon("arrow")}</button>
+<strong style="word-break:keep-all">새 그룹 만들기</strong>${icon("arrow")}</button>
 <button type="button" class="pv-action-card" data-pv-view="join">
 <span class="pv-action-icon pv-mint">${icon("link")}</span>
-<strong>초대 코드로 참여</strong>
-<small>6자리 코드 입력하기</small>${icon("arrow")}</button>
+<strong style="word-break:keep-all;white-space:nowrap">그룹 참여</strong>${icon("arrow")}</button>
 </div>
 <div class="pv-empty-note">초대 링크나 코드는 실제 여러 사용자와 연결되지 않는 시연 기능입니다.</div>
 </div>`;
-    return `<div class="pv-content">${title("나의 일행", escapeHtml(group.name), "파크 안에서 일행을 찾는 시연 그룹이에요.")}
+    return `<div class="pv-content"><button type="button" class="pv-back" data-pv-view="home" style="display:inline-flex;align-items:center;gap:4px;margin-bottom:14px">${icon("back")} 홈으로</button>${title("나의 일행", escapeHtml(group.name), "파크 안에서 일행을 찾는 시연 그룹이에요.")}
       <div class="pv-card pv-group-detail">
 <span class="pv-badge">${group.source === "created" ? "내가 만든 그룹" : "코드로 참여한 그룹"}</span>
 <div class="pv-code-line">
@@ -286,11 +281,25 @@
     </div>`;
   }
   function boardPage() {
-    return `<div class="pv-content">${window.ParkBoards.page('visitor', boardKind)}</div>`;
+    return `<div class="pv-content"><button type="button" class="pv-back" data-pv-view="home" style="display:inline-flex;align-items:center;gap:4px;margin-bottom:16px;position:relative;z-index:2">${icon("back")} 홈으로</button><div style="padding-top:4px;clear:both">${window.ParkBoards.page('visitor', boardKind)}</div></div>`;
   }
-  // 상단 검색 = 통합 검색. 캐스트 모드와 같은 화면(park-search.js)을 쓴다.
   function explorePage() {
-    return window.ParkSearch.page("visitor", { back: 'data-pv-view="home"' });
+    const query = searchTerm.trim().toLowerCase();
+    const wantsAnimal = /카피바라|capybara|뿌빠/.test(query);
+    const wantsSnack = /핫도그|츄러스|간식/.test(query);
+    const matches = !query ? places : wantsAnimal || wantsSnack
+      ? places.filter((place) => (wantsAnimal && place.kind === "동물") || (wantsSnack && place.kind === "간식"))
+      : places.filter((place) => `${place.name} ${zones[place.zone]} ${place.terms}`.toLowerCase().includes(query));
+    return `<div class="pv-content pv-explore">
+      <button type="button" class="pv-back" data-pv-view="home" style="display:inline-flex;align-items:center;gap:4px;margin-bottom:14px">${icon("back")} 홈으로</button>
+      ${title("파크 탐색", "어디로 가고 싶나요?", "동물과 간식 매장을 검색해 목적지 구역을 확인해 보세요.")}
+      <form id="pv-search-form" class="pv-search-form"><label for="pv-place-query">장소 또는 먹거리 검색</label><div><input id="pv-place-query" name="query" value="${escapeHtml(searchTerm)}" placeholder="카피바라, 핫도그, 츄러스" autocomplete="off"><button type="submit">검색</button></div></form>
+      <div class="pv-query-chips"><button type="button" data-pv-query="카피바라">${icon("paw")} 카피바라</button><button type="button" data-pv-query="핫도그">${icon("hotdog")} 핫도그</button><button type="button" data-pv-query="츄러스">${icon("churros")} 츄러스</button></div>
+      <div class="pv-section-heading"><h2>${searchTerm ? "검색 결과" : "추천 장소"}</h2><span>${matches.length}곳</span></div>
+      ${matches.length ? `<div class="pv-place-list">${matches.map((place) => `<button type="button" class="pv-place-card" data-pv-destination="${place.id}"><span class="pv-place-emoji">${icon(place.kind === "동물" ? "paw" : "food")}</span><span><small>${place.kind} · ${zones[place.zone]} · 공식 지도 ${place.number}번</small><strong>${place.name}</strong><em>${place.detail}</em></span>${icon("arrow")}</button>`).join("")}</div>` : '<div class="pv-empty-note">검색 결과가 없어요. 카피바라, 핫도그 또는 츄러스로 다시 검색해 보세요.</div>'}
+      <p class="pv-guide-note">2025년 11월 에버랜드 공식 가이드 기준입니다. 동물 전시와 메뉴·매장 운영은 현장에서 달라질 수 있어요.</p>
+      <a class="pv-guide-link" href="${GUIDE_URL}" target="_blank" rel="noopener noreferrer">에버랜드 공식 가이드 지도 보기 ↗</a>
+    </div>`;
   }
   function routePage() {
     const place = places.find((item) => item.id === destinationId) || places[0];
@@ -306,7 +315,7 @@
   }
   function mapPage() {
     if (!group)
-      return `<div class="pv-content">${title("일행 지도", "먼저 그룹에 참여해 주세요", "그룹을 만든 뒤 지도를 이용할 수 있어요.")}<button type="button" class="pv-button" data-pv-view="group">일행으로 이동 ${icon("arrow")}</button>
+      return `<div class="pv-content"><button type="button" class="pv-back" data-pv-view="home" style="display:inline-flex;align-items:center;gap:4px;margin-bottom:14px">${icon("back")} 홈으로</button>${title("일행 지도", "먼저 그룹에 참여해 주세요", "그룹을 만든 뒤 지도를 이용할 수 있어요.")}<button type="button" class="pv-button" data-pv-view="group">일행으로 이동 ${icon("arrow")}</button>
 </div>`;
 
     const members = group.members || [userName];
@@ -339,6 +348,7 @@ ${group.consent
     })();
 
     return `<div class="pv-map-fullpage">
+<button type="button" class="pv-map-back" data-pv-view="home" aria-label="뒤로가기">${icon("back")}</button>
 <div id="pv-naver-map" class="pv-naver-map-full" aria-label="에버랜드 네이버 지도"></div>
 <div class="pv-bottom-sheet${mapSheetOpen ? " pv-sheet-open" : ""}" id="pv-map-bs">
   <button type="button" class="pv-bs-handle-wrap" data-pv-action="sheet-toggle" aria-label="정보 패널 열기/닫기">
@@ -350,7 +360,7 @@ ${group.consent
 </div>`;
   }
   function profilePage() {
-    return `<div class="pv-content">${title("앱 설정", `${escapeHtml(userName)}님`, "일반 사용자 모드로 이용 중입니다.")}
+    return `<div class="pv-content"><button type="button" class="pv-back" data-pv-view="home" style="display:inline-flex;align-items:center;gap:4px;margin-bottom:14px">${icon("back")} 홈으로</button>${title("앱 설정", `${escapeHtml(userName)}님`, "일반 사용자 모드로 이용 중입니다.")}
       <button type="button" class="pv-card pv-profile-card profile-edit-row" data-profile-edit aria-label="내 프로필 수정">
 <span class="pv-profile-avatar">${window.ParkProfiles.avatar(window.ParkAuth.id(),userName)}</span>
 <div>
@@ -419,20 +429,6 @@ ${group.consent
     initSimMemberMarkers();
     geocodeMeetingPoints();
     connectFirebase();
-    if (!gps?.lat && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          gps = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy };
-          placeUserMarker(gps.lat, gps.lng);
-          closestPoint = findClosest(gps.lat, gps.lng);
-          if (closestPoint) placeClosestMarker(closestPoint.lat, closestPoint.lng);
-          if (group?.consent) sendLocationFb(gps.lat, gps.lng);
-          render();
-        },
-        () => {},
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
-      );
-    }
   }
 
   function placeUserMarker(lat, lng) {
@@ -692,7 +688,7 @@ ${group.consent
       board: "방문객 게시판",
       create: "그룹 만들기",
       join: "그룹 참여",
-      explore: "통합 검색",
+      explore: "파크 탐색",
       route: "목적지 안내",
       consent: "위치 표시 설정",
       map: "일행 지도",
@@ -733,7 +729,6 @@ ${group.consent
 </div>
 </div>${notice ? `<div class="pv-toast" role="status">${escapeHtml(notice)}</div>` : ""}`;
     if (view === 'map' && group) requestAnimationFrame(initNaverMap);
-    if (view === 'explore') window.ParkSearch.focus('visitor');
   }
   // 새로고침해도 다시 열 수 있는 화면(다른 화면은 직전 선택 상태가 필요해서 홈으로 돌아간다)
   const RESTORABLE = ["home", "board", "group", "map", "profile", "explore", "create", "join"];

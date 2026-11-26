@@ -23,8 +23,7 @@ const navGroups = [
     "home|커뮤니티 홈|home",
     "board|캐스트 게시판|board",
     "tag|중고거래|trade",
-    "grid|부서별 게시판|department",
-    "personAdd|신규 캐스트 Q&A|new",
+    "personAdd|신규 게시판|new",
   ],
   ["소통", "messages|채팅·쪽지|messages"],
   ["생활", "food|식당 메뉴|menu", "calendar|가게 예약|booking"],
@@ -82,7 +81,7 @@ function nav() {
       .slice(1)
       .map((i) => {
         const [icon, label, id] = i.split("|");
-        if (id === "board") return `<button class="nav-item ${state.page === "board" ? "active" : ""}" type="button" data-board-toggle aria-expanded="${boardMenuOpen}" aria-controls="boardSubnav"><span class="nav-icon">${iosIcon(icon)}</span>${label}<span class="nav-chevron">${boardMenuOpen ? "⌃" : "⌄"}</span></button><div id="boardSubnav" class="board-subnav" ${boardMenuOpen ? "" : "hidden"}>${[["popular","인기 게시판"],["free","자유게시판"],["trade","중고 거래"],["department","부서별 게시판"],["question","신규 캐스트 Q&A"],["praise","칭찬 게시판"],["missing","미아 게시판"],["lost","분실물 게시판"]].map(([kind,text]) => `<button type="button" data-board-section="${kind}" class="${window.ParkBoards.currentKind() === kind && state.page === "board" ? "active" : ""}">${text}</button>`).join("")}</div>`;
+        if (id === "board") return `<button class="nav-item ${state.page === "board" ? "active" : ""}" type="button" data-board-toggle aria-expanded="${boardMenuOpen}" aria-controls="boardSubnav"><span class="nav-icon">${iosIcon(icon)}</span>${label}<span class="nav-chevron">${boardMenuOpen ? "⌃" : "⌄"}</span></button><div id="boardSubnav" class="board-subnav" ${boardMenuOpen ? "" : "hidden"}>${[["popular","인기 게시판"],["free","자유게시판"],["question","신규 게시판"],["trade","중고 거래"],["praise","칭찬 게시판"],["missing","미아 게시판"],["lost","분실물 게시판"]].map(([kind,text]) => `<button type="button" data-board-section="${kind}" class="${window.ParkBoards.currentKind() === kind && state.page === "board" ? "active" : ""}">${text}</button>`).join("")}</div>`;
         return `<button class="nav-item ${state.page === id ? "active" : ""}" data-nav="${id}">
 <span class="nav-icon">${iosIcon(icon)}</span>${label}</button>`;
       })
@@ -91,12 +90,20 @@ function nav() {
 }
 function bottomNav() {
   const selected = BOARD_KINDS[state.page] !== undefined ? "board" : state.page;
-  $("#castBottomNav").innerHTML = [
-    ["home", "홈"], ["board", "게시판"], ["messages", "채팅"], ["settings", "앱 설정"],
-  ].map(([id, label]) => `<button type="button" data-nav="${id}" class="cast-bottom-tab ${selected === id ? "active" : ""}" ${selected === id ? 'aria-current="page"' : ""}>${iosIcon(id)}<span>${label}</span></button>`).join("");
+  const el = $("#castBottomNav");
+  if (!el) return;
+  el.style.gridTemplateColumns = "repeat(5, 1fr)";
+  el.innerHTML = [
+    ["home", "home", "홈"],
+    ["board", "board", "게시판"],
+    ["messages", "messages", "채팅"],
+    ["ai", "sparkles", "AI 도우미"],
+    ["settings", "settings", "앱 설정"],
+  ].map(([id, icon, label]) => `<button type="button" data-nav="${id}" class="cast-bottom-tab ${selected === id ? "active" : ""}" ${selected === id ? 'aria-current="page"' : ""}>${iosIcon(icon)}<span>${label}</span></button>`).join("");
 }
-function head(title, sub, action = "") {
-  return `<div class="page-head">
+function head(title, sub, action = "", backTo = "") {
+  const back = backTo ? `<button type="button" class="pv-back" data-nav="${backTo}" aria-label="뒤로가기">${iosIcon("back")} 뒤로</button>` : "";
+  return `${back}<div class="page-head">
 <div>
 <h1>${title}</h1>
 <p>${sub}</p>
@@ -116,13 +123,13 @@ function restoreTopbar() {
   const t = document.querySelector('.topbar');
   if (t && _defaultTopbarHTML) { t.innerHTML = _defaultTopbarHTML; refreshProfile(); }
 }
-const BOARD_LABELS = { board: "게시판", free: "자유게시판", trade: "중고 거래", department: "부서별 게시판", new: "신규 Q&A", qa: "Q&A", praise: "칭찬 게시판", missing: "미아 게시판", lost: "분실물 게시판" };
-const _homeBtn = () => `<button class="icon-btn" data-nav="home" aria-label="홈으로">${iosIcon("home")}</button>`;
+const BOARD_LABELS = { board: "게시판", free: "자유게시판", trade: "중고 거래", new: "신규 게시판", qa: "신규 게시판", praise: "칭찬 게시판", missing: "미아 게시판", lost: "분실물 게시판" };
+const _backBtn = () => `<button class="icon-btn" data-nav="home" aria-label="뒤로가기">${iosIcon("back")}</button>`;
 function boardTopbar() {
   const title = BOARD_LABELS[state.page] || "게시판";
   setPageTopbar(title, '',
     `<button class="icon-btn" id="searchToggleBtn" aria-label="검색">${iosIcon("search")}</button><button class="icon-btn" data-pb-write aria-label="글쓰기">${iosIcon("compose")}</button>`,
-    _homeBtn());
+    _backBtn());
 }
 window.ParkTopbar = { set: setPageTopbar, board: boardTopbar };
 
@@ -131,7 +138,6 @@ function sideCards() {
   return `<div class="stack right-col">
 <section class="card padded menu-card">
 <span class="eyebrow">오늘의 식당 메뉴</span>
-<div class="menu-food">${iosIcon("meal")}</div>
 ${todayMenuPreview()}
 <button class="outline" style="margin-top:12px" data-nav="menu">자세히 보기</button>
 </section>
@@ -155,103 +161,85 @@ ${window.ParkBoards.home()}
 </div>${sideCards()}</div>`;
 }
 
-// 상단 검색 = 통합 검색(장소·음식 메뉴·이용 안내·게시판). 화면은 park-search.js를 일반 사용자 모드와 같이 쓴다.
-// 인기 검색어: 누르면 실제로 결과가 나오는 단어만 둔다(장소·메뉴·공식 안내·바로가기 중 하나 이상).
-const POPULAR_SEARCHES = ["식단", "츄러스", "판다", "카피바라", "유모차", "재입장", "분실물", "제휴 가게", "퍼레이드", "화장실"];
-const SEARCH_SHORTCUTS = [
-  { pattern: /식단|메뉴|밥|점심|저녁|식당|석식|중식/, label: "사원식당 식단 보기", desc: "날짜별 중식·석식 코너와 칼로리", attr: 'data-nav="menu"' },
-  { pattern: /제휴|할인|혜택|가게|예약|회식/, label: "근처 가게 단체 혜택", desc: "에버랜드 주변 가게와 캐스트 제휴 혜택", attr: 'data-nav="booking"' },
-  { pattern: /ai|도우미|챗봇|질문/i, label: "AI 생활 도우미에게 묻기", desc: "공식 안내와 게시판을 근거로 답해 줘요", attr: 'data-nav="ai"' },
-];
+const POPULAR_SEARCHES = ["연장근무", "복지카드", "유니폼", "운동화", "식단", "교육일정", "콘서트", "당직", "파크행사", "파크패스"];
+function getRecentSearches() { try { return JSON.parse(localStorage.getItem("pk_recent") || "[]"); } catch(e) { return []; } }
+function saveRecentSearch(q) {
+  const list = [q, ...getRecentSearches().filter(x => x !== q)].slice(0, 10);
+  try { localStorage.setItem("pk_recent", JSON.stringify(list)); } catch(e) {}
+}
+function removeRecentSearch(q) {
+  try { localStorage.setItem("pk_recent", JSON.stringify(getRecentSearches().filter(x => x !== q))); } catch(e) {}
+}
 function searchPage() {
-  return window.ParkSearch.page("cast", { back: 'data-nav="home"', popular: POPULAR_SEARCHES, shortcuts: SEARCH_SHORTCUTS });
+  const recent = getRecentSearches();
+  return `<div class="srch-wrap">
+    <div class="srch-bar">
+      <button class="srch-back" data-nav="home" aria-label="뒤로">${iosIcon("back")}</button>
+      <div class="search-wrap srch-input-wrap">
+        <span>${iosIcon("search")}</span>
+        <input id="srchInput" placeholder="글 제목, 내용, 해시태그" autocomplete="off" />
+      </div>
+    </div>
+    ${recent.length ? `<section class="srch-section">
+      <div class="srch-head"><span class="eyebrow">최근 검색어</span><button class="srch-clear-all" id="srchClearAll">전체삭제</button></div>
+      <div class="srch-chips">${recent.map(q => `<span class="srch-chip" data-q="${esc(q)}">${esc(q)}<button class="srch-remove" data-remove="${esc(q)}" aria-label="삭제">×</button></span>`).join("")}</div>
+    </section>` : ""}
+    <section class="srch-section">
+      <div class="srch-head"><span class="eyebrow">인기 검색어</span></div>
+      <div class="srch-chips">${POPULAR_SEARCHES.map(q => `<button class="srch-chip srch-chip--hot" data-q="${esc(q)}">${esc(q)}</button>`).join("")}</div>
+    </section>
+  </div>`;
 }
 // 게시판 페이지id → boards.js의 게시판 종류. board는 마지막으로 보던 게시판을 그대로 연다.
-const BOARD_KINDS = { board: null, free: "free", trade: "trade", department: "department", new: "question", qa: "question", praise: "praise", missing: "missing", lost: "lost" };
+const BOARD_KINDS = { board: null, free: "free", trade: "trade", new: "question", qa: "question", praise: "praise", missing: "missing", lost: "lost" };
 function board() {
   return window.ParkBoards.page("cast", BOARD_KINDS[state.page] || undefined);
 }
 function map() {
-  return window.ParkPets.render();
+  return `<button type="button" class="pv-back" data-nav="home" aria-label="뒤로가기">${iosIcon("back")} 뒤로</button>${window.ParkPets.render()}`;
 }
-// 식당 메뉴를 열 때 보여 줄 날짜: 오늘 식단이 있으면 오늘, 없으면 가장 가까운 다음 식단 날짜(없으면 오늘)
-function defaultMenuDate() {
-  const D = window.ParkData;
-  const today = D.todayKey();
-  if (D.menusFor(today).length) return today;
-  return [...new Set(D.menus.map((m) => m.date))].sort().find((d) => d > today) || today;
-}
-// 홈 카드: 오늘(없으면 다음 식단 날짜)의 중식 코너별 대표 메뉴
 function todayMenuPreview() {
   const D = window.ParkData;
-  if (!D) return `<strong>등록된 메뉴 없음</strong><p>관리자가 식단을 등록하면 이곳에 표시됩니다.</p>`;
-  const today = D.todayKey();
-  const date = defaultMenuDate();
-  const list = D.menusFor(date);
-  if (!list.length) return `<strong>등록된 메뉴 없음</strong><p>관리자가 식단을 등록하면 이곳에 표시됩니다.</p>`;
-  const day = ["일", "월", "화", "수", "목", "금", "토"][new Date(`${date}T00:00:00Z`).getUTCDay()];
-  const label = date === today ? "오늘" : `오늘 식단은 없어요 · 다음 식단 ${date.slice(5).replace("-", "/")}(${day})`;
-  const meal = list.some((m) => m.meal === "중식") ? "중식" : list[0].meal;
-  const courses = list.filter((m) => m.meal === meal);
-  return `<small class="muted menu-preview-date">${esc(label)}</small>
-<strong>${esc(meal)} · ${esc(courses[0].restaurant)}</strong>
-<ul class="menu-preview">${courses.map((m) => `<li><span class="pill">${esc(m.course || m.meal)}</span><span>${esc(m.items[0])}</span></li>`).join("")}</ul>`;
-}
-function menuCourse(m) {
-  return `<div class="menu-course">
-<div class="menu-course__head"><span class="pill">${esc(m.course || m.meal)}</span>${m.kcal ? `<small class="muted">${esc(m.kcal)}</small>` : ""}</div>
-<p>${m.items.map(esc).join(" · ")}</p>
-${m.plus ? `<p class="menu-plus">Plus ${esc(m.plus)}</p>` : ""}
-</div>`;
+  const today = D ? D.menusFor(D.todayKey()) : [];
+  if (!today.length) return `<strong>등록된 메뉴 없음</strong><p>관리자가 오늘 식단을 등록하면 이곳에 표시됩니다.</p>`;
+  const first = today.find((m) => m.meal === "중식") || today[0];
+  return `<strong>${esc(first.restaurant)} · ${esc(first.meal)}</strong><p>${first.items.slice(0, 4).map(esc).join(" · ")}${first.items.length > 4 ? " 외" : ""}</p>${today.length > 1 ? `<small class="muted">오늘 식단 ${today.length}개</small>` : ""}`;
 }
 function menu() {
   const D = window.ParkData;
-  const date = state.menuDate || defaultMenuDate();
+  const date = state.menuDate || D.todayKey();
   const list = D.menusFor(date);
   const restaurants = [...new Set(list.map((m) => m.restaurant))];
   const label = date === D.todayKey() ? "오늘" : date === D.shiftDate(D.todayKey(), 1) ? "내일" : date === D.shiftDate(D.todayKey(), -1) ? "어제" : "";
-  const dayName = (key) => ["일", "월", "화", "수", "목", "금", "토"][new Date(`${key}T00:00:00Z`).getUTCDay()];
-  const dates = [...new Set(D.menus.map((m) => m.date))].sort();
-  const info = (name) => (D.restaurants || []).find((r) => r.name === name);
-  const chips = dates.length ? `<div class="menu-date-chips">${dates.map((key) => `<button type="button" class="${key === date ? "primary" : "outline"}" data-menu-date="${esc(key)}">${esc(key.slice(5).replace("-", "/"))} ${dayName(key)}</button>`).join("")}</div>` : "";
-  const cards = restaurants.map((name) => {
-    const r = info(name);
-    const meals = D.MEALS.filter((meal) => list.some((m) => m.restaurant === name && m.meal === meal));
-    return `<section class="card padded menu-day-card">
-<h2 style="font-size:17px">${esc(name)}</h2>
-${r && r.hours.length ? `<p class="muted menu-hours">${r.hours.map(esc).join("<br>")}</p>` : ""}
-${meals.map((meal) => `<h3 class="menu-meal-title">${esc(meal)}</h3>${list.filter((m) => m.restaurant === name && m.meal === meal).map(menuCourse).join("")}`).join("")}
-${r && r.notes.length ? `<details class="menu-notes"><summary>테이크아웃·원산지·알레르기 안내</summary>${r.notes.map((note) => `<p>${esc(note)}</p>`).join("")}</details>` : ""}
-</section>`;
-  }).join("");
+  const day = ["일", "월", "화", "수", "목", "금", "토"][new Date(`${date}T00:00:00Z`).getUTCDay()];
   return (
-    head("식당 메뉴", "날짜별 캐스트 사원식당 식단이에요.") +
-    `<div class="menu-date-nav"><button type="button" class="outline" data-menu-shift="-1" aria-label="이전 날짜">‹</button><strong>${date.slice(5).replace("-", "월 ")}일 (${dayName(date)})${label ? ` · ${label}` : ""}</strong><button type="button" class="outline" data-menu-shift="1" aria-label="다음 날짜">›</button></div>
-${chips}
-${list.length ? cards : `<section class="card padded">
+    head("식당 메뉴", "관리자가 등록한 날짜별 캐스트 식당 메뉴예요.", "", "home") +
+    `<div class="menu-date-nav"><button type="button" class="outline" data-menu-shift="-1" aria-label="이전 날짜">‹</button><strong>${date.slice(5).replace("-", "월 ")}일 (${day})${label ? ` · ${label}` : ""}</strong><button type="button" class="outline" data-menu-shift="1" aria-label="다음 날짜">›</button></div>
+${list.length ? restaurants.map((name) => `<section class="card padded menu-day-card">
+<h2 style="font-size:17px">${esc(name)}</h2>${list.filter((m) => m.restaurant === name).map((m) => `<div class="menu-meal"><span class="pill">${esc(m.meal)}</span><p>${m.items.map(esc).join(" · ")}</p></div>`).join("")}
+</section>`).join("") : `<section class="card padded">
 <h2 style="font-size:17px">등록된 메뉴가 없어요</h2>
-<p class="muted">${dates.length ? "위의 날짜를 눌러 등록된 식단을 볼 수 있어요. " : ""}새 주간 식단표는 관리자 페이지에서 붙여넣어 등록해요.</p>
+<p class="muted">관리자가 이 날짜의 식단표를 등록하면 식당별로 표시됩니다. 캐스트 식당 식단은 공개 API가 없어 관리자가 직접 입력해요.</p>
 </section>`}`
   );
 }
 function booking() {
   const stores = window.ParkData?.stores || [];
   return (
-    head("가게 예약", "에버랜드 주변 가게와 캐스트 제휴 혜택") +
+    head("가게 예약", "에버랜드 주변 가게와 캐스트 제휴 혜택", "", "home") +
     `<p class="note">공개 자료로 모은 주변 가게입니다. 캐스트 제휴 여부와 할인 내용은 관리자가 가게와 확인한 뒤 표시돼요.</p>
 <div class="store-list">${stores.map((store) => `<section class="card padded store-card">
 <div class="store-card__top"><span class="pill">${esc(store.category)}</span><span class="store-badge ${store.partner ? "store-badge--on" : ""}">${store.partner ? "캐스트 제휴" : "제휴 확인 전"}</span></div>
 <h3>${esc(store.name)}</h3>
 <p class="muted">${esc(store.address)}</p>
-<p class="store-note">${esc(store.note)}</p>
-${store.partner && store.benefit ? `<p class="store-benefit">${esc(store.benefit)}</p>` : ""}
+<p class="store-note">${esc(store.note)}</p>${store.partner && store.benefit ? `<p class="store-benefit">${esc(store.benefit)}</p>` : ""}
 <div class="store-actions">${store.phone ? `<a class="outline" href="tel:${esc(store.phone.replace(/[^0-9]/g, ""))}">전화 예약</a>` : ""}<a class="outline" href="https://map.naver.com/p/search/${encodeURIComponent(store.name)}" target="_blank" rel="noopener">지도 보기</a></div>
 </section>`).join("")}</div>`
   );
 }
 function ai() {
   const prompts = ["오늘 식당 메뉴 알려줘", "반려동물 데려와도 돼?", "주차장 꽉 차면 어디로 가?", "근처 제휴 가게 있어?"];
-  return head("AI 생활 도우미", "캐스트 생활에 관해 질문해 보세요.") + `<section class="card padded chat-card">
+  return head("AI 생활 도우미", "캐스트 생활에 관해 질문해 보세요.", "", "home") + `<section class="card padded chat-card">
     <p class="note">파크톡 FAQ, 에버랜드 공식 안내(FAQ·이용 안내·교통), 주변 가게, 게시판 글을 바탕으로 AI가 답해요. 가져온 내용은 출처를 함께 보여주고, 누르면 원래 글이나 공식 페이지로 이동해요.</p>
     <div class="chat-messages" aria-label="도우미 대화" aria-live="polite"><p class="chat-bubble chat-bubble--other">안녕하세요! 식단, 캐스트 인증, 주변 가게, 앱 사용법을 물어보세요.</p>${assistantTurns.map((turn) => `<p class="chat-bubble chat-bubble--me">${esc(turn.question)}</p><p class="chat-bubble chat-bubble--other ${turn.pending ? "chat-bubble--pending" : ""}">${esc(turn.answer)}${turn.pending ? "" : sourceLine(turn)}</p>`).join("")}</div>
     <div class="chat-prompts">${prompts.map((prompt) => `<button type="button" class="outline" data-ai-prompt="${esc(prompt)}">${esc(prompt)}</button>`).join("")}</div>
@@ -319,7 +307,7 @@ function messages() {
 }
 function settings() {
   const me = account();
-  return head("앱 설정", "내 이용 정보를 확인하고 모드를 변경해요.") +
+  return head("앱 설정", "내 이용 정보를 확인하고 모드를 변경해요.", "", "home") +
     `<section class="card padded settings-card"><button type="button" class="settings-profile profile-edit-row" data-profile-edit><span class="mini-avatar">${window.ParkProfiles.avatar(window.ParkAuth?.id?.(), me.name)}</span><div><strong>${esc(me.name)}</strong><small>캐스트 모드 · ${me.type}</small></div><span class="profile-edit-hint">수정 ›</span></button>
       <div class="settings-row"><span>이용 모드</span><strong>캐스트</strong></div>
       <div class="settings-row"><span>계정 유형</span><strong>${me.type}</strong></div>
@@ -337,12 +325,12 @@ const pages = {
   menu: { render: menu, title: "식당 메뉴" },
   booking: { render: booking, title: "가게 예약" },
   ai: { render: ai, title: "AI 생활 도우미" },
-  messages: { render: messages, title: "채팅", mount() { setPageTopbar("채팅", '', '', _homeBtn()); }, unmount: restoreTopbar },
+  messages: { render: messages, title: "채팅", mount() { setPageTopbar("채팅", '', '', _backBtn()); }, unmount: restoreTopbar },
   settings: { render: settings, title: "앱 설정" },
   search: {
     render: searchPage,
     title: "검색",
-    mount() { document.body.classList.add("search-open"); window.ParkSearch.focus("cast"); },
+    mount() { document.body.classList.add("search-open"); $("#srchInput")?.focus(); },
     unmount() { document.body.classList.remove("search-open"); },
   },
   ...Object.fromEntries(Object.keys(BOARD_KINDS).map((id) => [id, { render: board, title: BOARD_LABELS[id] || "게시판", mount: boardTopbar, unmount: restoreTopbar }])),
@@ -362,6 +350,9 @@ function render() {
 function go(page) {
   window.ParkBoards.leaveDetail();
   if (window.ParkAuth && window.ParkAuth.role() !== "cast") return toast("캐스트 모드에서 이용해 주세요.");
+  if (page === "new" || page === "qa") {
+    window.ParkBoards?.selectKind?.("question");
+  }
   state.page = pages[page] ? page : "home";
   if (state.page === "map") window.ParkPets.enter();
   $(".sidebar").classList.remove("open");
@@ -383,16 +374,11 @@ document.addEventListener("click", (e) => {
   if (b.dataset.boardSection) { window.ParkBoards.selectKind(b.dataset.boardSection); go("board"); return; }
   if (b.classList.contains("close")) $("#modal").close();
   else if (b.dataset.nav) {
-    if (b.dataset.nav === "menu") state.menuDate = null; // 식당 메뉴는 항상 오늘(없으면 다음 식단 날짜)부터 연다
     if (b.tagName === "A") e.preventDefault();
     go(b.dataset.nav);
   }
-  else if (b.dataset.menuDate) {
-    state.menuDate = b.dataset.menuDate;
-    render();
-  }
   else if (b.dataset.menuShift) {
-    state.menuDate = window.ParkData.shiftDate(state.menuDate || defaultMenuDate(), Number(b.dataset.menuShift));
+    state.menuDate = window.ParkData.shiftDate(state.menuDate || window.ParkData.todayKey(), Number(b.dataset.menuShift));
     render();
   }
   else if (b.dataset.aiPrompt) askAssistant(b.dataset.aiPrompt);
@@ -423,6 +409,18 @@ document.addEventListener("click", (e) => {
   else if (b.id === "noticesBtn") toast("새 알림이 없어요.");
   else if (b.id === "menuBtn") $(".sidebar").classList.toggle("open");
   else if (b.id === "searchToggleBtn") go("search");
+  else if (b.id === "srchClearAll") {
+    try { localStorage.removeItem("pk_recent"); } catch(err) {}
+    render();
+  }
+  else if (b.dataset.remove) {
+    removeRecentSearch(b.dataset.remove);
+    render();
+  }
+  else if (b.dataset.q) {
+    saveRecentSearch(b.dataset.q);
+    toast(`"${b.dataset.q}" 검색`);
+  }
 });
 document.addEventListener("submit", (event) => {
   if (event.target.id === "assistantForm") {
