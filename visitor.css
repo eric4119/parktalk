@@ -673,10 +673,19 @@
   color: #9a7986;
   margin-top: 15px;
 }
+.pv-title-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pv-title-name-row h1 {
+  margin: 0;
+}
 .pv-delete-group {
   color: #c0392b;
-  margin-bottom: 12px;
   font-size: 13px;
+  flex-shrink: 0;
 }
 .pv-consent-card {
   padding: 25px;

@@ -273,8 +273,14 @@ ${rightIcons}
 <strong>초대코드로 그룹 참여</strong>${icon("arrow")}</button>
 </div>
 </div>`;
-    return `<div class="pv-content">${title("나의 일행", escapeHtml(group.name), "")}
-      <button type="button" class="pv-text-button pv-delete-group" data-pv-action="end">그룹 삭제</button>
+    return `<div class="pv-content">
+      <div class="pv-title pv-title-row">
+<span class="pv-eyebrow">나의 일행</span>
+<div class="pv-title-name-row">
+<h1>${escapeHtml(group.name)}</h1>
+<button type="button" class="pv-text-button pv-delete-group" data-pv-action="end">그룹 삭제</button>
+</div>
+</div>
       <div class="pv-card pv-group-detail">
 <span class="pv-badge">${group.source === "created" ? "내가 만든 그룹" : "코드로 참여한 그룹"}</span>
 <div class="pv-code-line">
