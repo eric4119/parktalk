@@ -243,12 +243,12 @@ ${rightIcons}
   function groupPage() {
     if (!group)
       return `<div class="pv-content">${title("일행 찾기", "일행과 위치공유", "그룹을 만들거나 받은 코드로 참여할 수 있어요.")}<div class="pv-action-stack">
-<button type="button" class="pv-action-card" data-pv-view="create">
+<button type="button" class="pv-action-row" data-pv-view="create">
 <span class="pv-action-icon pv-purple">${icon("people")}</span>
-<strong style="word-break:keep-all">새 그룹 만들기</strong>${icon("arrow")}</button>
-<button type="button" class="pv-action-card" data-pv-view="join">
+<strong>새 그룹 만들기</strong>${icon("arrow")}</button>
+<button type="button" class="pv-action-row" data-pv-view="join">
 <span class="pv-action-icon pv-mint">${icon("link")}</span>
-<strong style="word-break:keep-all">초대코드로 그룹 참여</strong>${icon("arrow")}</button>
+<strong>초대코드로 그룹 참여</strong>${icon("arrow")}</button>
 </div>
 </div>`;
     return `<div class="pv-content">${title("나의 일행", escapeHtml(group.name), "파크 안에서 일행을 찾는 시연 그룹이에요.")}

@@ -327,27 +327,25 @@
   flex-direction: column;
   gap: 16px;
 }
-.pv-action-stack .pv-action-card {
+.pv-action-row {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 16px;
   height: 96px;
-  min-height: 0;
   padding: 0 21px;
+  text-align: left;
+  border: 1px solid #e9eaf3;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 5px 18px #2d30550a;
+  color: #242642;
+  cursor: pointer;
+  width: 100%;
 }
-.pv-action-stack .pv-action-card > strong {
-  flex: 1;
-  margin: 0;
-  font-size: 17px;
-  line-height: 1.4;
-  align-self: center;
-}
-.pv-action-stack .pv-action-card > svg {
-  position: static;
-  flex: none;
-  align-self: center;
-}
+.pv-action-row:hover { border-color: #c5b5f5; transform: translateY(-2px); }
+.pv-action-row > strong { flex: 1; font-size: 17px; font-weight: 700; line-height: 1.4; }
+.pv-action-row > svg { flex: none; color: #8f79d7; width: 18px; height: 18px; }
 .pv-action-card {
   position: relative;
   min-width: 0;
