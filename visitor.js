@@ -242,7 +242,7 @@ ${rightIcons}
   }
   function groupPage() {
     if (!group)
-      return `<div class="pv-content">${title("일행 찾기", "일행과 연결해 보세요", "그룹을 만들거나 받은 코드로 참여할 수 있어요.")}<div class="pv-action-stack">
+      return `<div class="pv-content">${title("일행 찾기", "일행과 위치공유", "그룹을 만들거나 받은 코드로 참여할 수 있어요.")}<div class="pv-action-stack">
 <button type="button" class="pv-action-card" data-pv-view="create">
 <span class="pv-action-icon pv-purple">${icon("people")}</span>
 <strong style="word-break:keep-all">새 그룹 만들기</strong>${icon("arrow")}</button>
