@@ -332,16 +332,19 @@
   flex-direction: row;
   align-items: center;
   gap: 16px;
-  min-height: 72px;
+  min-height: 90px;
+  padding: 20px 21px;
 }
 .pv-action-stack .pv-action-card > strong {
   flex: 1;
   margin: 0;
   font-size: 15px;
+  line-height: 1.4;
 }
 .pv-action-stack .pv-action-card > svg {
   position: static;
   flex: none;
+  align-self: center;
 }
 .pv-action-card {
   position: relative;
