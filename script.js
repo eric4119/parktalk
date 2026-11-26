@@ -154,10 +154,7 @@ function home() {
 <div class="stack">
 ${window.ParkBoards.home()}
 <button class="pb-benefit" data-nav="booking"><span class="promo-icon">${iosIcon("store")}</span><span><strong>근처 가게 단체 혜택</strong><small>제휴 혜택과 예약 문의</small></span><span>›</span></button>
-<div class="quick">
-<button data-nav="new">
-<span class="quick-icon">${iosIcon("board")}</span>신규 캐스트 Q&A</button>
-</div>
+
 </div>${sideCards()}</div>`;
 }
 
