@@ -125,11 +125,16 @@
       .join("");
   }
   function header() {
-    return `<header class="pv-header">
-<button type="button" class="pv-header-brand" data-pv-view="home" aria-label="파크톡 홈으로 이동">
+    const SECTION_TITLES = { board: "게시판", group: "일행", create: "일행", join: "일행", map: "지도", explore: "검색", route: "검색", profile: "앱 설정" };
+    const sectionTitle = SECTION_TITLES[view];
+    const leftSlot = sectionTitle
+      ? `<span class="pv-header-title">${sectionTitle}</span>`
+      : `<button type="button" class="pv-header-brand" data-pv-view="home" aria-label="파크톡 홈으로 이동">
 <svg class="pv-header-brand-icon ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2.3"/></svg>
 <span class="pv-header-brand-name">파크톡</span>
-</button>
+</button>`;
+    return `<header class="pv-header">
+${leftSlot}
 <div class="pv-header-right">
 <button type="button" class="icon-btn" data-pv-view="explore" title="검색" aria-label="검색">
 <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
