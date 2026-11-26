@@ -126,8 +126,8 @@
       .join("");
   }
   function header() {
-    const SECTION_TITLES = { board: "게시판", group: "일행", create: "일행", join: "일행", map: "지도", explore: "검색", route: "검색", profile: "앱 설정" };
-    const BACK_TARGETS = { create: "group", join: "group" };
+    const SECTION_TITLES = { board: "게시판", group: "일행", create: "일행", join: "일행", consent: "일행", map: "지도", explore: "검색", route: "검색", profile: "앱 설정" };
+    const BACK_TARGETS = { create: "group", join: "group", consent: "group" };
     const sectionTitle = SECTION_TITLES[view];
     const searchIcon = `<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>`;
     const rightIcons = view === "board"
@@ -312,14 +312,12 @@ ${rightIcons}
   }
   function consentPage() {
     return `<div class="pv-content pv-form-page">
-<button type="button" class="pv-back" data-pv-view="group">${icon("back")} 그룹으로 돌아가기</button>
-      ${title("위치 공유 · 02", "내 위치는<br>내가 결정해요", "같은 그룹의 일행에게 위치를 보이게 할지 선택하세요.")}
+      ${title("위치 공유", "위치공유 동의하기", "같은 그룹의 일행에게 위치를 보이게 할지 선택하세요.")}
       <div class="pv-card pv-consent-card">
 <div class="pv-consent-icon">${icon("shield")}</div>
 <h2>공유 전 확인해 주세요</h2>
 <ul>
 <li>위치 확인은 직접 버튼을 누를 때만 요청합니다.</li>
-<li>현재 시연판은 위치를 다른 사람에게 전송하지 않습니다.</li>
 <li>언제든 동의를 취소할 수 있습니다.</li>
 </ul>
 <label class="pv-check">
