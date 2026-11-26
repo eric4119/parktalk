@@ -16,7 +16,7 @@ body:has(.pet-page) .cast-mobile-brand,body:has(.pet-page) .topbar{display:none}
 .pet-room-top{padding:3px 3px 10px}
 .pet-room-top strong{font-size:16px}
 .pet-scene{height:min(96vw,470px);min-height:330px;border:none;border-radius:0;background:#dbeefa url('assets/pets/room-cream.png') center center/contain no-repeat;overflow:visible}
-.pet-scene.wallMint{background-color:#dff2e7}.pet-scene.wallBlue{background-color:#dceffa}.pet-scene.floorIvory{filter:saturate(.75)}
+.pet-scene.wallMint{background-color:#dff2e7}.pet-scene.wallBlue{background-color:#dceffa}
 .pet-room{position:absolute;inset:0;width:100%;height:100%;transform:none}
 .pet-room .pet-sprite{top:56%;width:28%;height:auto;aspect-ratio:1/1;min-width:86px;max-width:155px;animation:pet-roam 7s ease-in-out infinite alternate;filter:drop-shadow(0 6px 4px #71594235)}
 .pet-art{position:relative;display:block;width:100%;height:100%}.pet-art img{display:block;width:100%;height:100%;object-fit:contain;animation:pet-breathe 2.2s ease-in-out infinite}
@@ -42,8 +42,7 @@ body:has(.pet-page) .cast-mobile-brand,body:has(.pet-page) .topbar{display:none}
 .pet-wall-tint{clip-path:polygon(4% 30%,50% 8%,96% 30%,96% 65%,50% 45%,4% 65%);opacity:0;mix-blend-mode:multiply}
 .wallMint .pet-wall-tint{background:#7fc9a0;opacity:.38}.wallBlue .pet-wall-tint{background:#96c8e8;opacity:.37}
 .pet-floor-tint{clip-path:polygon(4% 65%,50% 45%,96% 65%,50% 95%);opacity:0}
-.floorIvory .pet-floor-tint{background:#fffdf3;opacity:.55}
-.pet-scene.floorIvory{filter:none}
+.floorIvory .pet-floor-tint{display:none}
 .pet-care button::before{content:'✦';display:block;margin:0 auto 3px;color:#d9a54b;font-size:16px;line-height:1}
 .pet-care button[data-pet-action=feed]::before{content:'◉'}.pet-care button[data-pet-action=play]::before{content:'✧'}.pet-care button[data-pet-action=sleep]::before{content:'☾'}.pet-care button[data-pet-action=pet]::before{content:'♡'}
 /* Softer movement and illustrated furniture */
@@ -71,7 +70,7 @@ body:has(.pet-page) .cast-mobile-brand,body:has(.pet-page) .topbar{display:none}
 .pet-shop-graphic{width:100%;height:86px;background:#fff3da;border-radius:13px;overflow:hidden;display:grid;place-items:center}
 .pet-shop-image{display:block;max-width:96%;max-height:82px;width:auto;height:auto;object-fit:contain;filter:drop-shadow(0 3px 3px #815f302d)}
 .pet-shop-swatch{width:55px;height:55px;display:grid;place-items:center;border:2px solid #c4965c;border-radius:12px;background:#f3ddb3;color:#846041;font-size:29px}
-.pet-shop-swatch.wallMint{background:#c3e7ce}.pet-shop-swatch.wallBlue{background:#c9e7f4}.pet-shop-swatch.floorIvory{background:repeating-linear-gradient(45deg,#f0e7d6 0 12px,#e3d8c5 12px 13px)}
+.pet-shop-swatch.wallMint{background:#c3e7ce}.pet-shop-swatch.wallBlue{background:#c9e7f4}.pet-shop-swatch.floorIvory{background:#f3e8d5}
 .pet-shop-swatch.glasses,.pet-shop-swatch.necklace,.pet-shop-swatch.hat{background:#fff4db}
 @media (prefers-reduced-motion:reduce){.pet-room .pet-sprite,.pet-art img{animation:none}}
 /* Front-facing room inspired by the supplied pet-game layout. */
@@ -83,6 +82,7 @@ body:has(.pet-page) .cast-mobile-brand,body:has(.pet-page) .topbar{display:none}
 .pet-room-stage{position:relative;height:calc(100dvh - 175px);min-height:520px;max-height:760px;overflow:hidden;background:#cedfc0}
 .pet-room-stage .pet-scene{position:absolute;inset:0;width:100%;height:100%;min-height:0;background:#d6e6c9 url('assets/pets/room-front.png') center center/cover no-repeat;overflow:hidden}
 .pet-room-stage .pet-scene.wallMint,.pet-room-stage .pet-scene.wallBlue{background-image:url('assets/pets/room-front.png');background-position:center;background-size:cover}
+.pet-room-stage .pet-scene.floorIvory{background-image:url('assets/pets/room-front-ivory.png')}
 .pet-room-stage .pet-wall-tint{clip-path:polygon(0 0,100% 0,100% 57%,0 57%);mix-blend-mode:color}
 .pet-room-stage .pet-floor-tint{clip-path:polygon(0 57%,100% 57%,100% 100%,0 100%)}
 .pet-room-stage .pet-room{inset:0;transform:none}
@@ -90,7 +90,7 @@ body:has(.pet-page) .cast-mobile-brand,body:has(.pet-page) .topbar{display:none}
 .pet-page .pet-art img,.pet-page .pet-figure{animation:none!important}
 .pet-room-stage .pet-bed,.pet-room-stage .pet-sofa{left:-1%;top:56%;width:39%;height:auto}
 .pet-room-stage .pet-plant{left:auto;right:1%;top:55%;width:18%;height:auto}
-.pet-room-stage .pet-lamp{left:auto;right:5%;top:44%;width:13%;height:auto}
+.pet-room-stage .pet-lamp{left:auto;right:5%;top:44%;width:18%;height:27%;object-fit:cover;object-position:center}
 .pet-room-stage .pet-sleep-mark{top:60%;left:62%;font-size:20px}
 .pet-stage-top{position:absolute;top:13px;left:12px;right:12px;display:flex;justify-content:space-between;gap:8px;align-items:center;z-index:6}
 .pet-stage-name,.pet-stage-attend{border-radius:99px;padding:7px 10px;background:#fff9e9db;color:#695946;font-size:11px;font-weight:800;box-shadow:0 2px 8px #5347251c;white-space:nowrap}
@@ -120,12 +120,13 @@ body:has(.pet-page) .cast-mobile-brand,body:has(.pet-page) .topbar{display:none}
 .pet-page:not(:has(.pet-room-stage)) .pet-section-title p{color:#6d8371}
 .pet-page:not(:has(.pet-room-stage)) .pet-scene{height:430px;min-height:0;background:#d6e6c9 url('assets/pets/room-front.png') center center/cover no-repeat;overflow:hidden;border-radius:15px}
 .pet-page:not(:has(.pet-room-stage)) .pet-scene.wallMint,.pet-page:not(:has(.pet-room-stage)) .pet-scene.wallBlue{background-image:url('assets/pets/room-front.png');background-size:cover;background-position:center}
+.pet-page:not(:has(.pet-room-stage)) .pet-scene.floorIvory{background-image:url('assets/pets/room-front-ivory.png')}
 .pet-page:not(:has(.pet-room-stage)) .pet-wall-tint{clip-path:polygon(0 0,100% 0,100% 57%,0 57%);mix-blend-mode:color}
 .pet-page:not(:has(.pet-room-stage)) .pet-floor-tint{clip-path:polygon(0 57%,100% 57%,100% 100%,0 100%)}
 .pet-page:not(:has(.pet-room-stage)) .pet-room .pet-sprite{left:50%;top:62%;width:26%;min-width:65px;max-width:112px;transform:translateX(-50%);animation:none!important}
 .pet-page:not(:has(.pet-room-stage)) .pet-bed,.pet-page:not(:has(.pet-room-stage)) .pet-sofa{left:0;top:55%;width:36%;height:auto}
 .pet-page:not(:has(.pet-room-stage)) .pet-plant{right:1%;top:55%;width:17%;height:auto}
-.pet-page:not(:has(.pet-room-stage)) .pet-lamp{right:5%;top:44%;width:12%;height:auto}
+.pet-page:not(:has(.pet-room-stage)) .pet-lamp{right:5%;top:44%;width:18%;height:35%;object-fit:cover;object-position:center}
 .pet-shop-card{background:#fff9eb;border-color:#f0dfb6;box-shadow:0 3px 8px #536c4720}
 .pet-custom-group button{background:#fff9ea;border-color:#dfcda5}.pet-custom-group button.active{background:#ffdc86}
 /* Furniture can be positioned by touch, pointer or arrow keys in decorating mode. */
@@ -147,7 +148,6 @@ body:has(.pet-page) .cast-mobile-brand,body:has(.pet-page) .topbar{display:none}
 .pet-stage-care button .pet-care-icon{display:grid;place-items:center;width:29px;height:29px}
 .pet-stage-care button .pet-care-icon svg{display:block;width:27px;height:27px;stroke:currentColor;stroke-width:2.2;fill:none}
 
-.pet-room .pet-sprite.pet-reacting{width:36%;max-width:145px}
 .pet-reaction-art{display:block;width:100%;height:100%;aspect-ratio:1;background-size:200% 200%;background-repeat:no-repeat}
 .pet-sleeping .pet-reaction-art{animation:pet-sleep-breathe 3.2s ease-in-out infinite;transform-origin:50% 75%}
 .pet-sleep-z{position:absolute;right:8%;top:6%;font-size:19px;color:#6c8d9f;font-weight:800;animation:pet-sleep-z 3s ease-in-out infinite}
@@ -190,3 +190,61 @@ body:has(.pet-page) .cast-mobile-brand,body:has(.pet-page) .topbar{display:none}
 
 /* Panda demonstration sprites have accessories painted into every pose. */
 .pet-atlas{background-size:400% 200%;background-repeat:no-repeat;aspect-ratio:1;flex:none}
+
+/* In-page name editor in the same warm style as the decorating controls. */
+.pet-rename-form{display:grid;gap:10px;margin:14px 0 24px;padding:18px;border:1px solid #e8d7aa;border-radius:18px;background:#fffaf0;box-shadow:0 5px 18px #74633612}
+.pet-rename-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.pet-rename-heading strong{font-size:16px;color:#4c4a37}
+.pet-rename-heading span,.pet-rename-help{font-size:11px;color:#8b8066}
+.pet-rename-form label{font-size:12px;font-weight:800;color:#635738}
+.pet-rename-form input{width:100%;min-height:44px;box-sizing:border-box;padding:10px 12px;border:1px solid #d9cba7;border-radius:11px;background:#fff;color:#303a35;font:inherit}
+.pet-rename-form input:focus{outline:2px solid #edc75a;outline-offset:1px}
+.pet-rename-help,.pet-rename-error{margin:0}
+.pet-rename-error{font-size:11px;color:#b03f32}
+.pet-rename-actions{display:flex;justify-content:flex-end;gap:8px}
+.pet-rename-actions button{min-height:39px;padding:8px 14px;border:1px solid #decda4;border-radius:10px;background:#fff;color:#756646;font-weight:800}
+.pet-rename-actions button[type=submit]{border-color:#f4cc57;background:#ffd866;color:#5d451e}
+
+/* Carry the room wallpaper behind its header and status area. */
+.pet-page:has(.pet-room-stage){background:#ccd09d url('assets/pets/room-wallpaper-strip.png') center top/100% 130px repeat-y}
+.pet-page:has(.pet-room-stage):has(.pet-scene.wallMint){background-image:linear-gradient(#7fc9a061,#7fc9a061),url('assets/pets/room-wallpaper-strip.png')}
+.pet-page:has(.pet-room-stage):has(.pet-scene.wallBlue){background-image:linear-gradient(#96c8e861,#96c8e861),url('assets/pets/room-wallpaper-strip.png')}
+.pet-page:has(.pet-room-stage) .pet-page-head{background:transparent}
+
+/* Reflect the room image at each edge so the wallpaper and floor meet without a hard stripe. */
+.pet-page:has(.pet-room-stage){padding-bottom:0}
+.pet-page:has(.pet-room-stage) .pet-page-head{position:relative;isolation:isolate;overflow:hidden}
+.pet-page:has(.pet-room-stage) .pet-page-head::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background:url('assets/pets/room-wallpaper-strip.png') center/100% 100% no-repeat;transform:scaleY(-1)}
+.pet-page:has(.pet-room-stage) .pet-page-head::after{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;mix-blend-mode:color;opacity:0}
+.pet-page:has(.pet-room-stage):has(.pet-scene.wallMint) .pet-page-head::after{background:#7fc9a0;opacity:.38}
+.pet-page:has(.pet-room-stage):has(.pet-scene.wallBlue) .pet-page-head::after{background:#96c8e8;opacity:.37}
+.pet-page:has(.pet-room-stage) .pet-page-head>*{position:relative;z-index:1}
+.pet-status-floor{position:relative;isolation:isolate;min-height:140px;padding:10px 10px 85px;box-sizing:border-box;overflow:hidden;background:#e5b46a}
+.pet-status-floor::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background:url('assets/pets/room-front.png') center bottom/100% auto no-repeat;transform:scaleY(-1)}
+.pet-page:has(.pet-scene.floorIvory) .pet-status-floor::before{background-image:url('assets/pets/room-front-ivory.png')}
+.pet-page:has(.pet-room-stage) .pet-status-floor .pet-status{position:relative;z-index:1;margin:0}
+
+.pet-level-progress{position:relative;z-index:1;display:grid;gap:5px;margin:7px 3px 0;padding:7px 10px;border-radius:12px;background:#fff9e8d9;color:#80652e;font-size:10px;font-weight:800}
+.pet-level-progress i{display:block;height:5px;border-radius:99px;background:linear-gradient(90deg,#f5c65b var(--value),#e9e2ca var(--value))}
+.pet-new-form{display:grid;gap:9px;margin:14px 0;padding:15px;border:1px solid #e8d7aa;border-radius:18px;background:#fffaf0}
+.pet-new-form strong{font-size:15px;color:#4c4a37}
+.pet-new-form p,.pet-new-form small{margin:0;font-size:11px;color:#8b8066}
+.pet-new-form label{font-size:12px;font-weight:800;color:#635738}
+.pet-new-form input{min-height:44px;padding:10px 12px;border:1px solid #d9cba7;border-radius:11px;background:#fff;color:#303a35;font:inherit}
+.pet-new-form .primary{min-height:44px;border:0;border-radius:12px;background:#ffd866;color:#5d451e;font-weight:800}
+.pet-new-form .primary:disabled{background:#e8e7dc;color:#8b8b80}
+.pet-change-picks .pet-pick{cursor:pointer}
+.pet-change-picks .pet-pick.active{border:2px solid #e5ba4c;background:#fff4d7}
+.pet-change-picks .pet-pick.pet-current{border:2px solid #82ae84;background:#f2f8e9}
+.pet-change-picks .pet-pick.pet-selected{box-shadow:0 0 0 3px #e6bc58;border-color:#d9a947}
+.pet-selected-info{margin:20px 0 0;padding:17px 18px;border:1px solid #e4d5ac;border-radius:18px;background:#fff9ed;color:#414538}
+.pet-selected-info h3{margin:0 0 14px;font-size:16px}
+.pet-selected-info dl{display:grid;gap:10px;margin:0 0 15px}
+.pet-selected-info dl div{display:flex;justify-content:space-between;gap:12px;font-size:12px}
+.pet-selected-info dt{color:#857e68}.pet-selected-info dd{margin:0;font-weight:800;text-align:right}
+.pet-selected-actions{display:flex;flex-wrap:wrap;gap:8px}
+.pet-selected-actions button{border:1px solid #dfc78f;border-radius:11px;background:#fff;padding:10px 13px;color:#665432;font-size:11px;font-weight:800}
+.pet-selected-actions button[data-pet-activate]{background:#ffd866;border-color:#edc452}
+/* Extend the animal-list color below short content and behind the fixed tab bar. */
+#view:has(.pet-change-picks),.main-wrap:has(.pet-change-picks){background:#d6e5c7}
+.pet-page:has(.pet-change-picks){box-sizing:border-box;min-height:100dvh;padding-bottom:calc(110px + env(safe-area-inset-bottom))}

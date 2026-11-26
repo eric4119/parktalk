@@ -14,7 +14,7 @@
     bag: '<rect x="4" y="7" width="16" height="14" rx="2"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/>',
     sparkles: '<path d="m12 2 1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8zM20 17l.6 1.4L22 19l-1.4.6L20 21l-.6-1.4L18 19l1.4-.6z"/>',
     search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/>',
-    settings: '<circle cx="12" cy="12" r="3"/><path d="M12 2.5v2M12 19.5v2M4.5 4.5l1.4 1.4M18.1 18.1l1.4 1.4M2.5 12h2M19.5 12h2M4.5 19.5l1.4-1.4M18.1 5.9l1.4-1.4"/><circle cx="12" cy="12" r="7"/>',
+
     user: '<circle cx="12" cy="8" r="3.5"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/>',
     pin: '<path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2.3"/>',
     shield: '<path d="m12 2 8 3v6c0 5-3 9-8 11-5-2-8-6-8-11V5z"/><path d="m9 12 2 2 4-4"/>',
@@ -35,7 +35,11 @@
     close: '<path d="M5 5 19 19M19 5 5 19"/>',
     plus: '<path d="M12 4v16M4 12h16"/>',
   };
+  const gear = '<path d="M13 2h6l.7 3.3 2.2.9 2.8-1.8 4.2 4.2-1.8 2.8.9 2.2 3.3.7v6l-3.3.7-.9 2.2 1.8 2.8-4.2 4.2-2.8-1.8-2.2.9-.7 3.3h-6l-.7-3.3-2.2-.9-2.8 1.8-4.2-4.2 1.8-2.8-.9-2.2L.7 19v-6l3.3-.7.9-2.2-1.8-2.8 4.2-4.2 2.8 1.8 2.2-.9z"/><circle cx="16" cy="16" r="5"/>';
   window.ParkIcons = (name, className = "ui-icon") => {
+    if (name === "settings") {
+      return `<svg class="${className}" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${gear}</svg>`;
+    }
     if (name === "meal") {
       return `<svg class="${className}" viewBox="0 0 708 439" fill="none" aria-hidden="true" focusable="false">
         <path fill="currentColor" d="M42 58h28v122h24V58h31v122h23V58h30v131c0 29-17 50-46 59v129H87V248c-29-9-45-30-45-59V58Z"/>

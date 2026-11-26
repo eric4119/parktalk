@@ -38,6 +38,8 @@ function petApp(initial, start) {
     advance: ms => { now += ms; },
     state: () => JSON.parse(values.get('parktalk-pets-v1')).demo,
     act: type => listeners.click[0]({target:{closest:()=>({dataset:{petAction:type}})}}),
+    select: id => listeners.click[0]({target:{closest:()=>({dataset:{petSelect:id}})}}),
+    activate: id => listeners.click[0]({target:{closest:()=>({dataset:{petActivate:id}})}}),
     feed: () => listeners.click[0]({
       target: { dataset: { petAction: 'feed' }, closest: () => ({ dataset: { petAction: 'feed' } }) }
     })
@@ -97,4 +99,44 @@ test('care reactions expire after ten seconds and sleeping survives until wake o
   const expired = petApp(sleeping, sleeping.sleepUntil);
   expired.render();
   assert.equal(expired.state().action, '');
+});
+
+test('each pet keeps its own care state and repeated daily actions do not grant extra XP', () => {
+  const now = Date.parse('2026-11-25T12:00:00Z');
+  const base = { hunger: 50, mood: 60, lastStatusAt: now, level: 1, xp: 0, xpDay: '', xpActions: [], action: '' };
+  const pets = [
+    { ...base, id: 'panda-one', animal: 'panda', name: '콩이' },
+    { ...base, id: 'tiger-two', animal: 'tiger', name: '호랑이' }
+  ];
+  const app = petApp({ ...pets[0], activePetId: 'panda-one', pets, points: 100, furniture: [] }, now);
+  app.act('feed');
+  assert.equal(app.state().hunger, 68);
+  assert.equal(app.state().xp, 10);
+  app.act('feed');
+  assert.equal(app.state().xp, 10);
+  app.select('tiger-two');
+  assert.equal(app.state().name, '콩이');
+  app.activate('tiger-two');
+  assert.equal(app.state().name, '호랑이');
+  assert.equal(app.state().hunger, 50);
+  assert.equal(app.state().xp, 0);
+  app.select('panda-one');
+  app.activate('panda-one');
+  assert.equal(app.state().hunger, 86);
+  assert.equal(app.state().xp, 10);
+});
+
+test('level-up awards points and stops at level ten', () => {
+  const now = Date.parse('2026-11-25T12:00:00Z');
+  const pet = { id: 'one', animal: 'panda', name: '콩이', hunger: 50, mood: 50, lastStatusAt: now, level: 1, xp: 45, xpDay: '', xpActions: [], action: '' };
+  const app = petApp({ ...pet, activePetId: 'one', pets: [pet], points: 0, furniture: [] }, now);
+  app.act('feed');
+  assert.equal(app.state().level, 2);
+  assert.equal(app.state().xp, 5);
+  assert.equal(app.state().points, 20);
+  const max = { ...pet, level: 10, xp: 0 };
+  const capped = petApp({ ...max, activePetId: 'one', pets: [max], points: 0, furniture: [] }, now);
+  capped.act('feed');
+  assert.equal(capped.state().level, 10);
+  assert.equal(capped.state().points, 0);
 });
