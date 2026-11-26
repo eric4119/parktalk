@@ -65,6 +65,7 @@
   let submitListener;
   let userName = "방문객";
   let view = "home";
+  let prevView = "home";
   let group = null;
   let gps = null; // Memory only. Never written to localStorage or shown as coordinates.
   let naverMap = null;
@@ -127,7 +128,7 @@
   }
   function header() {
     const SECTION_TITLES = { board: "게시판", group: "일행", create: "일행", join: "일행", consent: "일행", map: "지도", explore: "검색", route: "검색", profile: "앱 설정" };
-    const BACK_TARGETS = { create: "group", join: "group", consent: "group" };
+    const BACK_TARGETS = { create: "group", join: "group", consent: "group", map: prevView || "group" };
     const sectionTitle = SECTION_TITLES[view];
     const searchIcon = `<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>`;
     const rightIcons = view === "board"
@@ -797,6 +798,7 @@ ${group.consent
     const enteringMap = next === 'map' && view !== 'map';
     if (next !== 'map') mapSheetOpen = false;
     if (enteringMap) mapSheetOpen = false;
+    if (next !== view) prevView = view;
     view = next;
     render();
     window.scrollTo?.(0, 0);
