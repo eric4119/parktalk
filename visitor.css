@@ -380,8 +380,8 @@
   align-items: flex-start;
   gap: 11px;
   border-radius: 13px;
-  background: #f0edfa;
-  color: #7b7199;
+  background: #f2f2f2;
+  color: #666;
   padding: 13px 15px;
   margin-top: 17px;
 }
@@ -392,7 +392,7 @@
   line-height: 1.7;
 }
 .pv-info-strip strong {
-  color: #625780;
+  color: #444;
 }
 .pv-info-strip svg,
 .pv-privacy-callout svg {
@@ -1110,14 +1110,14 @@
 .pv-route-track small, .pv-route-track strong { display: block; }
 .pv-route-track small { color: #8b86a0; font-size: 10px; }
 .pv-route-track strong { margin-top: 4px; color: #302c49; font-size: 13px; }
-.pv-route-alert { display: flex; align-items: flex-start; gap: 10px; margin: 16px 0 10px; padding: 13px; border-radius: 12px; background: #f1edff; color: #6b648a; }
-.pv-route-alert svg { width: 21px; height: 21px; flex: none; color: #7053d7; }
+.pv-route-alert { display: flex; align-items: flex-start; gap: 10px; margin: 16px 0 10px; padding: 13px; border-radius: 12px; background: #f0f0f0; color: #555; }
+.pv-route-alert svg { width: 21px; height: 21px; flex: none; color: #555; }
 .pv-route-alert p { margin: 0; font-size: 11px; line-height: 1.6; }
-.pv-missing-banner { display: grid; gap: 9px; margin: 20px 0 26px; padding: 20px; border-radius: 18px; background: #fff0e8; color: #713d38; }
+.pv-missing-banner { display: grid; gap: 9px; margin: 20px 0 26px; padding: 20px; border-radius: 18px; background: #f0f0f0; color: #333; }
 .pv-missing-banner > span { font-size: 11px; font-weight: 800; }
 .pv-missing-banner strong { font-size: 19px; line-height: 1.35; }
-.pv-missing-banner a { width: fit-content; color: #9e3c36; font-size: 12px; font-weight: 800; text-decoration: underline; }
-.pv-missing-banner button { display: flex; align-items: center; gap: 5px; width: fit-content; border: 0; background: none; color: #9e3c36; font-size: 11px; font-weight: 750; padding: 0; }
+.pv-missing-banner a { width: fit-content; color: #333; font-size: 12px; font-weight: 800; text-decoration: underline; }
+.pv-missing-banner button { display: flex; align-items: center; gap: 5px; width: fit-content; border: 0; background: none; color: #333; font-size: 11px; font-weight: 750; padding: 0; }
 .pv-missing-banner button svg { width: 16px; height: 16px; }
 .pv-board-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; margin-bottom: 20px; }
 .pv-board-grid button { display: grid; place-items: center; gap: 6px; min-height: 82px; border: 1px solid #e6e4f0; border-radius: 14px; background: white; font-size: 21px; }
