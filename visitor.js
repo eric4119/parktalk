@@ -212,32 +212,26 @@ ${rightIcons}
   }
   function create() {
     return `<div class="pv-content pv-form-page">
-<button type="button" class="pv-back" data-pv-view="group">${icon("back")} 일행으로 돌아가기</button>
       ${title("그룹 만들기 · 01", "오늘 함께할<br>일행의 이름을 지어주세요", "초대 코드로 같은 그룹에 참여할 수 있어요.")}
       <form id="pv-create-form" class="pv-card pv-form-card">
 <label for="pv-group-name">그룹 이름</label>
 <input id="pv-group-name" name="groupName" type="text" maxlength="24" minlength="2" autocomplete="off" placeholder="예: 우리 가족, 대학 동기" required>
 <p class="pv-field-hint">2~24자로 입력해 주세요.</p>
 <p class="pv-field-hint">그룹은 오늘 밤 12시에 자동 종료됩니다.</p>
-<button class="pv-button" type="submit">시연 그룹 만들기 ${icon("arrow")}</button>
+<button class="pv-button" type="submit">그룹 만들기 ${icon("arrow")}</button>
 </form>
-      <div class="pv-privacy-callout">${icon("shield")}<p>그룹은 오늘 밤 12시에 이 브라우저에서 자동 종료돼요. 실제 사용자 초대와 위치 교환은 서버 연동 후 제공됩니다.</p>
-</div>
     </div>`;
   }
   function join() {
     const code = sessionStorage.getItem(INVITE) || "";
     return `<div class="pv-content pv-form-page">
-<button type="button" class="pv-back" data-pv-view="group">${icon("back")} 일행으로 돌아가기</button>
       ${title("그룹 참여 · 01", "일행의 초대 코드를<br>입력해 주세요", "초대 링크로 왔다면 코드가 채워져 있어요.")}
       <form id="pv-join-form" class="pv-card pv-form-card">
 <label for="pv-invite-code">초대 코드</label>
 <input id="pv-invite-code" name="inviteCode" type="text" maxlength="6" minlength="6" autocomplete="off" inputmode="text" placeholder="6자리 코드" value="${escapeHtml(code)}" required>
 <p class="pv-field-hint">영문 대문자와 숫자 6자리</p>
-<button class="pv-button" type="submit">시연 그룹에 참여 ${icon("arrow")}</button>
+<button class="pv-button" type="submit">그룹 참여 ${icon("arrow")}</button>
 </form>
-      <div class="pv-privacy-callout">${icon("shield")}<p>이 브라우저에서 만든 시연 그룹의 코드만 확인할 수 있어요. 다른 기기의 일행과 연결하려면 서버가 필요합니다.</p>
-</div>
     </div>`;
   }
   function groupPage() {
