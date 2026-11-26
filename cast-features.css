@@ -203,3 +203,104 @@
 .menu-preview li { display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.4; }
 .menu-preview li .pill { flex: 0 0 auto; font-size: 11px; }
 .menu-preview li span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 분실물 AI (lost-ai.js) — 글쓰기 'AI로 채우기', 상세 'AI 추천', 목록 알림 */
+.lost-ai { display: grid; gap: 8px; padding: 12px; margin: 4px 0 10px; border-radius: 14px; background: rgba(246,207,88,0.12); border: 1px solid rgba(230,185,0,0.35); }
+.lost-ai__head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.lost-ai__head strong { font-size: 14px; }
+.lost-ai__head small { font-size: 12px; color: #6b7080; }
+.lost-ai__text { width: 100%; box-sizing: border-box; resize: vertical; min-height: 52px; font: inherit; font-size: 13px; padding: 8px 10px; border-radius: 10px; border: 1px solid #e0e0e0; background: #fff; }
+.lost-ai__actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.lost-ai__status { font-size: 12px; color: #5b6275; line-height: 1.5; }
+.lost-ai-panel { margin: 12px 0; padding: 14px; border-radius: 16px; border: 1px solid rgba(230,185,0,0.45); background: #fffaf0; display: grid; gap: 10px; }
+.lost-ai-panel__head { display: grid; gap: 2px; }
+.lost-ai-panel__head strong { font-size: 15px; }
+.lost-ai-panel__head small { font-size: 12px; color: #6b7080; }
+.lost-ai-match { background: #fff; border: 1px solid #ececec; border-radius: 12px; padding: 10px 12px; display: grid; gap: 6px; }
+.lost-ai-match__top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.lost-ai-match__top strong { font-size: 14px; }
+.lost-ai-match__pct { flex: 0 0 auto; font-size: 12px; font-weight: 800; color: #8a6500; background: rgba(246,207,88,0.25); border-radius: 999px; padding: 2px 8px; }
+.lost-ai-match__meta { margin: 0; font-size: 12px; color: #6b7080; }
+.lost-ai-match__why { display: flex; flex-wrap: wrap; gap: 4px; }
+.lost-ai-match__why span { font-size: 11px; padding: 2px 7px; border-radius: 999px; background: #f3f4f6; color: #444; }
+.lost-ai-banner { display: grid; gap: 3px; width: 100%; box-sizing: border-box; text-align: left; margin: 0 0 10px; padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(230,185,0,0.55); background: rgba(246,207,88,0.16); font: inherit; color: inherit; cursor: pointer; }
+.lost-ai-banner strong { font-size: 14px; }
+.lost-ai-banner span { font-size: 12px; color: #5b6275; }
+
+/* 방문객 게시판 글쓰기 버튼(캐스트는 상단바에 있음) */
+.pb-write-row { display: flex; justify-content: flex-end; margin: 4px 0 10px; }
+.pb-write-btn { padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; }
+.lost-ai__photo { display: grid; gap: 4px; font-size: 12px; color: #5b6275; }
+.lost-ai__photo input { font-size: 12px; }
+
+/* 습득물 찾기 — 분실물 게시판 제목 줄의 버튼 + 전체 화면 시트 */
+.lost-find-open { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 999px; border: 1.5px solid rgba(230,185,0,0.55); background: rgba(246,207,88,0.14); color: #6b4f00; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.lost-find-open .ui-icon { width: 15px; height: 15px; }
+#visitorApp .lost-find-open { font-size: 13px; padding: 6px 12px; min-height: 0; }
+.lost-find-sheet { position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; background: #f7f7f8; }
+.lost-find-sheet__bar { display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 4px; padding: 10px 12px; background: #fff; border-bottom: 1px solid #ececec; }
+.lost-find-sheet__bar strong { font-size: 16px; text-align: center; }
+.lost-find-sheet__bar .srch-back { padding: 4px; }
+.lost-find-sheet__reset { border: 0; background: none; color: #8a6500; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; padding: 6px 4px; }
+.lost-find-sheet__body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.lost-find { display: grid; gap: 12px; padding: 14px 15px 28px; }
+.lost-find__intro { margin: 0; font-size: 12px; color: #6b7080; }
+.lost-find__form { display: grid; gap: 8px; padding: 12px; background: #fff; border-radius: 16px; border: 1px solid #ececec; }
+.lost-find__row { display: flex; gap: 8px; align-items: center; }
+.lost-find__row input[name="q"] { flex: 1; min-width: 0; height: 40px; padding: 0 12px; border-radius: 12px; border: 1.5px solid transparent; background: #f5f5f5; font: inherit; font-size: 14px; outline: none; }
+.lost-find__row input[name="q"]:focus { border-color: #d9b44a; background: #fff; }
+.lost-find__row .primary { flex: 0 0 auto; height: 40px; padding: 0 16px; border-radius: 12px; }
+.lost-find__photo-row { flex-wrap: wrap; }
+.lost-find__photo-btn { display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 999px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.lost-find__filters { flex-wrap: nowrap; }
+.lost-find__filters select, .lost-find__filters input { flex: 1 1 0; min-width: 0; height: 32px; padding: 0 8px; border-radius: 999px; border: 1px solid #e0e0e0; font: inherit; font-size: 12px; background: #fff; color: #333; }
+.lost-find__summary { margin: 0; font-size: 12px; color: #8a6500; font-weight: 700; }
+.lost-find__results { display: grid; gap: 10px; }
+.lost-find__empty, .lost-find__loading { margin: 6px 0 0; padding: 18px 12px; text-align: center; font-size: 13px; color: #8a8f9c; }
+.lost-find__list { display: grid; gap: 8px; }
+.lost-find__item { grid-template-columns: 64px 1fr; align-items: start; gap: 10px; }
+.lost-find__body { display: grid; gap: 5px; min-width: 0; }
+.lost-find__thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; background: #f3f4f6; }
+.lost-find__thumb--none { display: flex; align-items: center; justify-content: center; font-size: 10px; color: #9aa0ad; }
+.lost-find__thumb--small { width: 32px; height: 32px; border-radius: 8px; }
+.lost-find__visual { margin: 0; font-size: 12px; font-weight: 700; }
+.lost-find__visual--high { color: #1f7a3d; }
+.lost-find__visual--medium { color: #8a6500; }
+.lost-find__visual--low { color: #9aa0ad; }
+.lost-find__report { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; padding: 12px; border-radius: 14px; background: #fff; border: 1px dashed #e0d3a8; font-size: 13px; }
+.lost-claim-form { display: grid; gap: 10px; }
+.lost-claim-form textarea { width: 100%; box-sizing: border-box; min-height: 80px; font: inherit; padding: 8px 10px; border-radius: 10px; border: 1px solid #e0e0e0; }
+.lost-find .ps-link, #visitorApp .lost-find .ps-link { border: 0; background: none; padding: 0; min-height: 0; font-size: 12px; cursor: pointer; }
+/* 시트 안 내용이 화면 너비를 넘지 않게(그리드·입력칸의 최소 너비 풀기) */
+.lost-find, .lost-find__form, .lost-find__results, .lost-find__list { grid-template-columns: minmax(0, 1fr); min-width: 0; }
+.lost-find-sheet *, .lost-find-sheet *::before, .lost-find-sheet *::after { box-sizing: border-box; }
+.lost-find__filters select, .lost-find__filters input[type="date"] { width: 0; }
+.lost-find__item { grid-template-columns: 64px minmax(0, 1fr); }
+.lost-find__item .lost-ai-match__top strong { overflow-wrap: anywhere; }
+.lost-find__report .outline { white-space: normal; text-align: center; }
+.cast-board-list-head .lost-find-open span { font-size: 13px; color: inherit; }
+
+/* 분실물 게시판 제목 줄 버튼 묶음 · 내 신청 · 습득 요청 */
+.lost-head-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.lost-find-open { position: relative; }
+.lost-count { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #e5484d; color: #fff; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
+.lost-dot { position: absolute; top: -2px; right: -2px; width: 9px; height: 9px; border-radius: 50%; background: #e5484d; border: 2px solid #fff; }
+.claim-badge { flex: 0 0 auto; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
+.claim-badge--wait { background: #fff4d6; color: #8a6500; }
+.claim-badge--ok { background: #dcf5e4; color: #1f7a3d; }
+.claim-badge--done { background: #e8eefc; color: #2f5bd3; }
+.claim-badge--no { background: #fde4e4; color: #b42318; }
+.claim-badge--off { background: #f0f0f2; color: #7a7f8c; }
+.claim-card { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 10px; padding: 12px; background: #fff; border: 1px solid #ececec; border-radius: 14px; }
+.claim-card--ok { border-color: #a6dfb8; }
+.claim-card__body { display: grid; gap: 5px; min-width: 0; }
+.claim-card__top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.claim-card__top strong { font-size: 14px; overflow-wrap: anywhere; }
+.claim-card__note { margin: 0; font-size: 12px; color: #444; }
+.claim-card__guide { margin: 0; font-size: 12px; color: #5b6275; line-height: 1.5; }
+.claim-card--ok .claim-card__guide { color: #1f5f34; }
+.claim-tabs { margin: 0; }
+.claim-group { display: grid; gap: 8px; padding: 12px; background: #fff; border: 1px solid #ececec; border-radius: 16px; }
+.claim-group__head { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 10px; align-items: start; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; }
+.claim-group__head strong { font-size: 14px; }
+.claim-row { display: grid; gap: 4px; padding: 10px; border-radius: 12px; background: #fafafa; }

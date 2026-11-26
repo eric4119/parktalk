@@ -27,6 +27,7 @@
     '지갑/카드',
     '휴대폰/전자기기',
     '가방/의류',
+    '신발',
     '유모차/아동용품',
     '기타 소지품',
   ];
@@ -198,6 +199,7 @@
       .filter(
         (p) =>
           allowed(p.kind) &&
+          !p.claimAuto && // '내 물건 같아요'로 생긴 확인 요청은 게시판 목록 대신 내 신청·습득 요청 화면에서 본다
           (kind === 'popular' ? recent(p) > 0 : p.kind === kind) &&
           (!q ||
             [
@@ -253,7 +255,9 @@
             .join('')}</div>`
         : '';
 
-    return `<div class="cast-board-list-head"><strong>${labels[kind]} 게시판</strong></div>${
+    return `<div class="cast-board-list-head"><strong>${labels[kind]} 게시판</strong>${
+      kind === 'lost' ? window.ParkLostAI?.findButton(data, actor(), isCastMode()) || '' : ''
+    }</div>${
       kind === 'popular'
         ? '<p class="pb-hint">최근 5시간 동안 받은 좋아요 순 · 동률은 최신 글 순</p>'
         : ''
@@ -319,6 +323,7 @@
         <span class="pb-sr-only">게시글 검색</span>
         <input type="search" data-pb-search value="${escape(query)}" placeholder="제목, 내용, 물품, 구역, 작성자 검색">
       </label>
+      ${mode === 'visitor' ? '<div class="pb-write-row"><button type="button" class="primary pb-write-btn" data-pb-write>＋ 글쓰기</button></div>' : ''}
       <div id="pb-board-notice">${boardNotice()}</div>
       <div class="cast-board-list" id="pb-list">${cards(selected)}</div>
     </section>`;
@@ -329,7 +334,7 @@
       return '<div class="pv-missing-help"><strong>미아 발생 시 가까운 캐스트에게 먼저 알려주세요.</strong><a href="tel:0313205050">손님상담실 031-320-5050</a></div>';
     }
     if (selected === 'lost') {
-      return '<div class="pv-missing-help"><strong>분실물 신고와 캐스트 습득물이 연결되면 보관 장소가 안내됩니다.</strong><span>습득물 문의: 정문 손님상담실</span></div>';
+      return `${window.ParkLostAI?.banner(data, actor(), isCastMode()) || ''}<div class="pv-missing-help"><strong>분실물 신고와 캐스트 습득물이 연결되면 보관 장소가 안내됩니다.</strong><span>습득물 문의: 정문 손님상담실</span></div>`;
     }
     return '';
   }
@@ -371,8 +376,14 @@
     </section>`;
   }
 
+  // 캐스트 화면(#view)과 방문객 화면이 둘 다 DOM에 남아 있을 수 있어서(캐스트 계정이 방문객 모드로 전환한 경우),
+  // 지금 보이는 쪽을 고른다. 안 그러면 숨은 화면만 다시 그려져 버튼을 눌러도 반응이 없는 것처럼 보인다.
+  function visible(selector) {
+    const all = document.querySelectorAll ? [...document.querySelectorAll(selector)] : [document.querySelector(selector)].filter(Boolean);
+    return all.find((el) => el.offsetParent !== null || el.getClientRects().length) || all[0] || null;
+  }
   function refresh() {
-    const root = document.querySelector('.pb-page');
+    const root = visible('.pb-page');
     if (root) {
       root.querySelectorAll('[data-pb-kind]').forEach((button) => {
         const active = button.dataset.pbKind === selected;
@@ -382,7 +393,7 @@
       root.querySelector('#pb-list').innerHTML = cards(selected);
       root.querySelector('#pb-board-notice').innerHTML = boardNotice();
     }
-    const homeRoot = document.querySelector('.pb-home');
+    const homeRoot = visible('.pb-home');
     if (homeRoot) {
       homeRoot.querySelectorAll('[data-pb-home-kind]').forEach((button) => {
         const active = button.dataset.pbHomeKind === homeKind;
@@ -404,6 +415,93 @@
     a.status = 'matched';
     b.status = 'matched';
     return persist();
+  }
+
+  // ---- 습득물 확인 요청(방문객 '내 물건 같아요') ----
+  // 방문객의 분실물 글에 claimFor(습득물 id)를 붙여 둔다. 분실물 글이 없으면 습득물 정보로 새로 만든다.
+  function requestClaim(foundId, { note = '', lostId = '' } = {}) {
+    const me = actor();
+    const found = data.find((x) => x.id === foundId);
+    if (isCastMode()) return window.parkToast?.('확인 요청은 방문객 모드에서 보낼 수 있어요.'), null;
+    if (!found || found.kind !== 'lost' || found.lostType !== '습득물' || found.linkedPostId || getStatus(found) !== 'open') {
+      return window.parkToast?.('이미 주인을 찾았거나 확인할 수 없는 습득물이에요.'), null;
+    }
+    if (data.some((x) => x.claimFor === foundId && x.authorId === me.id && !x.claimStatus && !x.linkedPostId)) {
+      window.parkToast?.('이미 이 습득물에 확인 요청을 보냈어요.');
+      return null;
+    }
+    let post = lostId ? data.find((x) => x.id === lostId && x.authorId === me.id && x.kind === 'lost' && x.lostType === '분실물') : null;
+    if (post) {
+      post.claimFor = foundId;
+      post.claimNote = String(note || '').slice(0, 300);
+      post.claimAt = Date.now();
+      post.claimStatus = '';
+      post.claimReason = '';
+    } else {
+      const name = String(found.title || '').replace(/^\[습득\]\s*/, '').replace(/\s*보관\s*중$/, '');
+      post = {
+        id: uid(), kind: 'lost', lostType: '분실물',
+        title: `[확인 요청] ${name}`.slice(0, 80),
+        body: String(note || '습득물 게시판에서 찾은 물건이 제 것 같아요.').slice(0, 1000),
+        author: me.name, authorType: me.type, authorId: me.id, createdAt: Date.now(),
+        likes: [], replies: [], photoUrl: '', status: 'open', linkedPostId: null,
+        itemCategory: found.itemCategory || '기타 소지품', zone: found.zone || '', place: found.place || '', eventTime: '',
+        claimFor: foundId, claimNote: String(note || '').slice(0, 300), aiTags: found.aiTags || null,
+        claimAuto: true, claimAt: Date.now(), claimStatus: '', claimReason: '',
+      };
+      data.unshift(post);
+    }
+    if (!persist()) return null;
+    refresh();
+    detail(foundId);
+    window.parkToast?.('확인 요청을 보냈어요. 처리 현황은 분실물 게시판의 \'내 신청\'에서 볼 수 있어요.');
+    return post;
+  }
+  // 방문객이 확인 대기 중인 요청을 취소한다. 요청 때문에 만들어진 글은 지우고, 원래 있던 분실물 글은 요청 표시만 뗀다.
+  function cancelClaim(lostId) {
+    const me = actor();
+    const c = data.find((x) => x.id === lostId);
+    if (isCastMode() || !c || c.authorId !== me.id || !c.claimFor || c.claimStatus || c.linkedPostId) {
+      return window.parkToast?.('취소할 수 없는 요청이에요.'), false;
+    }
+    if (c.claimAuto) data = data.filter((x) => x.id !== c.id);
+    else Object.assign(c, { claimFor: '', claimNote: '', claimAt: 0, claimStatus: '', claimReason: '' });
+    if (!persist()) return false;
+    refresh();
+    window.parkToast?.('확인 요청을 취소했어요.');
+    return true;
+  }
+  // 캐스트가 본인 확인에서 주인이 아니라고 판단한 요청을 반려한다(사유는 방문객 '내 신청'에 보임).
+  function rejectClaim(lostId, reason = '') {
+    if (!isCastMode()) return window.parkToast?.('캐스트만 반려할 수 있어요.'), false;
+    const c = data.find((x) => x.id === lostId);
+    if (!c || !c.claimFor || c.claimStatus || c.linkedPostId) return false;
+    c.claimStatus = 'rejected';
+    c.claimReason = String(reason || '').slice(0, 120);
+    c.claimDecidedAt = Date.now();
+    if (!persist()) return false;
+    refresh();
+    window.parkToast?.('확인 요청을 반려했어요.');
+    return true;
+  }
+  // 캐스트가 확인 요청을 보고 연결(확정)한다.
+  function confirmClaim(foundId, lostId, { stay = false } = {}) {
+    if (!isCastMode()) return window.parkToast?.('캐스트만 확인할 수 있어요.'), false;
+    const lost = data.find((x) => x.id === lostId);
+    if (!lost || lost.claimFor !== foundId || lost.claimStatus) return false;
+    lost.claimDecidedAt = Date.now();
+    // 같은 습득물에 들어온 다른 대기 요청은 '다른 분에게 연결됨'으로 마감한다.
+    for (const other of data) {
+      if (other.id !== lostId && other.claimFor === foundId && !other.claimStatus && !other.linkedPostId) {
+        other.claimStatus = 'closed';
+        other.claimDecidedAt = Date.now();
+      }
+    }
+    if (!linkPosts(foundId, lostId)) return false;
+    refresh();
+    if (!stay) detail(foundId);
+    window.parkToast?.('확인 요청을 연결했어요. 방문객에게 보관 장소가 안내돼요.');
+    return true;
   }
 
   function unlinkPost(postId) {
@@ -510,8 +608,10 @@
             (x.lostType || '분실물') === targetType,
         )
         .sort((a, b) => {
-          const scoreA = Number(a.itemCategory === p.itemCategory) + Number(a.zone === p.zone);
-          const scoreB = Number(b.itemCategory === p.itemCategory) + Number(b.zone === p.zone);
+          // 분실물 AI 매칭 점수(종류·색·브랜드·구역·시간)가 있으면 그 순서로, 없으면 종류·구역 일치 순서로
+          const M = window.ParkLostMatch;
+          const scoreA = M ? M.score(p, a).score : Number(a.itemCategory === p.itemCategory) + Number(a.zone === p.zone);
+          const scoreB = M ? M.score(p, b).score : Number(b.itemCategory === p.itemCategory) + Number(b.zone === p.zone);
           return scoreB - scoreA || (b.createdAt || 0) - (a.createdAt || 0);
         });
 
@@ -526,8 +626,10 @@
           candidates.length
             ? `<select id="pb-link-select" aria-label="연결할 ${targetType} 선택">${candidates
                 .map((c) => {
-                  const matchedTag =
-                    (c.itemCategory && c.itemCategory === p.itemCategory) || (c.zone && c.zone === p.zone)
+                  const ai = window.ParkLostMatch?.score(p, c);
+                  const matchedTag = ai
+                    ? ai.score >= window.ParkLostMatch.MIN_SCORE ? `[AI ${ai.percent}%] ` : ''
+                    : (c.itemCategory && c.itemCategory === p.itemCategory) || (c.zone && c.zone === p.zone)
                       ? '[추천] '
                       : '';
                   return `<option value="${c.id}">${matchedTag}${escape(c.title)} (${escape(
@@ -553,29 +655,7 @@
       </div>`;
     }
 
-    if (isFound) {
-      const myOpenLost = data.filter(
-        (x) =>
-          x.kind === 'lost' &&
-          (x.lostType || '분실물') === '분실물' &&
-          !x.linkedPostId &&
-          getStatus(x) === 'open' &&
-          x.authorId === me.id,
-      );
-      if (myOpenLost.length) {
-        return `<div class="pb-link-panel">
-          <strong>내 분실물 신고글 연결</strong>
-          <p class="pb-hint">본인 물건이 맞다면 작성해 둔 분실물 글과 연결할 수 있어요.</p>
-          <select id="pb-link-select" aria-label="내 분실물 선택">${myOpenLost
-            .map((c) => `<option value="${c.id}">${escape(c.title)}</option>`)
-            .join('')}</select>
-          <div class="pb-link-actions">
-            <button type="button" class="primary" data-pb-link="${p.id}">내 분실물과 연결하기</button>
-          </div>
-        </div>`;
-      }
-    }
-
+    // 방문객이 습득물을 볼 때는 lost-ai.js 패널의 '내 물건 같아요'로 확인 요청을 보낸다(연결은 캐스트가 확인 후).
     return '';
   }
 
@@ -635,6 +715,7 @@
       <h2>${escape(p.title)}</h2>
       <p class="pb-hint">${escape(authorName(p))} · ${escape(p.authorType)} · ${time(p.createdAt)}</p>
       ${renderStructuredMeta(p)}
+      ${window.ParkLostAI?.panel(p, data, me, isCast) || ''}
       ${renderLostLinkSection(p, me)}
       ${photoHtml}
       <p class="pb-body">${escape(p.body || p.clothes)}</p>
@@ -705,6 +786,7 @@
       return `
         <input type="hidden" name="lostType" value="${isFound ? '습득물' : '분실물'}">
         <p class="pb-hint">${isFound ? '캐스트 습득물 등록 양식입니다.' : '방문객 분실물 신고 양식입니다.'}</p>
+        ${window.ParkLostAI?.formBox(isFound) || ''}
         <label>물품 종류<select name="itemCategory">${itemCategoryOptions(preset.itemCategory)}</select></label>
         <label>제목<input name="title" maxlength="80" value="${escape(
           preset.title || '',
@@ -883,7 +965,7 @@
       }
     }
     if (b.dataset.pbLink) {
-      const targetId = document.querySelector('#pb-link-select')?.value;
+      const targetId = visible('#pb-link-select')?.value;
       if (!targetId) return window.parkToast?.('연결할 게시글을 선택해 주세요.');
       const source = data.find((x) => x.id === b.dataset.pbLink);
       const target = data.find((x) => x.id === targetId);
@@ -892,6 +974,10 @@
       const allowedLink =
         isCastMode() || (source.lostType === '습득물' && target.authorId === me.id);
       if (!allowedLink) return window.parkToast?.('연결 권한이 없습니다.');
+      if (!isCastMode()) {
+        // 방문객은 바로 연결하지 않고 확인 요청만 보낸다. 캐스트가 본인 확인 후 연결한다.
+        return requestClaim(source.id, { lostId: target.id });
+      }
       if (linkPosts(source.id, target.id)) {
         refresh();
         detail(source.id);
@@ -1023,6 +1109,8 @@
         place: ['lost', 'missing'].includes(kind) ? String(f.get('place') || '').trim().slice(0, 80) : '',
         lostType: kind === 'lost' ? (isFound ? '습득물' : '분실물') : '',
       };
+      // 분실물 AI 매칭용 특징(종류·색·브랜드·구역 등). 미아 게시판에는 붙이지 않는다.
+      extraFields.aiTags = kind === 'lost' && window.ParkLostAI ? window.ParkLostAI.tags(f, { ...extraFields, title, body }) : null;
 
       if (existing) {
         if (existing.authorId !== me.id) throw Error('본인 글만 수정할 수 있어요.');
@@ -1069,9 +1157,14 @@
           lostFilter = 'all';
           document.querySelector('#modal')?.close();
           refresh();
+          const aiNote = !targetToLink && window.ParkLostAI?.afterSave(newPost, data, isFound);
           if (targetToLink && isFound) {
             detail(targetToLink);
             window.parkToast?.('습득물을 등록하고 분실물과 연결했어요.');
+          } else if (aiNote) {
+            // 비슷한 분실물·습득물이 있으면 바로 상세로 가서 AI 추천을 보여 준다.
+            detail(newPost.id);
+            window.parkToast?.(`글을 등록했어요. ${aiNote}`);
           } else {
             window.parkToast?.('글을 등록했어요.');
           }
@@ -1143,6 +1236,13 @@
     list,
     linkPosts,
     resolvePost,
+    requestClaim,
+    confirmClaim,
+    cancelClaim,
+    rejectClaim,
+    refresh,
+    resolveLost: (id) => { if (!isCastMode()) return false; const ok = resolvePost(id); if (ok) refresh(); return ok; },
+    lostPosts: () => data.filter((p) => p.kind === 'lost'),
     search,
     setQuery: (value) => {
       query = value;
