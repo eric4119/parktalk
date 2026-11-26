@@ -326,7 +326,6 @@
         <span class="pb-sr-only">게시글 검색</span>
         <input type="search" data-pb-search value="${escape(query)}" placeholder="제목, 내용, 물품, 구역, 작성자 검색">
       </label>
-      ${mode === 'visitor' ? '<div class="pb-write-row"><button type="button" class="primary pb-write-btn" data-pb-write>＋ 글쓰기</button></div>' : ''}
       <div class="cast-board-list" id="pb-list">${cards(selected)}</div>
     </section>`;
   }
