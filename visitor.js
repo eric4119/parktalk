@@ -943,12 +943,46 @@ ${group.consent
         toast("그룹을 종료했어요.");
         break;
       case "midpoint":
-        if (gps?.lat) {
-          closestPoint = findClosest(gps.lat, gps.lng);
-          if (closestPoint) placeClosestMarker(closestPoint.lat, closestPoint.lng);
-        }
-        midpointSuggestion = true;
-        render();
+        (async () => {
+          toast("AI가 집합장소를 추천 중이에요...");
+          const BASE_SIM = [
+            { lat: 37.2955, lng: 127.2010 }, { lat: 37.2948, lng: 127.2040 },
+            { lat: 37.2920, lng: 127.2035 }, { lat: 37.2965, lng: 127.2025 },
+            { lat: 37.2938, lng: 127.1998 }, { lat: 37.2972, lng: 127.2050 },
+            { lat: 37.2928, lng: 127.2008 },
+          ];
+          const members = (group?.members || [userName]).map((name, i) => {
+            if (i === 0 && gps?.lat) return { name, lat: gps.lat, lng: gps.lng };
+            const loc = memberLocations[name];
+            if (loc?.lat) return { name, lat: loc.lat, lng: loc.lng };
+            const sim = BASE_SIM[(i - 1) % BASE_SIM.length];
+            return { name, lat: sim.lat, lng: sim.lng };
+          });
+          const readyPoints = MEETING_POINTS.filter(p => p.lat && p.lng);
+          try {
+            const res = await fetch('/api/meeting-point', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ members, points: readyPoints }),
+            });
+            const data = await res.json();
+            if (data.point) {
+              closestPoint = data.point;
+              placeClosestMarker(closestPoint.lat, closestPoint.lng);
+              midpointSuggestion = true;
+              toast(`📍 ${closestPoint.name} — ${data.reason}`);
+              render();
+            } else {
+              toast(data.error || 'AI 추천에 실패했어요.');
+            }
+          } catch {
+            closestPoint = findClosest(gps?.lat || 37.2941, gps?.lng || 127.2027);
+            if (closestPoint) placeClosestMarker(closestPoint.lat, closestPoint.lng);
+            midpointSuggestion = true;
+            toast('네트워크 오류 — 가장 가까운 집합장소를 추천했어요.');
+            render();
+          }
+        })();
         break;
       case "route-start":
         if (!closestPoint || !gps?.lat) return;
