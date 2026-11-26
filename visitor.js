@@ -242,17 +242,16 @@ ${rightIcons}
   }
   function groupPage() {
     if (!group)
-      return `<div class="pv-content"><button type="button" class="pv-back" data-pv-view="home" style="display:inline-flex;align-items:center;gap:4px;margin-bottom:14px">${icon("back")} 홈으로</button>${title("일행 찾기", "일행과 연결해 보세요", "그룹을 만들거나 받은 코드로 참여할 수 있어요.")}<div class="pv-action-grid pv-group-actions">
+      return `<div class="pv-content">${title("일행 찾기", "일행과 연결해 보세요", "그룹을 만들거나 받은 코드로 참여할 수 있어요.")}<div class="pv-action-stack">
 <button type="button" class="pv-action-card" data-pv-view="create">
 <span class="pv-action-icon pv-purple">${icon("people")}</span>
 <strong style="word-break:keep-all">새 그룹 만들기</strong>${icon("arrow")}</button>
 <button type="button" class="pv-action-card" data-pv-view="join">
 <span class="pv-action-icon pv-mint">${icon("link")}</span>
-<strong style="word-break:keep-all;white-space:nowrap">그룹 참여</strong>${icon("arrow")}</button>
+<strong style="word-break:keep-all">그룹 참여</strong>${icon("arrow")}</button>
 </div>
-<div class="pv-empty-note">초대 링크나 코드는 실제 여러 사용자와 연결되지 않는 시연 기능입니다.</div>
 </div>`;
-    return `<div class="pv-content"><button type="button" class="pv-back" data-pv-view="home" style="display:inline-flex;align-items:center;gap:4px;margin-bottom:14px">${icon("back")} 홈으로</button>${title("나의 일행", escapeHtml(group.name), "파크 안에서 일행을 찾는 시연 그룹이에요.")}
+    return `<div class="pv-content">${title("나의 일행", escapeHtml(group.name), "파크 안에서 일행을 찾는 시연 그룹이에요.")}
       <div class="pv-card pv-group-detail">
 <span class="pv-badge">${group.source === "created" ? "내가 만든 그룹" : "코드로 참여한 그룹"}</span>
 <div class="pv-code-line">
