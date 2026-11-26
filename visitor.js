@@ -232,18 +232,20 @@ ${rightIcons}
       var badge = document.getElementById('pv-size-badge');
       var hint = document.getElementById('pv-size-hint');
       if(!input) return;
-      input.addEventListener('input', function(){
+      function update(){
         var n = parseInt(input.value) || 1;
         if(n > 10){
           badge.textContent = '유료';
           badge.className = 'pv-size-badge pv-size-paid';
           hint.textContent = '11명 이상은 유료 기능입니다. 그룹 만들기 시 구매 화면으로 이동합니다.';
         } else {
-          badge.textContent = '';
+          badge.textContent = '무료';
           badge.className = 'pv-size-badge';
           hint.textContent = '10명까지 무료로 이용할 수 있어요.';
         }
-      });
+      }
+      input.addEventListener('input', update);
+      update();
     })();
     </script>`;
   }
