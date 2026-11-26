@@ -958,12 +958,11 @@ ${group.consent
             const sim = BASE_SIM[(i - 1) % BASE_SIM.length];
             return { name, lat: sim.lat, lng: sim.lng };
           });
-          const readyPoints = MEETING_POINTS.filter(p => p.lat && p.lng);
           try {
             const res = await fetch('/api/meeting-point', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ members, points: readyPoints }),
+              body: JSON.stringify({ members }),
             });
             const data = await res.json();
             if (data.point) {
